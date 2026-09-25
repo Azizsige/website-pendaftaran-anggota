@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_PRISMA_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+// ----------------------------------------------------
+// 1. DATA PENGGUNA & AUTENTIKASI (AKUN AKSES)
+// ----------------------------------------------------
+model User {
+  id            String    @id @default(cuid())  // PK
+  name          String?   
+  email         String?   @unique               // Unique Index
+  password      String?   
+  emailVerified DateTime?
+  image         String?
+  
+  // Hak Akses dan Status
+  role          String    @default("MEMBER") 
+  status        String    @default("ACTIVE") 
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relasi
+  memberProfile MemberProfile? // One-to-One
+  activityLogs  ActivityLog[]  // One-to-Many
+}
+
+// ----------------------------------------------------
+// 2. DATA PROFIL & PENDAFTARAN (MEMBER DATA)
+// ----------------------------------------------------
+model MemberProfile {
+  id             String   @id @default(cuid())  // PK
+  
+  // Relasi ke User
+  userId         String   @unique               // FK & Unique untuk menjamin One-to-One
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Identitas Pribadi
+  nim            String   @unique               // Unique Index
+  phoneNumber    String?
+  placeOfBirth   String?
+  dateOfBirth    DateTime?
+  gender         String?
+  
+  // Alamat & Regional
+  address        String?
+  faculty        String?
+  major          String?
+  batchYear      String?   // contoh: "2023", "2024"
+  
+  // Dokumen URL (Disimpan di Cloud Storage/Local)
+  photoUrl       String?
+  ktmImageUrl    String?
+  documentUrl    String?   
+  
+  // Hashing untuk cek duplikasi gambar
+  ktmHash        String?   @unique
+  photoHash      String?   @unique
+  
+  // Status Pendaftaran
+  joinDate       DateTime  @default(now())
+  status         String    @default("PENDING") // PENDING, APPROVED, REJECTED, SUSPENDED
+  adminNotes     String?   @db.Text            // Catatan admin saat reject/suspend
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+// ----------------------------------------------------
+// 3. PENGATURAN SISTEM (SYSTEM SETTINGS)
+// ----------------------------------------------------
+model SystemSetting {
+  id          String   @id @default(cuid())  // PK
+  category    String   
+  key         String   @unique               // Unique Index
+  value       String   @db.Text 
+  description String?  @db.Text
+  
+  updatedAt   DateTime @updatedAt
+}
+
+// ----------------------------------------------------
+// 4. LOG AKTIVITAS ADMIN (AUDIT TRAIL)
+// ----------------------------------------------------
+model ActivityLog {
+  id          String   @id @default(cuid())  // PK
+  
+  // Relasi ke Admin yang melakukan aksi
+  userId      String   // FK
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Data Log
+  action      String   
+  entityType  String?  // Tabel/Modul apa yang diubah
+  entityId    String?  // Data ID spesifik yang diubah
+  details     String?  @db.Text 
+  
+  createdAt   DateTime @default(now())
+}
