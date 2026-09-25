@@ -5,7 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
-export default function LandingNavbar() {
+export default function LandingNavbar({ 
+  orgName = "MemberHub", 
+  orgLogo = "" 
+}: { 
+  orgName?: string; 
+  orgLogo?: string; 
+}) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const pathname = usePathname();
@@ -36,13 +42,17 @@ export default function LandingNavbar() {
           href="/"
           className="font-bold text-xl text-[#006c49] flex items-center gap-2"
         >
-          <span
-            className="material-symbols-outlined text-[#006c49]"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            hub
-          </span>
-          MemberHub
+          {orgLogo ? (
+            <img src={orgLogo} alt="Logo" className="h-8 object-contain" />
+          ) : (
+            <span
+              className="material-symbols-outlined text-[#006c49]"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              hub
+            </span>
+          )}
+          <span className="truncate max-w-[200px] sm:max-w-none">{orgName}</span>
         </Link>
 
         {/* Navigation Links */}

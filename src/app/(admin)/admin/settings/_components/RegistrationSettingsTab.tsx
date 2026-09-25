@@ -99,15 +99,11 @@ export const RegistrationSettingsTab = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
             <label className="flex items-center gap-3 p-3 border border-outline-variant/30 rounded-lg hover:bg-surface-variant/30 transition-colors cursor-pointer bg-surface-container-low/50">
               <input defaultChecked className="rounded border-outline-variant/30 text-primary focus:ring-primary w-4 h-4 cursor-pointer shrink-0" type="checkbox"/>
-              <span className="text-sm truncate">Kartu Tanda Penduduk (KTP)</span>
+              <span className="text-sm truncate">Kartu Tanda Mahasiswa (KTM)</span>
             </label>
             <label className="flex items-center gap-3 p-3 border border-outline-variant/30 rounded-lg hover:bg-surface-variant/30 transition-colors cursor-pointer bg-surface-container-low/50">
               <input defaultChecked className="rounded border-outline-variant/30 text-primary focus:ring-primary w-4 h-4 cursor-pointer shrink-0" type="checkbox"/>
-              <span className="text-sm truncate">Pas Foto 4×6</span>
-            </label>
-            <label className="flex items-center gap-3 p-3 border border-outline-variant/30 rounded-lg hover:bg-surface-variant/30 transition-colors cursor-pointer bg-surface-container-low/50 sm:col-span-2">
-              <input className="rounded border-outline-variant/30 text-primary focus:ring-primary w-4 h-4 cursor-pointer shrink-0" type="checkbox"/>
-              <span className="text-sm truncate">Sertifikat Pendukung (Opsional)</span>
+              <span className="text-sm truncate">Foto Profil</span>
             </label>
           </div>
         </div>

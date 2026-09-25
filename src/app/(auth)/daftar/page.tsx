@@ -76,7 +76,6 @@ export default function DaftarPage() {
     const errs: Errors = {};
     if (!formData.pasFoto) errs.pasFoto = "Pas foto wajib diupload";
     if (!formData.fotoKTM) errs.fotoKTM = "Foto KTM wajib diupload";
-    if (!formData.krsDokumen) errs.krsDokumen = "KRS Aktif / CV wajib diupload";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -121,7 +120,7 @@ export default function DaftarPage() {
   };
 
   /* ─── Derived state for button disabled ─── */
-  const isStep2Complete = !!(formData.pasFoto && formData.fotoKTM && formData.krsDokumen);
+  const isStep2Complete = !!(formData.pasFoto && formData.fotoKTM);
   const isStep3SubmitReady = formData.persetujuan && !isSubmitting;
 
   return (

@@ -73,8 +73,8 @@ export const AddAdminDrawer = ({ open, onOpenChange, children }: AddAdminDrawerP
 
   const roles = [
     { label: "Super Admin", value: "super_admin" },
-    { label: "Manager", value: "manager" },
-    { label: "Editor", value: "editor" },
+    { label: "Koordinator", value: "koordinator" },
+    { label: "Staff", value: "staff" },
   ];
 
   return (

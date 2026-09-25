@@ -184,7 +184,6 @@ export default function StepKonfirmasi({ formData, errors, updateField, onValida
         <div className="flex flex-col gap-[8px]">
           <DocumentItem icon={ImageIcon} label="Pas Foto" fileName={formData.pasFoto?.name} status={formData.pasFoto ? "SUCCESS" : "IDLE"} />
           <DocumentItem icon={CreditCard} label="Foto KTM" fileName={formData.fotoKTM?.name} status={validationStatus} />
-          <DocumentItem icon={FileText} label="KRS / CV" fileName={formData.krsDokumen?.name} status={formData.krsDokumen ? "SUCCESS" : "IDLE"} />
         </div>
         
         {/* Validation Status Indicator */}

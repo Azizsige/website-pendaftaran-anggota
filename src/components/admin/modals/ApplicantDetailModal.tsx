@@ -174,7 +174,7 @@ export default function ApplicantDetailModal({
                         <span className="material-symbols-outlined text-[22px]">account_box</span>
                       </div>
                       <div>
-                        <p className="text-xs font-semibold text-on-surface">Pas Foto Formal</p>
+                        <p className="text-xs font-semibold text-on-surface">Foto Profil</p>
                         <p className="text-[11px] text-on-surface-variant/70">{applicant.photoUrl ? "Terlampir" : "Belum diunggah"}</p>
                       </div>
                     </div>
@@ -182,27 +182,6 @@ export default function ApplicantDetailModal({
                       <div className="flex items-center gap-2 shrink-0">
                         <button 
                           onClick={() => setPreviewImageUrl(applicant.photoUrl!)}
-                          className="px-2.5 py-1.5 rounded text-xs font-medium text-on-surface-variant hover:text-primary hover:bg-surface-container-highest border border-outline-variant/30 flex items-center gap-1 transition-colors cursor-pointer"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">visibility</span> Lihat
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3.5 rounded-lg border border-outline-variant/20 bg-surface-container-low flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-[22px]">school</span>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-on-surface">KRS Aktif / CV</p>
-                        <p className="text-[11px] text-on-surface-variant/70">{applicant.documentUrl ? "Terlampir" : "Belum diunggah"}</p>
-                      </div>
-                    </div>
-                    {applicant.documentUrl && (
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button 
-                          onClick={() => setPreviewImageUrl(applicant.documentUrl!)}
                           className="px-2.5 py-1.5 rounded text-xs font-medium text-on-surface-variant hover:text-primary hover:bg-surface-container-highest border border-outline-variant/30 flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-[16px]">visibility</span> Lihat

@@ -6,8 +6,8 @@ import { EditAdminDrawer } from './EditAdminDrawer';
 
 const MOCK_ADMINS = [
   { id: '1', fullName: 'Budi Santoso', email: 'budi.santoso@example.com', role: 'Super Admin', status: 'Active', initials: 'BS', bg: 'bg-secondary-container', text: 'text-on-secondary-container' },
-  { id: '2', fullName: 'Siti Aminah', email: 'siti.aminah@example.com', role: 'Manager', status: 'Active', initials: 'SA', bg: 'bg-tertiary-container', text: 'text-on-tertiary-container' },
-  { id: '3', fullName: 'Andi Wijaya', email: 'andi.wijaya@example.com', role: 'Editor', status: 'Inactive', initials: 'AW', bg: 'bg-surface-variant/50', text: 'text-on-surface-variant' },
+  { id: '2', fullName: 'Siti Aminah', email: 'siti.aminah@example.com', role: 'Koordinator', status: 'Active', initials: 'SA', bg: 'bg-tertiary-container', text: 'text-on-tertiary-container' },
+  { id: '3', fullName: 'Andi Wijaya', email: 'andi.wijaya@example.com', role: 'Staff', status: 'Inactive', initials: 'AW', bg: 'bg-surface-variant/50', text: 'text-on-surface-variant' },
 ];
 
 export const AdminManagementTab = () => {
@@ -16,7 +16,7 @@ export const AdminManagementTab = () => {
   const [selectedAdmin, setSelectedAdmin] = useState<{ id: string, fullName: string, email: string, role: string } | null>(null);
 
   const handleEditAdmin = (admin: typeof MOCK_ADMINS[0]) => {
-    const roleValue = admin.role === 'Super Admin' ? 'super_admin' : admin.role === 'Manager' ? 'manager' : 'editor';
+    const roleValue = admin.role === 'Super Admin' ? 'super_admin' : admin.role === 'Koordinator' ? 'koordinator' : 'staff';
     setSelectedAdmin({
       id: admin.id,
       fullName: admin.fullName,
