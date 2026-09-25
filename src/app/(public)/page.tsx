@@ -1,6 +1,27 @@
 import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const settings = await prisma.systemSetting.findMany({
+    where: {
+      key: {
+        in: ['org_name', 'org_description', 'org_whatsapp', 'org_instagram', 'org_address', 'org_logo']
+      }
+    }
+  });
+
+  const getSetting = (key: string, fallback: string) => {
+    const setting = settings.find(s => s.key === key);
+    return setting && setting.value ? setting.value : fallback;
+  };
+
+  const orgName = getSetting('org_name', 'Komunitas Profesional');
+  const orgDesc = getSetting('org_description', 'Tingkatkan karir dan koneksi Anda melalui ekosistem digital yang dirancang khusus untuk pertumbuhan profesional yang terukur dan terarah.');
+  const orgAddress = getSetting('org_address', '');
+  const orgWhatsapp = getSetting('org_whatsapp', '');
+  const orgInstagram = getSetting('org_instagram', '');
+  const orgLogo = getSetting('org_logo', '');
+
   return (
     <div className="landing-theme bg-[#f7f9fb] text-[#191c1e] antialiased overflow-x-hidden">
       {/* Hero Section */}
@@ -26,7 +47,7 @@ export default function LandingPage() {
           <h1 className="text-[48px] leading-[56px] font-bold text-[#191c1e] max-w-4xl tracking-tight">
             Bergabung dengan{" "}
             <span className="text-[#006c49] relative inline-block">
-              Komunitas Profesional
+              {orgName}
               <svg
                 className="absolute w-full h-3 -bottom-1 left-0 text-[#6ffbbe] opacity-50"
                 preserveAspectRatio="none"
@@ -40,14 +61,11 @@ export default function LandingPage() {
                 />
               </svg>
             </span>{" "}
-            Kami
           </h1>
 
           {/* Subtitle */}
           <p className="text-lg leading-7 text-[#3c4a42] max-w-2xl mt-4">
-            Tingkatkan karir dan koneksi Anda melalui ekosistem digital yang
-            dirancang khusus untuk pertumbuhan profesional yang terukur dan
-            terarah.
+            {orgDesc}
           </p>
 
           {/* CTA Buttons */}
@@ -293,6 +311,44 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Footer with Contact Info */}
+      <footer className="bg-[#191c1e] text-[#f7f9fb] py-12 px-6">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              {orgLogo && <img src={orgLogo} alt="Logo" className="w-8 h-8 object-contain rounded bg-white p-0.5" />}
+              <h3 className="text-xl font-bold">{orgName}</h3>
+            </div>
+            {orgAddress && (
+              <p className="text-[#bbcabf] text-sm leading-relaxed max-w-xs flex gap-2">
+                <span className="material-symbols-outlined text-sm shrink-0">location_on</span>
+                {orgAddress}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col gap-4">
+            <h4 className="font-semibold text-white">Hubungi Kami</h4>
+            {orgWhatsapp && (
+              <a href={`https://wa.me/62${orgWhatsapp.replace(/^0+/, '')}`} target="_blank" rel="noopener noreferrer" className="text-[#bbcabf] hover:text-white transition-colors text-sm flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">chat</span>
+                +62 {orgWhatsapp}
+              </a>
+            )}
+            {orgInstagram && (
+              <a href={`https://instagram.com/${orgInstagram}`} target="_blank" rel="noopener noreferrer" className="text-[#bbcabf] hover:text-white transition-colors text-sm flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm">photo_camera</span>
+                @{orgInstagram}
+              </a>
+            )}
+          </div>
+          <div className="flex flex-col gap-4 md:items-end">
+            <p className="text-[#bbcabf] text-sm">
+              &copy; {new Date().getFullYear()} {orgName}. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

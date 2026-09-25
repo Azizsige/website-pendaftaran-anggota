@@ -10,18 +10,33 @@ const inter = Inter({
   weight: ["400", "500", "600", "700"],
 });
 
-export const metadata: Metadata = {
-  title: "Portal Pendaftaran Anggota | Bergabung Bersama Kami",
-  description:
-    "Portal pendaftaran anggota online — Daftar, verifikasi, dan kelola keanggotaan Anda secara mudah dan cepat.",
-  keywords: [
-    "pendaftaran anggota",
-    "registrasi member",
-    "keanggotaan",
-    "KTA digital",
-  ],
-  authors: [{ name: "Admin Portal" }],
-};
+import { prisma } from "@/lib/prisma";
+
+export async function generateMetadata(): Promise<Metadata> {
+  let favicon = undefined;
+  let orgName = "Portal Pendaftaran Anggota";
+
+  try {
+    const settings = await prisma.systemSetting.findMany({
+      where: { key: { in: ['org_favicon', 'org_name'] } }
+    });
+    const faviconSetting = settings.find(s => s.key === 'org_favicon');
+    const nameSetting = settings.find(s => s.key === 'org_name');
+    
+    if (faviconSetting?.value) favicon = faviconSetting.value;
+    if (nameSetting?.value) orgName = nameSetting.value;
+  } catch (error) {
+    console.error("Failed to load metadata settings:", error);
+  }
+
+  return {
+    title: `${orgName} | Bergabung Bersama Kami`,
+    description: "Portal pendaftaran anggota online — Daftar, verifikasi, dan kelola keanggotaan Anda secara mudah dan cepat.",
+    keywords: ["pendaftaran anggota", "registrasi member", "keanggotaan", "KTA digital"],
+    authors: [{ name: "Admin Portal" }],
+    icons: favicon ? { icon: favicon } : undefined,
+  };
+}
 
 export default function RootLayout({
   children,

@@ -13,7 +13,6 @@ export interface FormData {
   angkatan: string;
   pasFoto: File | null;
   fotoKTM: File | null;
-  krsDokumen: File | null;
   persetujuan: boolean;
 }
 
@@ -35,7 +34,6 @@ export const initialFormData: FormData = {
   angkatan: "",
   pasFoto: null,
   fotoKTM: null,
-  krsDokumen: null,
   persetujuan: false,
 };
 

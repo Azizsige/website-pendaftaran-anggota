@@ -69,14 +69,6 @@ export default function StepDokumen({ formData, errors, updateField, firstInputR
           error={errors.pasFoto}
           icon={UploadCloud}
         />
-        <FileUploadField
-          label="KRS Aktif / CV / Portofolio (PDF/Image)"
-          file={formData.krsDokumen}
-          onChange={(f) => updateField("krsDokumen", f)}
-          onRemove={() => updateField("krsDokumen", null)}
-          error={errors.krsDokumen}
-          icon={UploadCloud}
-        />
         <div className="space-y-[8px]">
           <FileUploadField
             label="Foto KTM (Kartu Tanda Mahasiswa)"
