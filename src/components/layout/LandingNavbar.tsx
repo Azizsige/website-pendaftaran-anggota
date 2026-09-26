@@ -64,10 +64,16 @@ export default function LandingNavbar({
             About
           </Link>
           <Link
-            href="#benefits"
+            href="/#benefits"
             className="text-[#3c4a42] hover:text-[#006c49] transition-colors py-2"
           >
             Benefits
+          </Link>
+          <Link
+            href="/cek-status"
+            className="text-[#3c4a42] hover:text-[#006c49] transition-colors py-2"
+          >
+            Cek Status
           </Link>
         </div>
 
@@ -117,10 +123,16 @@ export default function LandingNavbar({
               About
             </Link>
             <Link
-              href="#benefits"
+              href="/#benefits"
               className="px-4 py-3 rounded-lg text-sm font-medium text-[#3c4a42] hover:text-[#006c49] hover:bg-[#e0e3e5]/50 transition-all"
             >
               Benefits
+            </Link>
+            <Link
+              href="/cek-status"
+              className="px-4 py-3 rounded-lg text-sm font-medium text-[#3c4a42] hover:text-[#006c49] hover:bg-[#e0e3e5]/50 transition-all"
+            >
+              Cek Status
             </Link>
             <hr className="border-[#bbcabf]/30 my-2" />
             <Link
