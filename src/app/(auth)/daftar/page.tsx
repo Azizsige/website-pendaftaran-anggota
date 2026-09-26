@@ -55,10 +55,7 @@ export default function DaftarPage() {
         <div className="absolute top-1/3 -left-40 w-[500px] h-[500px] bg-[#d0e1fb]/30 rounded-full blur-[120px]" />
       </div>
 
-      <header className="flex justify-between items-center w-full px-[24px] py-[16px] max-w-[1280px] mx-auto bg-[#f7f9fb]/70 backdrop-blur-md border-b border-[#bbcabf]/10 shadow-sm sticky top-0 z-50">
-        <Link href="/" className="font-sans text-[24px] font-bold text-[#006c49] hover:opacity-80 transition-opacity">MemberHub</Link>
-        <Link href="/" className={`font-sans text-[14px] font-semibold transition-colors ${isSubmitting ? "text-[#3c4a42] opacity-50 pointer-events-none" : "text-[#3c4a42] hover:text-[#006c49]"}`}>Cancel</Link>
-      </header>
+
 
       <main className="flex-grow flex items-start sm:items-center justify-center py-[48px] px-4 relative z-10 w-full">
         <div ref={topRef} className="w-full max-w-[640px] bg-white/80 backdrop-blur-[20px] border border-[#006c49]/15 rounded-xl shadow-sm overflow-hidden flex flex-col">

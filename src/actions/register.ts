@@ -1,6 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { headers } from "next/headers";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function checkDuplicateRegistration(nim: string, email: string, ktmHash?: string) {
   try {
@@ -67,6 +70,26 @@ export async function submitRegistration(formData: FormData) {
         success: false, 
         error: "Data pendaftaran tidak lengkap! Manipulasi form terdeteksi." 
       };
+    }
+
+    // 0.1 Rate Limiting (Maks 3 request per 10 menit)
+    const headersList = await headers();
+    const ip = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "unknown";
+    const rateLimit = checkRateLimit(`register_${ip}`, 3, 10 * 60 * 1000);
+    
+    if (!rateLimit.success) {
+      return { success: false, error: "Terlalu banyak percobaan pendaftaran. Silakan coba lagi nanti." };
+    }
+
+    // 0.2 Turnstile Validation
+    const turnstileToken = formData.get("turnstileToken") as string;
+    if (!turnstileToken) {
+      return { success: false, error: "Validasi keamanan gagal. Pastikan Anda bukan robot." };
+    }
+    
+    const isTurnstileValid = await verifyTurnstileToken(turnstileToken);
+    if (!isTurnstileValid) {
+      return { success: false, error: "Validasi keamanan (CAPTCHA) gagal. Silakan muat ulang halaman." };
     }
 
     // 1. Ambil Setting Kuota & Eksekusi Transaksi yang Aman (Transaction)

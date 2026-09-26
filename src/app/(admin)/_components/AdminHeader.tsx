@@ -2,16 +2,18 @@
 
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { useAdminUIStore } from '@/store/useAdminUIStore';
 
 export default function AdminHeader() {
   const { data: session } = useSession();
   const userName = session?.user?.name || 'Admin';
+  const { toggleSidebar } = useAdminUIStore();
   
   return (
     <header className="bg-surface dark:bg-surface-container docked full-width top-0 bg-surface-container-low dark:bg-surface-container-high flat no shadows z-10 sticky">
       <div className="flex justify-between items-center w-full px-lg h-16 max-w-container-max mx-auto">
         <div className="flex items-center gap-md">
-          <button className="md:hidden text-on-surface-variant p-sm hover:bg-surface-variant/50 rounded-full transition-colors">
+          <button onClick={toggleSidebar} className="md:hidden text-on-surface-variant p-sm hover:bg-surface-variant/50 rounded-full transition-colors cursor-pointer">
             <span className="material-symbols-outlined">menu</span>
           </button>
           {/* Breadcrumbs */}

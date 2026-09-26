@@ -80,10 +80,10 @@ export default async function LandingPage() {
               </span>
             </Link>
             <Link
-              href="/tentang"
+              href="/cek-status"
               className="w-full sm:w-auto px-8 py-4 rounded-full bg-white border border-[#bbcabf] text-[#191c1e] font-semibold text-sm hover:bg-[#e0e3e5] transition-all flex items-center justify-center gap-2"
             >
-              Pelajari Lebih Lanjut
+              Cek Status
             </Link>
           </div>
         </div>
@@ -288,20 +288,20 @@ export default async function LandingPage() {
 
       {/* CTA Banner Section */}
       <section className="py-12 px-6">
-        <div className="max-w-7xl mx-auto rounded-2xl p-12 flex flex-col md:flex-row items-center justify-between shadow-lg relative overflow-hidden" style={{ background: "linear-gradient(135deg, #006c49 0%, #006c49 50%, #005236 100%)" }}>
-          <div className="relative z-10 flex flex-col gap-4 text-center md:text-left mb-8 md:mb-0">
+        <div className="max-w-7xl mx-auto rounded-2xl p-12 flex flex-col md:flex-row items-center justify-between gap-8 shadow-lg relative overflow-hidden" style={{ background: "linear-gradient(135deg, #006c49 0%, #006c49 50%, #005236 100%)" }}>
+          <div className="relative z-10 flex flex-col gap-4 text-center md:text-left w-full md:w-2/3">
             <h2 className="text-[32px] leading-[40px] font-semibold text-white tracking-tight">
               Siap Untuk Berkembang Bersama?
             </h2>
-            <p className="text-lg leading-7 text-[#4edea3] max-w-xl">
+            <p className="text-lg leading-7 text-[#4edea3]">
               Bergabunglah hari ini dan nikmati semua manfaat eksklusif yang
               telah menanti Anda di dalam ekosistem MemberHub.
             </p>
           </div>
-          <div className="relative z-10">
+          <div className="relative z-10 shrink-0 w-full md:w-auto flex justify-center md:justify-end">
             <Link
               href="/daftar"
-              className="px-8 py-4 rounded-full bg-white text-[#006c49] font-semibold text-sm shadow-md hover:shadow-lg hover:bg-gray-50 transition-all active:scale-95 flex items-center gap-2 whitespace-nowrap"
+              className="px-8 py-4 rounded-full bg-white text-[#006c49] font-semibold text-sm shadow-md hover:shadow-lg hover:bg-gray-50 transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap"
             >
               Bergabung Sekarang
               <span className="material-symbols-outlined text-sm">

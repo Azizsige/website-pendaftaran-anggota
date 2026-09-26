@@ -8,8 +8,12 @@ export default async function ApplicantsPage() {
   const session = await getServerSession(authOptions);
   const role = (session?.user as any)?.role;
 
-  // Fetch initial data for the first page, no filters
-  const { data, totalCount, totalPages, currentPage } = await getApplicants("", "all", 1);
+  // Pass dummy initial data to prevent blocking navigation
+  // ApplicantsClient will fetch real data on mount
+  const data: any[] = [];
+  const totalCount = 0;
+  const totalPages = 1;
+  const currentPage = 1;
 
   return (
     <div className="flex-1 overflow-y-auto bg-surface-container-low p-4 md:p-6 lg:p-8">

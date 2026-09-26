@@ -51,9 +51,21 @@ export function ReportTable({ loading, members, page, totalCount, totalPages, li
           </thead>
           <tbody className="divide-y divide-outline-variant/10">
             {loading ? (
-              <tr>
-                <td colSpan={6} className="py-8 text-center text-on-surface-variant">Memuat laporan data anggota...</td>
-              </tr>
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-b border-outline-variant/10">
+                  <td className="px-6 py-4"><div className="h-4 w-24 bg-surface-variant/50 animate-pulse rounded"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 w-20 bg-surface-variant/50 animate-pulse rounded"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 w-32 bg-surface-variant/50 animate-pulse rounded"></div></td>
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col gap-1">
+                      <div className="h-4 w-28 bg-surface-variant/50 animate-pulse rounded"></div>
+                      <div className="h-3 w-20 bg-surface-variant/40 animate-pulse rounded"></div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4"><div className="h-6 w-16 bg-surface-variant/50 animate-pulse rounded-full"></div></td>
+                  <td className="px-6 py-4"><div className="h-4 w-24 bg-surface-variant/50 animate-pulse rounded"></div></td>
+                </tr>
+              ))
             ) : members.length === 0 ? (
               <tr>
                 <td colSpan={6} className="py-8 text-center text-on-surface-variant">Tidak ada data yang cocok dengan filter.</td>

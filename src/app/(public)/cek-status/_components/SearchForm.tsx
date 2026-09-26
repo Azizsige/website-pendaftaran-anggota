@@ -1,10 +1,13 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { useCekStatusStore } from "@/store/useCekStatusStore";
 import { checkRegistrationStatus } from "@/app/actions/status-actions";
+import { Turnstile } from "@marsidev/react-turnstile";
+
 
 export const SearchForm = () => {
   const { nim, email, isLoading, error, setNim, setEmail, setIsLoading, setError, setStatusData } = useCekStatusStore();
   const nimInputRef = useRef<HTMLInputElement>(null);
+  const [turnstileToken, setTurnstileToken] = useState("");
 
   useEffect(() => {
     nimInputRef.current?.focus();
@@ -13,12 +16,16 @@ export const SearchForm = () => {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nim || !email) return;
+    if (!turnstileToken) {
+      setError("Silakan selesaikan validasi keamanan CAPTCHA.");
+      return;
+    }
 
     setIsLoading(true);
     setError("");
 
     try {
-      const result = await checkRegistrationStatus(nim, email);
+      const result = await checkRegistrationStatus(nim, email, turnstileToken);
       if (result.success && result.data) {
         setStatusData(result.data);
       } else {
@@ -82,6 +89,13 @@ export const SearchForm = () => {
             required
           />
         </div>
+      </div>
+
+      <div className="w-full flex justify-center mt-2">
+        <Turnstile
+          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
+          onSuccess={(token) => setTurnstileToken(token)}
+        />
       </div>
 
       <button 

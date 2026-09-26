@@ -1,5 +1,6 @@
 import AdminSidebar from "./_components/AdminSidebar";
 import AdminHeader from "./_components/AdminHeader";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export default function AdminLayout({
   children,
@@ -8,6 +9,7 @@ export default function AdminLayout({
 }) {
   return (
     <div className="admin-portal flex h-full font-body-md text-body-md bg-background min-h-screen">
+      <ScrollToTop />
       <AdminSidebar />
       
       <main className="flex-1 flex flex-col md:pl-sidebar-width min-h-screen w-full">
