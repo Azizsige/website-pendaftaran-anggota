@@ -24,7 +24,7 @@ export default function DashboardClient({
   initialTo,
   initialChartRange,
 }: DashboardClientProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const userRole = (session?.user as any)?.role;
 
   const [data, setData] = useState<DashboardData>(initialData);
@@ -50,11 +50,11 @@ export default function DashboardClient({
 
   const [chartRange, setChartRange] = useState(initialChartRange || "6_months");
 
-  // Fetch new data when filters change
+  // Fetch new data when filters change or on initial mount
   useEffect(() => {
+    // If it's the very first render, we still want to fetch because Server Component passed empty data
     if (isInitialMount) {
       setIsInitialMount(false);
-      return;
     }
 
     const fromStr = date?.from?.toISOString();
@@ -72,21 +72,13 @@ export default function DashboardClient({
         console.error("Failed to fetch dashboard data", error);
       }
     });
-  }, [date?.from, date?.to, chartRange, isInitialMount]);
+  }, [date?.from, date?.to, chartRange]);
 
   const { stats, recentApplicants, chart } = data;
 
   return (
     <div className="flex-1 p-md md:p-lg max-w-container-max mx-auto w-full flex flex-col gap-lg animate-fade-in-up relative">
-      {/* Loading Overlay */}
-      {isPending && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-surface-lowest/50 backdrop-blur-[2px] rounded-xl transition-all">
-          <div className="flex items-center gap-2 px-4 py-2 bg-surface-container rounded-full shadow-lg border border-outline-variant text-on-surface">
-            <span className="material-symbols-outlined text-primary animate-spin">progress_activity</span>
-            <span className="font-label-md text-sm">Memperbarui Data...</span>
-          </div>
-        </div>
-      )}
+      {/* Loading Overlay (Removed) */}
 
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-md">
@@ -96,7 +88,11 @@ export default function DashboardClient({
         </div>
         <div className="flex gap-sm">
           <DashboardFilter date={date} onDateChange={setDate} />
-          {(userRole === "OWNER" || userRole === "SUPER_ADMIN") && <NewMemberButton />}
+          {status === "loading" ? (
+            <div className="h-[42px] w-[140px] bg-surface-variant/50 animate-pulse rounded-lg shadow-sm"></div>
+          ) : (userRole === "OWNER" || userRole === "SUPER_ADMIN") && (
+            <NewMemberButton />
+          )}
         </div>
       </div>
 
@@ -110,7 +106,9 @@ export default function DashboardClient({
               <span className="material-symbols-outlined text-[20px]">groups</span>
             </div>
           </div>
-          <div className="font-headline-xl text-headline-xl text-on-surface">{stats.totalAnggota.toLocaleString()}</div>
+          <div className="font-headline-xl text-headline-xl text-on-surface">
+            {isPending ? <div className="h-10 w-20 bg-surface-variant/50 animate-pulse rounded mt-1"></div> : stats.totalAnggota.toLocaleString()}
+          </div>
           <div className="mt-auto pt-sm flex items-center gap-xs text-primary font-label-md text-label-md">
             <span className="material-symbols-outlined text-[16px]">trending_up</span>
             <span>Update</span>
@@ -126,7 +124,9 @@ export default function DashboardClient({
               <span className="material-symbols-outlined text-[20px]">pending_actions</span>
             </div>
           </div>
-          <div className="font-headline-xl text-headline-xl text-on-surface">{stats.pending.toLocaleString()}</div>
+          <div className="font-headline-xl text-headline-xl text-on-surface">
+            {isPending ? <div className="h-10 w-20 bg-surface-variant/50 animate-pulse rounded mt-1"></div> : stats.pending.toLocaleString()}
+          </div>
           <div className="mt-auto pt-sm flex items-center gap-xs text-secondary font-label-md text-label-md">
             <span className="material-symbols-outlined text-[16px]">schedule</span>
             <span>Needs Review</span>
@@ -141,7 +141,9 @@ export default function DashboardClient({
               <span className="material-symbols-outlined text-[20px]">check_circle</span>
             </div>
           </div>
-          <div className="font-headline-xl text-headline-xl text-on-surface">{stats.approvedInRange.toLocaleString()}</div>
+          <div className="font-headline-xl text-headline-xl text-on-surface">
+            {isPending ? <div className="h-10 w-20 bg-surface-variant/50 animate-pulse rounded mt-1"></div> : stats.approvedInRange.toLocaleString()}
+          </div>
           <div className="mt-auto pt-sm flex items-center gap-xs text-primary font-label-md text-label-md">
             <span className="material-symbols-outlined text-[16px]">event</span>
             <span>In Period</span>
@@ -156,7 +158,9 @@ export default function DashboardClient({
               <span className="material-symbols-outlined text-[20px]">cancel</span>
             </div>
           </div>
-          <div className="font-headline-xl text-headline-xl text-on-surface">{stats.rejected.toLocaleString()}</div>
+          <div className="font-headline-xl text-headline-xl text-on-surface">
+            {isPending ? <div className="h-10 w-20 bg-surface-variant/50 animate-pulse rounded mt-1"></div> : stats.rejected.toLocaleString()}
+          </div>
           <div className="mt-auto pt-sm flex items-center gap-xs text-error font-label-md text-label-md">
             <span className="material-symbols-outlined text-[16px]">info</span>
             <span>In Period</span>
@@ -164,66 +168,15 @@ export default function DashboardClient({
         </div>
       </div>
 
-      {/* Chart & Actions Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-md">
+      {/* Chart Section */}
+      <div className="w-full gap-md">
         {/* Chart Area */}
-        <div className="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-md flex flex-col">
+        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-md flex flex-col w-full">
           <div className="flex justify-between items-center mb-md">
             <h3 className="font-headline-md text-headline-md text-on-surface">Registration Trends</h3>
             <ChartFilter value={chartRange} onChange={setChartRange} />
           </div>
           <RegistrationChart labels={chart.labels} data={chart.data} />
-        </div>
-
-        {/* Quick Actions / KTA */}
-        <div className="flex flex-col gap-md">
-          <div className="bg-primary rounded-xl p-md shadow-sm text-on-primary flex flex-col justify-between h-full relative overflow-hidden group">
-            <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-all"></div>
-            <div>
-              <h3 className="font-headline-md text-headline-md mb-xs relative z-10">Pending Reviews</h3>
-              <p className="font-body-sm text-body-sm text-on-primary/80 relative z-10 mb-md">You have {stats.pending} applications awaiting your approval.</p>
-              <div className="text-4xl font-headline-xl relative z-10 mb-md">{stats.pending}</div>
-            </div>
-            <Link href="/admin/pendaftar" className="w-full block text-center bg-white text-primary font-label-md text-label-md py-sm rounded-lg hover:bg-surface-variant transition-colors relative z-10">
-              Review Now
-            </Link>
-          </div>
-
-          <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-md flex-1">
-            <h3 className="font-label-md text-label-md text-on-surface-variant mb-sm uppercase tracking-wider">Quick Actions</h3>
-            <div className="grid grid-cols-2 gap-sm">
-              {(userRole === "OWNER" || userRole === "SUPER_ADMIN") && (
-                <button className="p-sm border border-outline-variant/30 rounded-lg flex flex-col items-center justify-center gap-xs hover:bg-surface-container transition-colors group cursor-pointer">
-                  <div className="p-2 bg-secondary-container/30 text-secondary rounded-full group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
-                    <span className="material-symbols-outlined text-[20px]">person_add</span>
-                  </div>
-                  <span className="font-body-sm text-body-sm text-on-surface text-center">Add<br/>Member</span>
-                </button>
-              )}
-              <button className="p-sm border border-outline-variant/30 rounded-lg flex flex-col items-center justify-center gap-xs hover:bg-surface-container transition-colors group cursor-pointer">
-                <div className="p-2 bg-secondary-container/30 text-secondary rounded-full group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">mail</span>
-                </div>
-                <span className="font-body-sm text-body-sm text-on-surface text-center">Send<br/>Broadcast</span>
-              </button>
-              {userRole !== "STAFF" && (
-                <button className="p-sm border border-outline-variant/30 rounded-lg flex flex-col items-center justify-center gap-xs hover:bg-surface-container transition-colors group cursor-pointer">
-                  <div className="p-2 bg-secondary-container/30 text-secondary rounded-full group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
-                    <span className="material-symbols-outlined text-[20px]">description</span>
-                  </div>
-                  <span className="font-body-sm text-body-sm text-on-surface text-center">Export<br/>Data</span>
-                </button>
-              )}
-              {(userRole === "OWNER" || userRole === "SUPER_ADMIN") && (
-                <button className="p-sm border border-outline-variant/30 rounded-lg flex flex-col items-center justify-center gap-xs hover:bg-surface-container transition-colors group cursor-pointer">
-                  <div className="p-2 bg-secondary-container/30 text-secondary rounded-full group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
-                    <span className="material-symbols-outlined text-[20px]">settings</span>
-                  </div>
-                  <span className="font-body-sm text-body-sm text-on-surface text-center">Manage<br/>Roles</span>
-                </button>
-              )}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -247,7 +200,23 @@ export default function DashboardClient({
               </tr>
             </thead>
             <tbody className="font-body-sm text-body-sm text-on-surface">
-              {recentApplicants.length === 0 ? (
+              {isPending && recentApplicants.length === 0 ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <tr key={i} className="border-b border-outline-variant/10">
+                    <td className="p-sm px-md py-3 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-surface-variant/50 animate-pulse"></div>
+                      <div className="flex flex-col gap-1">
+                        <div className="h-4 w-24 bg-surface-variant/50 animate-pulse rounded"></div>
+                        <div className="h-3 w-32 bg-surface-variant/40 animate-pulse rounded"></div>
+                      </div>
+                    </td>
+                    <td className="p-sm px-md"><div className="h-4 w-20 bg-surface-variant/50 animate-pulse rounded"></div></td>
+                    <td className="p-sm px-md"><div className="h-4 w-16 bg-surface-variant/50 animate-pulse rounded"></div></td>
+                    <td className="p-sm px-md"><div className="h-5 w-16 bg-surface-variant/50 animate-pulse rounded-full"></div></td>
+                    <td className="p-sm px-md text-right"><div className="h-6 w-12 ml-auto bg-surface-variant/50 animate-pulse rounded"></div></td>
+                  </tr>
+                ))
+              ) : recentApplicants.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="p-md text-center text-on-surface-variant">No recent applicants.</td>
                 </tr>

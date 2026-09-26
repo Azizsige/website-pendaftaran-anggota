@@ -61,11 +61,10 @@ export default function ApplicantsClient({
     setCurrentPage(1);
   };
 
-  // Fetch data when filters or page changes
+  // Fetch data when filters or page changes, or on initial mount
   useEffect(() => {
     if (isInitialMount) {
       setIsInitialMount(false);
-      return;
     }
 
     startTransition(async () => {
@@ -179,15 +178,7 @@ export default function ApplicantsClient({
 
   return (
     <div className="bg-surface rounded-xl border border-outline-variant/20 shadow-sm flex flex-col overflow-hidden relative min-h-[400px]">
-      {/* Loading Overlay */}
-      {isPending && !selectedApplicant && !rejectingApplicant && !deletingApplicant && (
-        <div className="absolute inset-0 z-40 flex items-center justify-center bg-surface-lowest/50 backdrop-blur-[2px] transition-all">
-          <div className="flex items-center gap-2 px-4 py-2 bg-surface-container rounded-full shadow-lg border border-outline-variant text-on-surface">
-            <span className="material-symbols-outlined text-primary animate-spin">progress_activity</span>
-            <span className="font-label-md text-sm">Memuat Data...</span>
-          </div>
-        </div>
-      )}
+      {/* Loading Overlay Removed */}
 
       {/* Toolbar */}
       <ApplicantsToolbar

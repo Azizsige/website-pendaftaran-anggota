@@ -178,6 +178,12 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
     const { formData, isImageValid } = get();
     if (!formData.persetujuan || !isImageValid) return;
     
+    if (!formData.turnstileToken) {
+      toast.error("Selesaikan validasi CAPTCHA terlebih dahulu.");
+      return;
+    }
+
+    
     set({ isSubmitting: true });
     try {
       const form = new FormData();

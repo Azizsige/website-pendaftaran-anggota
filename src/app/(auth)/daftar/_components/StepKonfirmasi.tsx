@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { User, FileText, ImageIcon, CreditCard, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import { Turnstile } from "@marsidev/react-turnstile";
 import { FormData, Errors } from "./types";
 import { preprocessImageForOCR } from "@/lib/image-processing";
 import { verifyKtpWithVision } from "@/actions/ocr-vision";
@@ -250,7 +251,7 @@ export default function StepKonfirmasi({ formData, errors, updateField, onValida
       )}
 
       {/* Agreement Section */}
-      <div className="flex items-start gap-[8px]">
+      <div className="flex items-start gap-[8px] mb-[16px]">
         <div className="pt-[2px]">
           <input
             type="checkbox"
@@ -265,7 +266,16 @@ export default function StepKonfirmasi({ formData, errors, updateField, onValida
           Saya menyatakan bahwa semua data yang saya masukkan adalah benar dan dapat dipertanggungjawabkan.
         </label>
       </div>
-      {errors.persetujuan && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.persetujuan}</p>}
+      {errors.persetujuan && <p className="text-[14px] text-[#ba1a1a] mb-[16px]">{errors.persetujuan}</p>}
+
+      {/* Turnstile Section */}
+      <div className="w-full flex justify-center mt-[24px]">
+        <Turnstile
+          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
+          onSuccess={(token) => updateField("turnstileToken", token)}
+        />
+      </div>
+      {errors.turnstileToken && <p className="text-[14px] text-[#ba1a1a] mt-[4px] text-center">{errors.turnstileToken}</p>}
     </div>
   );
 }

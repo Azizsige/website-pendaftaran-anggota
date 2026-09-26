@@ -14,6 +14,7 @@ export interface FormData {
   pasFoto: File | null;
   fotoKTM: File | null;
   persetujuan: boolean;
+  turnstileToken: string;
 }
 
 export interface Errors {
@@ -35,6 +36,7 @@ export const initialFormData: FormData = {
   pasFoto: null,
   fotoKTM: null,
   persetujuan: false,
+  turnstileToken: "",
 };
 
 export const FAKULTAS_LIST = [

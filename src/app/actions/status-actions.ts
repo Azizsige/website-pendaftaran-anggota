@@ -1,9 +1,31 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { headers } from "next/headers";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
-export async function checkRegistrationStatus(nim: string, email: string) {
+export async function checkRegistrationStatus(nim: string, email: string, turnstileToken: string) {
   try {
+    // 1. Rate Limiting (Maks 10 request per 5 menit untuk cek status)
+    const headersList = await headers();
+    const ip = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "unknown";
+    const rateLimit = checkRateLimit(`status_${ip}`, 10, 5 * 60 * 1000);
+    
+    if (!rateLimit.success) {
+      return { success: false, message: "Terlalu banyak percobaan pencarian. Silakan coba lagi nanti." };
+    }
+
+    // 2. Turnstile Validation
+    if (!turnstileToken) {
+      return { success: false, message: "Validasi keamanan gagal. Pastikan Anda bukan robot." };
+    }
+    
+    const isTurnstileValid = await verifyTurnstileToken(turnstileToken);
+    if (!isTurnstileValid) {
+      return { success: false, message: "Validasi keamanan (CAPTCHA) gagal. Silakan muat ulang halaman." };
+    }
+
     // Cari member berdasarkan NIM
     const profile = await prisma.memberProfile.findUnique({
       where: { nim },

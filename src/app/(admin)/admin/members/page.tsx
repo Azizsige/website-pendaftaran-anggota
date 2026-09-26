@@ -19,7 +19,9 @@ import ApplicantDetailModal from '@/components/admin/modals/ApplicantDetailModal
 import MemberConfirmModal from '@/components/admin/modals/MemberConfirmModal';
 import ApplicantDeleteModal from '@/components/admin/modals/ApplicantDeleteModal';
 
-export default function MembersPage() {
+import { Suspense } from 'react';
+
+function MembersContent() {
   const { data: session } = useSession();
   const userRole = (session?.user as any)?.role;
 
@@ -236,8 +238,8 @@ export default function MembersPage() {
         </div>
 
         {/* Data Table Container */}
-        <div className="bg-surface border border-outline-variant/20 rounded-xl overflow-hidden shadow-sm flex flex-col">
-          <div className="overflow-x-auto">
+        <div className="bg-surface border border-outline-variant/20 rounded-xl shadow-sm flex flex-col">
+          <div className="overflow-x-auto min-h-[350px]">
             <table className="w-full text-left border-collapse min-w-[900px]">
               <thead>
                 <tr className="bg-surface-container-low border-b border-outline-variant/20">
@@ -259,9 +261,32 @@ export default function MembersPage() {
               </thead>
               <tbody className="divide-y divide-outline-variant/10">
                 {loading ? (
-                  <tr>
-                    <td colSpan={7} className="py-8 text-center text-on-surface-variant">Memuat data anggota...</td>
-                  </tr>
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="hover:bg-surface-container-lowest transition-colors group">
+                      <td className="py-3 px-4"><div className="h-4 w-4 bg-surface-variant/50 animate-pulse rounded"></div></td>
+                      <td className="py-3 px-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="h-4 w-24 bg-surface-variant/50 animate-pulse rounded"></div>
+                          <div className="h-3 w-32 bg-surface-variant/40 animate-pulse rounded"></div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="h-4 w-28 bg-surface-variant/50 animate-pulse rounded"></div>
+                          <div className="h-3 w-24 bg-surface-variant/40 animate-pulse rounded"></div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="h-4 w-36 bg-surface-variant/50 animate-pulse rounded"></div>
+                          <div className="h-3 w-20 bg-surface-variant/40 animate-pulse rounded"></div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4"><div className="h-4 w-20 bg-surface-variant/50 animate-pulse rounded"></div></td>
+                      <td className="py-3 px-4"><div className="h-6 w-20 bg-surface-variant/50 animate-pulse rounded-full"></div></td>
+                      <td className="py-3 px-4"><div className="h-8 w-8 ml-auto bg-surface-variant/50 animate-pulse rounded"></div></td>
+                    </tr>
+                  ))
                 ) : members.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-8 text-center text-on-surface-variant">Tidak ada anggota yang ditemukan.</td>
@@ -286,7 +311,9 @@ export default function MembersPage() {
                       <td className="py-3 px-4">
                         <div className="flex flex-col">
                           <span className="font-body-md text-on-surface-variant">{member.nim || '-'}</span>
-                          <span className="font-body-sm text-on-surface-variant">{member.phoneNumber || '-'}</span>
+                          <span className="font-body-sm text-on-surface-variant">
+                            {member.phoneNumber ? member.phoneNumber.replace(/\D/g, '').replace(/^62/, '0') : '-'}
+                          </span>
                         </div>
                       </td>
                       <td className="py-3 px-4">
@@ -391,5 +418,20 @@ export default function MembersPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function MembersPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-surface-container-lowest p-4 md:p-6 lg:p-8 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <span className="material-symbols-outlined text-4xl text-primary animate-spin">progress_activity</span>
+          <p className="text-on-surface-variant font-medium">Memuat halaman...</p>
+        </div>
+      </div>
+    }>
+      <MembersContent />
+    </Suspense>
   );
 }
