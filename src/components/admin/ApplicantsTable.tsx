@@ -7,6 +7,7 @@ type Props = {
   onViewDetail: (applicant: Applicant) => void;
   onDelete: (applicant: Applicant) => void;
   onSuspend: (id: string) => void;
+  userRole?: string;
 };
 
 export default function ApplicantsTable({
@@ -15,6 +16,7 @@ export default function ApplicantsTable({
   onViewDetail,
   onDelete,
   onSuspend,
+  userRole,
 }: Props) {
   return (
     <div className="overflow-x-auto relative z-0">
@@ -96,7 +98,7 @@ export default function ApplicantsTable({
                     >
                       <span className="material-symbols-outlined text-[20px]">visibility</span>
                     </button>
-                    {applicant.status === "ACTIVE" && (
+                    {applicant.status === "ACTIVE" && userRole !== "STAFF" && (
                       <button
                         onClick={() => onSuspend(applicant.id)}
                         className="p-1.5 text-on-surface-variant hover:text-warning rounded hover:bg-warning/10 transition-colors cursor-pointer text-[#f57f17]"
@@ -106,15 +108,19 @@ export default function ApplicantsTable({
                         <span className="material-symbols-outlined text-[20px]">block</span>
                       </button>
                     )}
-                    <div className="w-px h-4 bg-outline-variant/30 mx-1"></div>
-                    <button
-                      onClick={() => onDelete(applicant)}
-                      className="p-1.5 text-on-surface-variant hover:text-error rounded hover:bg-error/10 transition-colors cursor-pointer"
-                      title="Hapus"
-                      disabled={isPending}
-                    >
-                      <span className="material-symbols-outlined text-[20px]">delete</span>
-                    </button>
+                    {(userRole === "OWNER" || userRole === "SUPER_ADMIN") && (
+                      <>
+                        <div className="w-px h-4 bg-outline-variant/30 mx-1"></div>
+                        <button
+                          onClick={() => onDelete(applicant)}
+                          className="p-1.5 text-on-surface-variant hover:text-error rounded hover:bg-error/10 transition-colors cursor-pointer"
+                          title="Hapus"
+                          disabled={isPending}
+                        >
+                          <span className="material-symbols-outlined text-[20px]">delete</span>
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>

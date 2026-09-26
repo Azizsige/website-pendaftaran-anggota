@@ -9,8 +9,12 @@ import DashboardFilter from "../_components/DashboardFilter";
 import { ReportSummaryCards } from "./_components/ReportSummaryCards";
 import { ReportTable } from "./_components/ReportTable";
 import { useReportStore } from "@/store/useReportStore";
+import { useSession } from "next-auth/react";
 
 export default function ReportsPage() {
+  const { data: session } = useSession();
+  const userRole = (session?.user as any)?.role;
+
   const {
     date, status, faculty, page, loading, members, totalPages, totalCount, summary,
     setDate, setStatus, setFaculty, setPage, setLoading, setMembers, setTotalPages, setTotalCount, setSummary
@@ -85,20 +89,24 @@ export default function ReportsPage() {
           </div>
           
           <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
-            <button 
-              onClick={handleExport}
-              className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-lg font-label-md text-label-md hover:bg-primary/90 transition-colors shadow-sm cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-sm">download</span>
-              Ekspor Data
-            </button>
-            <button 
-              onClick={handlePrint}
-              className="p-2.5 border border-outline-variant/50 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors shadow-sm cursor-pointer" 
-              title="Print"
-            >
-              <span className="material-symbols-outlined text-[20px]">print</span>
-            </button>
+            {userRole !== "STAFF" && (
+              <>
+                <button 
+                  onClick={handleExport}
+                  className="flex items-center gap-2 bg-primary text-on-primary px-4 py-2.5 rounded-lg font-label-md text-label-md hover:bg-primary/90 transition-colors shadow-sm cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">download</span>
+                  Ekspor Data
+                </button>
+                <button 
+                  onClick={handlePrint}
+                  className="p-2.5 border border-outline-variant/50 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors shadow-sm cursor-pointer" 
+                  title="Print"
+                >
+                  <span className="material-symbols-outlined text-[20px]">print</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 

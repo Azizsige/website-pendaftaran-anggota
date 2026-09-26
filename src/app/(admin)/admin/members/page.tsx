@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Dropdown } from "@/components/ui/dropdown";
 import { DrawerTrigger } from "@/components/ui/drawer";
+import { useSession } from "next-auth/react";
 
 // Components
 import { ActionDropdown } from './_components/ActionDropdown';
@@ -19,6 +20,9 @@ import MemberConfirmModal from '@/components/admin/modals/MemberConfirmModal';
 import ApplicantDeleteModal from '@/components/admin/modals/ApplicantDeleteModal';
 
 export default function MembersPage() {
+  const { data: session } = useSession();
+  const userRole = (session?.user as any)?.role;
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
   const [selectedEditMember, setSelectedEditMember] = useState<any>(null);
@@ -210,14 +214,16 @@ export default function MembersPage() {
                 <span className="hidden sm:inline">Ekspor Data</span>
               </button>
               
-              <AddMemberDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} onSuccess={fetchMembers}>
-                <DrawerTrigger asChild>
-                  <button className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-on-primary font-label-md text-label-md rounded-lg transition-colors shadow-sm cursor-pointer">
-                    <span className="material-symbols-outlined text-sm">person_add</span>
-                    Tambah Anggota
-                  </button>
-                </DrawerTrigger>
-              </AddMemberDrawer>
+              {(userRole === "OWNER" || userRole === "SUPER_ADMIN") && (
+                <AddMemberDrawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen} onSuccess={fetchMembers}>
+                  <DrawerTrigger asChild>
+                    <button className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-on-primary font-label-md text-label-md rounded-lg transition-colors shadow-sm cursor-pointer">
+                      <span className="material-symbols-outlined text-sm">person_add</span>
+                      Tambah Anggota
+                    </button>
+                  </DrawerTrigger>
+                </AddMemberDrawer>
+              )}
               
               <EditMemberDrawer 
                 open={isEditDrawerOpen} 
@@ -311,6 +317,7 @@ export default function MembersPage() {
                               setConfirmAction(action);
                             }}
                             onDelete={(m) => setSelectedDeleteMember(m)}
+                            userRole={userRole}
                           />
                         </div>
                       </td>

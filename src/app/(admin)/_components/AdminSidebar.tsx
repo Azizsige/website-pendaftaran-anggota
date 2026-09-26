@@ -1,9 +1,13 @@
 "use client";
 
 import Link from 'next/link';
-import { signOut } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 export default function AdminSidebar() {
+  const { data: session } = useSession();
+  const role = (session?.user as any)?.role;
+  const showSettings = role === 'OWNER' || role === 'SUPER_ADMIN';
+
   return (
     <nav className="bg-on-tertiary-fixed dark:bg-inverse-surface h-screen fixed left-0 top-0 w-sidebar-width flex flex-col py-lg flat no shadows z-20 transition-all duration-300 ease-in-out hidden md:flex">
       <div className="px-lg mb-lg">
@@ -23,7 +27,6 @@ export default function AdminSidebar() {
               <span className="material-symbols-outlined">person_add</span>
               <span className="font-label-md text-label-md">Calon Anggota</span>
             </div>
-            <span className="bg-primary text-on-primary text-[10px] font-bold px-2 py-0.5 rounded-full">12</span>
           </Link>
         </li>
         <li>
@@ -38,25 +41,16 @@ export default function AdminSidebar() {
             <span className="font-label-md text-label-md">Laporan Data</span>
           </Link>
         </li>
-        <li>
-          <Link className="flex items-center gap-md px-md py-sm text-tertiary-fixed-dim/70 hover:bg-white/5 hover:text-white rounded-r-lg border-l-4 border-transparent transition-colors cursor-pointer" href="/admin/settings?tab=general_settings">
-            <span className="material-symbols-outlined" data-weight="regular">settings</span>
-            <span className="font-label-md text-label-md font-bold">Pengaturan</span>
-          </Link>
-        </li>
+        {showSettings && (
+          <li>
+            <Link className="flex items-center gap-md px-md py-sm text-tertiary-fixed-dim/70 hover:bg-white/5 hover:text-white rounded-r-lg border-l-4 border-transparent transition-colors cursor-pointer" href="/admin/settings?tab=general_settings">
+              <span className="material-symbols-outlined" data-weight="regular">settings</span>
+              <span className="font-label-md text-label-md font-bold">Pengaturan</span>
+            </Link>
+          </li>
+        )}
       </ul>
-      <div className="px-lg mt-auto">
-        <button className="w-full bg-primary-container text-on-primary-container font-label-md text-label-md py-sm rounded-lg hover:bg-primary-fixed transition-colors flex items-center justify-center gap-sm">
-          <span className="material-symbols-outlined text-[18px]">post_add</span> Buat Laporan
-        </button>
-      </div>
-      <ul className="mt-lg px-sm space-y-sm mb-4">
-        <li>
-          <Link className="flex items-center gap-md px-md py-sm text-tertiary-fixed-dim/70 hover:bg-white/5 hover:text-white rounded-r-lg border-l-4 border-transparent transition-colors" href="#">
-            <span className="material-symbols-outlined">help</span>
-            <span className="font-label-md text-label-md">Bantuan</span>
-          </Link>
-        </li>
+      <ul className="mt-auto px-sm space-y-sm mb-4">
         <li>
           <button 
             onClick={() => signOut({ callbackUrl: '/login' })}

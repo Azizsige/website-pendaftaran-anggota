@@ -19,6 +19,7 @@ interface Props {
   totalCount: number;
   totalPages: number;
   currentPage: number;
+  userRole?: string;
 }
 
 export default function ApplicantsClient({
@@ -26,6 +27,7 @@ export default function ApplicantsClient({
   totalCount: initialTotalCount,
   totalPages: initialTotalPages,
   currentPage: initialCurrentPage,
+  userRole,
 }: Props) {
   // Local state for data
   const [applicants, setApplicants] = useState<Applicant[]>(initialApplicants);
@@ -203,6 +205,7 @@ export default function ApplicantsClient({
         onViewDetail={setSelectedApplicant}
         onDelete={setDeletingApplicant}
         onSuspend={handleSuspend}
+        userRole={userRole}
       />
 
       {/* Pagination */}
@@ -230,6 +233,7 @@ export default function ApplicantsClient({
           }}
           onSaveNotes={handleSaveNotes}
           isPending={isPending}
+          userRole={userRole}
         />
       )}
 

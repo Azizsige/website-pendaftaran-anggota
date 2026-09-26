@@ -10,14 +10,16 @@ export const ActionDropdown = ({
   onEdit,
   onViewDetail,
   onConfirmAction,
-  onDelete
+  onDelete,
+  userRole
 }: { 
   member: any, 
   onUpdate?: () => void, 
   onEdit?: (member: any) => void,
   onViewDetail?: (member: any) => void,
   onConfirmAction?: (member: any, action: "ACTIVATE" | "SUSPEND" | "INACTIVE") => void,
-  onDelete?: (member: any) => void
+  onDelete?: (member: any) => void,
+  userRole?: string
 }) => {
   const [open, setOpen] = useState(false);
   const [dropUp, setDropUp] = useState(false);
@@ -122,52 +124,58 @@ export const ActionDropdown = ({
             View Details
           </button>
           
-          <button 
-            onClick={() => {
-              setOpen(false);
-              if (onEdit) onEdit(member);
-            }}
-            className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container-lowest text-on-surface text-left font-label-md transition-colors w-full"
-          >
-            <span className="material-symbols-outlined text-[18px]">edit</span>
-            Edit Member
-          </button>
+          {userRole !== "STAFF" && (
+            <button 
+              onClick={() => {
+                setOpen(false);
+                if (onEdit) onEdit(member);
+              }}
+              className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container-lowest text-on-surface text-left font-label-md transition-colors w-full"
+            >
+              <span className="material-symbols-outlined text-[18px]">edit</span>
+              Edit Member
+            </button>
+          )}
           
           <div className="h-[1px] bg-outline-variant/20 my-1 mx-3" />
           
-          {member.status === 'ACTIVE' ? (
+          {(userRole === "OWNER" || userRole === "SUPER_ADMIN") && (
             <>
+              {member.status === 'ACTIVE' ? (
+                <>
+                  <button 
+                    onClick={() => handleUpdateStatus('INACTIVE')}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container-lowest text-on-surface-variant text-left font-label-md transition-colors w-full"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">person_off</span>
+                    Inactive Member
+                  </button>
+                  <button 
+                    onClick={() => handleUpdateStatus('SUSPENDED')}
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#ffb4ab]/10 text-[#ba1a1a] text-left font-label-md transition-colors w-full"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">block</span>
+                    Suspend Member
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={() => handleUpdateStatus('ACTIVE')}
+                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#006c49]/10 text-[#006c49] text-left font-label-md transition-colors w-full"
+                >
+                  <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                  Activate Member
+                </button>
+              )}
               <button 
-                onClick={() => handleUpdateStatus('INACTIVE')}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-container-lowest text-on-surface-variant text-left font-label-md transition-colors w-full"
+                onClick={handleDelete}
+                className="flex items-center gap-3 px-4 py-2.5 hover:bg-error/10 text-error text-left font-label-md transition-colors w-full"
               >
-                <span className="material-symbols-outlined text-[18px]">person_off</span>
-                Inactive Member
-              </button>
-              <button 
-                onClick={() => handleUpdateStatus('SUSPENDED')}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#ffb4ab]/10 text-[#ba1a1a] text-left font-label-md transition-colors w-full"
-              >
-                <span className="material-symbols-outlined text-[18px]">block</span>
-                Suspend Member
+                <span className="material-symbols-outlined text-[18px]">delete</span>
+                Delete Member
               </button>
             </>
-          ) : (
-            <button 
-              onClick={() => handleUpdateStatus('ACTIVE')}
-              className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#006c49]/10 text-[#006c49] text-left font-label-md transition-colors w-full"
-            >
-              <span className="material-symbols-outlined text-[18px]">check_circle</span>
-              Activate Member
-            </button>
           )}
-          <button 
-            onClick={handleDelete}
-            className="flex items-center gap-3 px-4 py-2.5 hover:bg-error/10 text-error text-left font-label-md transition-colors w-full"
-          >
-            <span className="material-symbols-outlined text-[18px]">delete</span>
-            Delete Member
-          </button>
         </div>
       )}
     </div>

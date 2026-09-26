@@ -16,12 +16,17 @@ interface DashboardClientProps {
   initialChartRange?: string;
 }
 
+import { useSession } from "next-auth/react";
+
 export default function DashboardClient({
   initialData,
   initialFrom,
   initialTo,
   initialChartRange,
 }: DashboardClientProps) {
+  const { data: session } = useSession();
+  const userRole = (session?.user as any)?.role;
+
   const [data, setData] = useState<DashboardData>(initialData);
   const [isPending, startTransition] = useTransition();
   
@@ -91,7 +96,7 @@ export default function DashboardClient({
         </div>
         <div className="flex gap-sm">
           <DashboardFilter date={date} onDateChange={setDate} />
-          <NewMemberButton />
+          {(userRole === "OWNER" || userRole === "SUPER_ADMIN") && <NewMemberButton />}
         </div>
       </div>
 
@@ -187,30 +192,36 @@ export default function DashboardClient({
           <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-md flex-1">
             <h3 className="font-label-md text-label-md text-on-surface-variant mb-sm uppercase tracking-wider">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-sm">
-              <button className="p-sm border border-outline-variant/30 rounded-lg flex flex-col items-center justify-center gap-xs hover:bg-surface-container transition-colors group cursor-pointer">
-                <div className="p-2 bg-secondary-container/30 text-secondary rounded-full group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">person_add</span>
-                </div>
-                <span className="font-body-sm text-body-sm text-on-surface text-center">Add<br/>Member</span>
-              </button>
+              {(userRole === "OWNER" || userRole === "SUPER_ADMIN") && (
+                <button className="p-sm border border-outline-variant/30 rounded-lg flex flex-col items-center justify-center gap-xs hover:bg-surface-container transition-colors group cursor-pointer">
+                  <div className="p-2 bg-secondary-container/30 text-secondary rounded-full group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
+                    <span className="material-symbols-outlined text-[20px]">person_add</span>
+                  </div>
+                  <span className="font-body-sm text-body-sm text-on-surface text-center">Add<br/>Member</span>
+                </button>
+              )}
               <button className="p-sm border border-outline-variant/30 rounded-lg flex flex-col items-center justify-center gap-xs hover:bg-surface-container transition-colors group cursor-pointer">
                 <div className="p-2 bg-secondary-container/30 text-secondary rounded-full group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
                   <span className="material-symbols-outlined text-[20px]">mail</span>
                 </div>
                 <span className="font-body-sm text-body-sm text-on-surface text-center">Send<br/>Broadcast</span>
               </button>
-              <button className="p-sm border border-outline-variant/30 rounded-lg flex flex-col items-center justify-center gap-xs hover:bg-surface-container transition-colors group cursor-pointer">
-                <div className="p-2 bg-secondary-container/30 text-secondary rounded-full group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">description</span>
-                </div>
-                <span className="font-body-sm text-body-sm text-on-surface text-center">Export<br/>Data</span>
-              </button>
-              <button className="p-sm border border-outline-variant/30 rounded-lg flex flex-col items-center justify-center gap-xs hover:bg-surface-container transition-colors group cursor-pointer">
-                <div className="p-2 bg-secondary-container/30 text-secondary rounded-full group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">settings</span>
-                </div>
-                <span className="font-body-sm text-body-sm text-on-surface text-center">Manage<br/>Roles</span>
-              </button>
+              {userRole !== "STAFF" && (
+                <button className="p-sm border border-outline-variant/30 rounded-lg flex flex-col items-center justify-center gap-xs hover:bg-surface-container transition-colors group cursor-pointer">
+                  <div className="p-2 bg-secondary-container/30 text-secondary rounded-full group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
+                    <span className="material-symbols-outlined text-[20px]">description</span>
+                  </div>
+                  <span className="font-body-sm text-body-sm text-on-surface text-center">Export<br/>Data</span>
+                </button>
+              )}
+              {(userRole === "OWNER" || userRole === "SUPER_ADMIN") && (
+                <button className="p-sm border border-outline-variant/30 rounded-lg flex flex-col items-center justify-center gap-xs hover:bg-surface-container transition-colors group cursor-pointer">
+                  <div className="p-2 bg-secondary-container/30 text-secondary rounded-full group-hover:bg-secondary-container group-hover:text-on-secondary-container transition-colors">
+                    <span className="material-symbols-outlined text-[20px]">settings</span>
+                  </div>
+                  <span className="font-body-sm text-body-sm text-on-surface text-center">Manage<br/>Roles</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
