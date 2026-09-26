@@ -13,6 +13,9 @@ interface StepKonfirmasiProps {
   errors: Errors;
   updateField: (field: keyof FormData, value: string | File | null | boolean) => void;
   onValidationChange?: (isValid: boolean) => void;
+  onValidationStatusChange?: (status: "IDLE" | "VALIDATING" | "SUCCESS" | "FAILED" | "BYPASSED") => void;
+  reqKtm?: boolean;
+  reqFoto?: boolean;
 }
 
 /* ─── Reusable sub-components (DRY) ─── */
@@ -64,9 +67,16 @@ function DocumentItem({ icon: Icon, label, fileName, status = "IDLE" }: { icon: 
 
 /* ─── Main Component ─── */
 
-export default function StepKonfirmasi({ formData, errors, updateField, onValidationChange }: StepKonfirmasiProps) {
+export default function StepKonfirmasi({ formData, errors, updateField, onValidationChange, onValidationStatusChange, reqKtm = true, reqFoto = true }: StepKonfirmasiProps) {
   const [validationStatus, setValidationStatus] = useState<"IDLE" | "VALIDATING" | "SUCCESS" | "FAILED" | "BYPASSED">("IDLE");
   const [validationError, setValidationError] = useState<string>("");
+
+  // Notify parent of status changes
+  useEffect(() => {
+    if (onValidationStatusChange) {
+      onValidationStatusChange(validationStatus);
+    }
+  }, [validationStatus, onValidationStatusChange]);
 
   const birthDisplay = `${formData.tempatLahir || "-"}, ${
     formData.tanggalLahir ? format(new Date(formData.tanggalLahir), "d MMMM yyyy", { locale: id }) : "-"
@@ -74,7 +84,7 @@ export default function StepKonfirmasi({ formData, errors, updateField, onValida
 
   useEffect(() => {
     // Only run validation if there are files
-    if (!formData.fotoKTM) {
+    if (!reqKtm || !formData.fotoKTM) {
       setValidationStatus("SUCCESS");
       if (onValidationChange) onValidationChange(true);
       return;
@@ -148,7 +158,18 @@ export default function StepKonfirmasi({ formData, errors, updateField, onValida
     return () => {
       isMounted = false;
     };
-  }, [formData.fotoKTM, formData.nim, onValidationChange]);
+  }, [formData.fotoKTM, formData.nim, onValidationChange, reqKtm]);
+
+  useEffect(() => {
+    if (validationStatus === "VALIDATING") {
+      setTimeout(() => {
+        const el = document.getElementById("ktm-loading-section");
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+    }
+  }, [validationStatus]);
 
   return (
     <div className="transition-opacity duration-300 animate-fade-in">
@@ -179,19 +200,20 @@ export default function StepKonfirmasi({ formData, errors, updateField, onValida
       </section>
 
       {/* Summary Section: Dokumen Pendukung */}
-      <section id="ktp-validation-item" className="bg-[#f7f9fb] rounded-[8px] border border-[#bbcabf]/20 p-[16px] flex flex-col gap-[16px] mb-[24px]">
-        <SectionHeader icon={FileText} title="Dokumen Pendukung" />
-        <div className="flex flex-col gap-[8px]">
-          <DocumentItem icon={ImageIcon} label="Pas Foto" fileName={formData.pasFoto?.name} status={formData.pasFoto ? "SUCCESS" : "IDLE"} />
-          <DocumentItem icon={CreditCard} label="Foto KTM" fileName={formData.fotoKTM?.name} status={validationStatus} />
-        </div>
-        
-        {/* Validation Status Indicator */}
-        <div className="mt-2">
+      {(reqKtm || reqFoto) && (
+        <section id="ktp-validation-item" className="bg-[#f7f9fb] rounded-[8px] border border-[#bbcabf]/20 p-[16px] flex flex-col gap-[16px] mb-[24px]">
+          <SectionHeader icon={FileText} title="Dokumen Pendukung" />
+          <div className="flex flex-col gap-[8px]">
+            {reqFoto && <DocumentItem icon={ImageIcon} label="Pas Foto" fileName={formData.pasFoto?.name} status={formData.pasFoto ? "SUCCESS" : "IDLE"} />}
+            {reqKtm && <DocumentItem icon={CreditCard} label="Foto KTM" fileName={formData.fotoKTM?.name} status={validationStatus} />}
+          </div>
+          
+          {/* Validation Status Indicator */}
+        <div id="ktm-loading-section" className="mt-2">
           {validationStatus === "VALIDATING" && (
             <div className="flex items-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-md text-sm border border-blue-200">
               <Loader2 className="w-4 h-4 animate-spin" />
-              Sistem AI sedang menganalisis kualitas dokumen Anda...
+              Sistem sedang memverifikasi foto dokumen Anda...
             </div>
           )}
           {validationStatus === "FAILED" && (
@@ -199,7 +221,7 @@ export default function StepKonfirmasi({ formData, errors, updateField, onValida
               <div className="flex items-start gap-2">
                 <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
                 <span>
-                  <strong>Validasi AI Gagal:</strong> {validationError}
+                  <strong>Validasi Foto Gagal:</strong> {validationError}
                   <br />
                   <em>Pastikan foto hanya menampilkan KTM (tanpa latar belakang seperti keyboard/benda lain yang lebih mencolok).</em>
                 </span>
@@ -214,17 +236,18 @@ export default function StepKonfirmasi({ formData, errors, updateField, onValida
           {validationStatus === "BYPASSED" && (
             <div className="flex items-center gap-2 p-3 bg-orange-50 text-orange-700 rounded-md text-sm border border-orange-200">
               <AlertTriangle className="w-4 h-4" />
-              Validasi AI diabaikan oleh Admin. Pastikan data sudah diverifikasi manual.
+              Validasi otomatis diabaikan oleh Admin. Pastikan data sudah diverifikasi manual.
             </div>
           )}
           {validationStatus === "SUCCESS" && (formData.fotoKTM || formData.pasFoto) && (
             <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-md text-sm border border-green-200">
               <CheckCircle className="w-4 h-4" />
-              Dokumen terverifikasi oleh AI.
+              Foto dokumen berhasil diverifikasi.
             </div>
           )}
         </div>
-      </section>
+        </section>
+      )}
 
       {/* Agreement Section */}
       <div className="flex items-start gap-[8px]">

@@ -52,7 +52,7 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
             </label>
             <input
               type="text"
-              maxLength={20}
+              maxLength={15}
               placeholder="e.g. 231402011"
               value={formData.nim}
               onChange={(e) => updateField("nim", e.target.value.replace(/\D/g, ""))}
@@ -77,13 +77,23 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
             <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
               Phone Number <span className="text-[#ba1a1a]">*</span>
             </label>
-            <input
-              type="tel"
-              placeholder="+62 812..."
-              value={formData.noTelepon}
-              onChange={(e) => updateField("noTelepon", e.target.value)}
-              className={inputClasses(!!errors.noTelepon)}
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#3c4a42] text-[14px] font-sans">+62</span>
+              <input
+                type="tel"
+                placeholder="812-3456-7890"
+                maxLength={15}
+                value={formData.noTelepon}
+                onChange={(e) => {
+                  let val = e.target.value.replace(/\D/g, '').substring(0, 13);
+                  let formatted = val;
+                  if (val.length > 3 && val.length <= 7) formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                  else if (val.length > 7) formatted = `${val.slice(0, 3)}-${val.slice(3, 7)}-${val.slice(7)}`;
+                  updateField("noTelepon", formatted);
+                }}
+                className={inputClasses(!!errors.noTelepon) + " pl-[44px]"}
+              />
+            </div>
             {errors.noTelepon && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.noTelepon}</p>}
           </div>
           <div>

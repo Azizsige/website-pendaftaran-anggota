@@ -12,9 +12,12 @@ interface StepDokumenProps {
   errors: Errors;
   updateField: (field: keyof FormData, value: string | File | null | boolean) => void;
   firstInputRef: React.RefObject<any>;
+  reqKtm?: boolean;
+  reqFoto?: boolean;
+  isInline?: boolean;
 }
 
-export default function StepDokumen({ formData, errors, updateField, firstInputRef }: StepDokumenProps) {
+export default function StepDokumen({ formData, errors, updateField, firstInputRef, reqKtm = true, reqFoto = true, isInline = false }: StepDokumenProps) {
   const [showCamera, setShowCamera] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
@@ -60,36 +63,40 @@ export default function StepDokumen({ formData, errors, updateField, firstInputR
       </p>
 
       <div className="space-y-[24px]">
-        <FileUploadField
-          containerRef={firstInputRef}
-          label="Pas Foto (JPG/PNG, maks 2MB)"
-          file={formData.pasFoto}
-          onChange={(f) => updateField("pasFoto", f)}
-          onRemove={() => updateField("pasFoto", null)}
-          error={errors.pasFoto}
-          icon={UploadCloud}
-        />
-        <div className="space-y-[8px]">
+        {reqFoto && (
           <FileUploadField
-            label="Foto KTM (Kartu Tanda Mahasiswa)"
-            file={formData.fotoKTM}
-            onChange={handleKtmFileSelect}
-            onRemove={() => updateField("fotoKTM", null)}
-            error={errors.fotoKTM}
-            icon={IdCard}
+            containerRef={firstInputRef}
+            label="Pas Foto (JPG/PNG, maks 2MB)"
+            file={formData.pasFoto}
+            onChange={(f) => updateField("pasFoto", f)}
+            onRemove={() => updateField("pasFoto", null)}
+            error={errors.pasFoto}
+            icon={UploadCloud}
           />
-          {isMobile && (
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowCamera(true)}
-                className="flex items-center gap-2 text-sm font-medium text-[#006c49] bg-[#e6f4ea] px-4 py-2 rounded-md hover:bg-[#cce8d5] transition-colors"
-              >
-                <Camera size={16} /> Buka Kamera Cerdas
-              </button>
-            </div>
-          )}
-        </div>
+        )}
+        {reqKtm && (
+          <div className="space-y-[8px]">
+            <FileUploadField
+              label="Foto KTM (Kartu Tanda Mahasiswa)"
+              file={formData.fotoKTM}
+              onChange={handleKtmFileSelect}
+              onRemove={() => updateField("fotoKTM", null)}
+              error={errors.fotoKTM}
+              icon={IdCard}
+            />
+            {isMobile && (
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowCamera(true)}
+                  className="flex items-center gap-2 text-sm font-medium text-[#006c49] bg-[#e6f4ea] px-4 py-2 rounded-md hover:bg-[#cce8d5] transition-colors"
+                >
+                  <Camera size={16} /> Buka Kamera Cerdas
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Camera Capture Modal */}
@@ -97,6 +104,7 @@ export default function StepDokumen({ formData, errors, updateField, firstInputR
         <KtmCameraCapture 
           onCapture={handleCameraCapture} 
           onCancel={() => setShowCamera(false)} 
+          isInline={isInline}
         />
       )}
 
@@ -106,6 +114,7 @@ export default function StepDokumen({ formData, errors, updateField, firstInputR
           imageSrc={cropImageSrc}
           onCropComplete={handleCropComplete}
           onCancel={() => setCropImageSrc(null)}
+          isInline={isInline}
         />
       )}
     </div>

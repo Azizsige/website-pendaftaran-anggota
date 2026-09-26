@@ -89,7 +89,10 @@ export const EditMemberDrawer = ({ open, onOpenChange, member, onSuccess }: Edit
   if (!member) return null;
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
+    <Drawer open={open} onOpenChange={(val) => {
+      if (isSubmitting) return;
+      onOpenChange(val);
+    }} direction="right">
       <DrawerContent className="w-[90%] md:w-[600px] lg:w-[45%] xl:w-[40%] bg-white shadow-2xl border-l border-[#bbcabf]/20 flex flex-col">
         <DrawerHeader className="border-b border-[#bbcabf]/10 p-6 flex flex-row items-center justify-between shrink-0">
           <div>
@@ -97,7 +100,7 @@ export const EditMemberDrawer = ({ open, onOpenChange, member, onSuccess }: Edit
             <DrawerDescription className="text-left mt-1 text-[#3c4a42]">Update contact and location details for {member.user?.name}.</DrawerDescription>
           </div>
           <DrawerClose asChild>
-            <button className="p-2 text-[#3c4a42] hover:bg-black/5 rounded-full transition-colors cursor-pointer -mt-4">
+            <button disabled={isSubmitting} className="p-2 text-[#3c4a42] hover:bg-black/5 rounded-full transition-colors cursor-pointer -mt-4 disabled:opacity-50">
               <span className="material-symbols-outlined text-[20px]">close</span>
             </button>
           </DrawerClose>
@@ -134,13 +137,23 @@ export const EditMemberDrawer = ({ open, onOpenChange, member, onSuccess }: Edit
               <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
                 Phone Number
               </label>
-              <input
-                type="tel"
-                placeholder="+62 812..."
-                value={formData.noTelepon}
-                onChange={(e) => updateField("noTelepon", e.target.value)}
-                className={inputClasses(false)}
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#3c4a42] text-[14px] font-sans">+62</span>
+                <input
+                  type="tel"
+                  placeholder="812-3456-7890"
+                  maxLength={15}
+                  value={formData.noTelepon}
+                  onChange={(e) => {
+                    let val = e.target.value.replace(/\D/g, '').substring(0, 13);
+                    let formatted = val;
+                    if (val.length > 3 && val.length <= 7) formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                    else if (val.length > 7) formatted = `${val.slice(0, 3)}-${val.slice(3, 7)}-${val.slice(7)}`;
+                    updateField("noTelepon", formatted);
+                  }}
+                  className={inputClasses(false) + " pl-[44px]"}
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -216,7 +229,7 @@ export const EditMemberDrawer = ({ open, onOpenChange, member, onSuccess }: Edit
 
         <DrawerFooter className="border-t border-[#bbcabf]/10 flex flex-row justify-end gap-3 bg-white shrink-0 p-6">
           <DrawerClose asChild>
-            <button className="px-[16px] py-[8px] font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-highest rounded-lg transition-colors cursor-pointer">
+            <button disabled={isSubmitting} className="px-[16px] py-[8px] font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-highest rounded-lg transition-colors cursor-pointer disabled:opacity-50">
               Cancel
             </button>
           </DrawerClose>

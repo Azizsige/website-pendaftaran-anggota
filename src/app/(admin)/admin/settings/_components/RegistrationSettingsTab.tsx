@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { DateRange } from "react-day-picker";
+import { toast } from "sonner";
+import { getSystemSettings, updateMultipleSettings } from '@/app/actions/setting-actions';
 
 export const RegistrationSettingsTab = () => {
   const [isRegistrationActive, setIsRegistrationActive] = useState(true);
@@ -13,9 +15,86 @@ export const RegistrationSettingsTab = () => {
     from: new Date(2023, 9, 1),
     to: new Date(2023, 11, 31)
   });
+  const [maxQuota, setMaxQuota] = useState("1000");
+  const [reqKtm, setReqKtm] = useState(true);
+  const [reqFoto, setReqFoto] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await getSystemSettings();
+        if (res.success && res.data) {
+          let newFrom: Date | undefined = undefined;
+          let newTo: Date | undefined = undefined;
+
+          res.data.forEach((setting: any) => {
+            if (setting.key === 'reg_is_active') setIsRegistrationActive(setting.value === 'true');
+            if (setting.key === 'reg_date_from' && setting.value) newFrom = parseISO(setting.value);
+            if (setting.key === 'reg_date_to' && setting.value) newTo = parseISO(setting.value);
+            if (setting.key === 'reg_max_quota') setMaxQuota(setting.value);
+            if (setting.key === 'reg_req_ktm') setReqKtm(setting.value === 'true');
+            if (setting.key === 'reg_req_foto') setReqFoto(setting.value === 'true');
+          });
+
+          if (newFrom || newTo) {
+            setRegistrationDate({ from: newFrom, to: newTo });
+          } else {
+            setRegistrationDate(undefined);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch registration settings:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const settingsToUpdate = [
+        { key: 'reg_is_active', value: isRegistrationActive.toString() },
+        { key: 'reg_date_from', value: registrationDate?.from ? registrationDate.from.toISOString() : '' },
+        { key: 'reg_date_to', value: registrationDate?.to ? registrationDate.to.toISOString() : '' },
+        { key: 'reg_max_quota', value: maxQuota },
+        { key: 'reg_req_ktm', value: reqKtm.toString() },
+        { key: 'reg_req_foto', value: reqFoto.toString() },
+      ];
+      
+      const res = await updateMultipleSettings(settingsToUpdate);
+      if (res.success) {
+        toast.success("Registration settings updated successfully!");
+      } else {
+        toast.error(res.message || "Failed to save settings");
+      }
+    } catch (error) {
+      toast.error("An error occurred while saving");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="bg-surface border border-outline-variant/20 rounded-xl p-6 sm:p-8 flex items-center justify-center min-h-[400px] shadow-sm">
+        <div className="flex flex-col items-center gap-3">
+          <span className="material-symbols-outlined text-[32px] text-primary animate-spin">progress_activity</span>
+          <p className="text-sm text-on-surface-variant">Memuat pengaturan pendaftaran...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-surface border border-outline-variant/20 rounded-xl p-6 sm:p-8 flex flex-col gap-6 shadow-sm overflow-hidden">
+    <div className={`bg-surface border border-outline-variant/20 rounded-xl p-6 sm:p-8 flex flex-col gap-6 shadow-sm overflow-hidden relative ${isSaving ? 'pointer-events-none' : ''}`}>
+      {/* Skeleton Overlay saat Saving */}
+      {isSaving && (
+        <div className="absolute inset-0 z-50 bg-surface/40 backdrop-blur-[1px] animate-pulse rounded-xl"></div>
+      )}
       <div>
         <h2 className="text-[24px] font-semibold text-on-surface tracking-tight">Registration Settings</h2>
         <p className="text-sm text-on-surface-variant mt-1">Configure enrollment status, schedules, and requirements.</p>
@@ -74,7 +153,7 @@ export const RegistrationSettingsTab = () => {
                   <Calendar
                     initialFocus
                     mode="range"
-                    defaultMonth={registrationDate?.from}
+                    defaultMonth={registrationDate?.from || new Date()}
                     selected={registrationDate}
                     onSelect={setRegistrationDate}
                     numberOfMonths={2}
@@ -89,7 +168,8 @@ export const RegistrationSettingsTab = () => {
             <input 
               className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none" 
               type="number" 
-              defaultValue="1000"
+              value={maxQuota}
+              onChange={(e) => setMaxQuota(e.target.value)}
             />
           </div>
         </div>
@@ -98,23 +178,42 @@ export const RegistrationSettingsTab = () => {
           <label className="text-sm font-semibold text-on-surface">Document Requirements</label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
             <label className="flex items-center gap-3 p-3 border border-outline-variant/30 rounded-lg hover:bg-surface-variant/30 transition-colors cursor-pointer bg-surface-container-low/50">
-              <input defaultChecked className="rounded border-outline-variant/30 text-primary focus:ring-primary w-4 h-4 cursor-pointer shrink-0" type="checkbox"/>
+              <input 
+                checked={reqKtm}
+                onChange={(e) => setReqKtm(e.target.checked)}
+                className="rounded border-outline-variant/30 text-primary focus:ring-primary w-4 h-4 cursor-pointer shrink-0" 
+                type="checkbox"
+              />
               <span className="text-sm truncate">Kartu Tanda Mahasiswa (KTM)</span>
             </label>
             <label className="flex items-center gap-3 p-3 border border-outline-variant/30 rounded-lg hover:bg-surface-variant/30 transition-colors cursor-pointer bg-surface-container-low/50">
-              <input defaultChecked className="rounded border-outline-variant/30 text-primary focus:ring-primary w-4 h-4 cursor-pointer shrink-0" type="checkbox"/>
+              <input 
+                checked={reqFoto}
+                onChange={(e) => setReqFoto(e.target.checked)}
+                className="rounded border-outline-variant/30 text-primary focus:ring-primary w-4 h-4 cursor-pointer shrink-0" 
+                type="checkbox"
+              />
               <span className="text-sm truncate">Foto Profil</span>
             </label>
           </div>
         </div>
       </div>
       
-      <div className="mt-4 flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-outline-variant/20">
-        <button className="px-6 py-2.5 font-medium text-sm text-on-surface hover:bg-surface-variant/50 rounded-lg transition-colors border border-transparent hover:border-outline-variant/30 w-full sm:w-auto cursor-pointer">
+      <div className="mt-4 flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-outline-variant/20 relative z-50">
+        <button 
+          disabled={isSaving}
+          className="px-6 py-2.5 font-medium text-sm text-on-surface hover:bg-surface-variant/50 rounded-lg transition-colors border border-transparent hover:border-outline-variant/30 w-full sm:w-auto cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           Cancel
         </button>
-        <button className="px-6 py-2.5 font-medium text-sm bg-primary text-on-primary hover:bg-primary-container hover:shadow-md rounded-lg transition-all shadow-sm w-full sm:w-auto cursor-pointer">
-          Save Changes
+        <button 
+          onClick={handleSave}
+          disabled={isSaving}
+          className="px-6 py-2.5 font-medium text-sm bg-primary text-on-primary hover:bg-primary-container hover:shadow-md rounded-lg transition-all shadow-sm w-full sm:w-auto cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          {isSaving ? (
+            <><span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>Menyimpan...</>
+          ) : 'Save Changes'}
         </button>
       </div>
     </div>
