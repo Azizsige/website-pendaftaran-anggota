@@ -19,8 +19,8 @@ export const AdminTable = () => {
   };
 
   return (
-    <div className="w-fit max-w-full overflow-x-auto rounded-lg border border-outline-variant/10">
-      <table className="text-left border-collapse text-sm whitespace-nowrap min-w-full">
+    <div className="w-full max-w-full overflow-x-auto rounded-lg border border-outline-variant/10">
+      <table className="text-left border-collapse text-sm whitespace-nowrap min-w-full w-full">
         <thead className="border-b border-outline-variant/20 bg-surface-container-lowest">
           <tr className="text-sm text-outline">
             <th className="py-3 px-4 font-semibold">Name</th>

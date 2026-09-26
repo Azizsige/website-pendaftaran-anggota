@@ -8,8 +8,8 @@ import { revalidatePath } from "next/cache";
 // Middleware internal untuk memastikan hanya SUPER_ADMIN yang bisa memanggil fungsi ini
 async function requireSuperAdmin() {
   const session = await getServerSession(authOptions);
-  if (!session || session.user.role !== "SUPER_ADMIN") {
-    throw new Error("Unauthorized. Only Super Admin can perform this action.");
+  if (!session || (session.user.role !== "SUPER_ADMIN" && session.user.role !== "OWNER")) {
+    throw new Error("Unauthorized. Only Super Admin or Owner can perform this action.");
   }
   return session.user;
 }

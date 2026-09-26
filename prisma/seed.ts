@@ -75,6 +75,37 @@ async function main() {
 
   console.log('Created/Verified System Setting REG_IS_ACTIVE:', settingRegActive.value);
 
+  // Default KTA Settings
+  const ktaSettings = [
+    { key: 'kta_bg_front_url', value: '' },
+    { key: 'kta_bg_back_url', value: '' },
+    { key: 'kta_org_name', value: 'BEM FT UNSRI' },
+    { key: 'kta_member_prefix', value: 'BEM-2026-' },
+    { key: 'kta_validity_months', value: '12' },
+    { key: 'kta_show_photo', value: 'true' },
+    { key: 'kta_show_name', value: 'true' },
+    { key: 'kta_show_nim', value: 'true' },
+    { key: 'kta_show_member_id', value: 'true' },
+    { key: 'kta_show_faculty', value: 'false' },
+    { key: 'kta_show_major', value: 'false' },
+    { key: 'kta_show_validity', value: 'true' },
+    { key: 'kta_show_qr', value: 'true' },
+  ];
+
+  for (const setting of ktaSettings) {
+    await prisma.systemSetting.upsert({
+      where: { key: setting.key },
+      update: {},
+      create: {
+        key: setting.key,
+        value: setting.value,
+        category: 'ID_CARD',
+        description: `Pengaturan ID Card: ${setting.key}`,
+      },
+    });
+  }
+  console.log('Created/Verified Default KTA Settings');
+
   // 3. Data Dummy Member Profile (Untuk testing UI & Chart)
   const dummyPassword = await bcrypt.hash('member123', 10);
   
