@@ -7,9 +7,10 @@ import { Camera, X, RefreshCcw } from "lucide-react";
 interface KtmCameraCaptureProps {
   onCapture: (blob: Blob) => void;
   onCancel: () => void;
+  isInline?: boolean;
 }
 
-export default function KtmCameraCapture({ onCapture, onCancel }: KtmCameraCaptureProps) {
+export default function KtmCameraCapture({ onCapture, onCancel, isInline = false }: KtmCameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string>("");
@@ -77,16 +78,32 @@ export default function KtmCameraCapture({ onCapture, onCancel }: KtmCameraCaptu
 
   if (error) {
     const errorContent = (
-      <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4">
+      <div 
+        id="cropper-portal"
+        className={`${isInline ? "absolute" : "fixed"} inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4`}
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+        data-vaul-no-drag
+      >
         <p className="text-white mb-4 text-center">{error}</p>
         <button onClick={handleCancel} className="px-4 py-2 bg-white text-black rounded">Tutup</button>
       </div>
     );
-    return mounted ? createPortal(errorContent, document.body) : null;
+    if (!mounted) return null;
+    const target = (isInline && document.getElementById("admin-member-drawer-content")) || document.body;
+    return createPortal(errorContent, target);
   }
 
   const content = (
-    <div className="fixed inset-0 z-[100] bg-black flex flex-col">
+    <div 
+      id="cropper-portal"
+      className={`${isInline ? "absolute" : "fixed"} inset-0 z-[100] bg-black flex flex-col`}
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      data-vaul-no-drag
+    >
       {/* Header */}
       <div className="flex justify-between items-center p-4 text-white bg-black/50 absolute top-0 left-0 right-0 z-10">
         <button onClick={handleCancel} className="p-2 bg-gray-800 rounded-full">
@@ -132,5 +149,7 @@ export default function KtmCameraCapture({ onCapture, onCancel }: KtmCameraCaptu
     </div>
   );
 
-  return mounted ? createPortal(content, document.body) : null;
+  if (!mounted) return null;
+  const target = (isInline && document.getElementById("admin-member-drawer-content")) || document.body;
+  return createPortal(content, target);
 }

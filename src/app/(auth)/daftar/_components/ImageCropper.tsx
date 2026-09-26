@@ -9,6 +9,7 @@ interface ImageCropperProps {
   imageSrc: string;
   onCropComplete: (croppedBlob: Blob) => void;
   onCancel: () => void;
+  isInline?: boolean;
 }
 
 const createImage = (url: string): Promise<HTMLImageElement> =>
@@ -55,7 +56,7 @@ async function getCroppedImg(
   });
 }
 
-export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: ImageCropperProps) {
+export default function ImageCropper({ imageSrc, onCropComplete, onCancel, isInline = false }: ImageCropperProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
@@ -84,7 +85,14 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
   };
 
   const content = (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black">
+    <div 
+      id="cropper-portal"
+      className={`${isInline ? "absolute" : "fixed"} inset-0 z-[100] flex flex-col bg-black`}
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      data-vaul-no-drag
+    >
       <div className="relative flex-1">
         <Cropper
           image={imageSrc}
@@ -117,5 +125,8 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
     </div>
   );
 
-  return mounted ? createPortal(content, document.body) : null;
+  if (!mounted) return null;
+
+  const target = (isInline && document.getElementById("admin-member-drawer-content")) || document.body;
+  return createPortal(content, target);
 }

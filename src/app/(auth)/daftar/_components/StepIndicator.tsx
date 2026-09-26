@@ -4,15 +4,16 @@ import { Check } from "lucide-react";
 
 interface StepIndicatorProps {
   currentStep: number;
+  hasStep2?: boolean;
 }
 
-const STEPS = [
-  { num: 1, label: "Data Diri" },
-  { num: 2, label: "Dokumen" },
-  { num: 3, label: "Konfirmasi" },
-];
+export default function StepIndicator({ currentStep, hasStep2 = true }: StepIndicatorProps) {
+  const steps = [
+    { num: 1, label: "Data Diri" },
+    ...(hasStep2 ? [{ num: 2, label: "Dokumen" }] : []),
+    { num: 3, label: "Konfirmasi" },
+  ];
 
-export default function StepIndicator({ currentStep }: StepIndicatorProps) {
   const progressWidth = currentStep === 1 ? "0%" : currentStep === 2 ? "50%" : "100%";
 
   return (
@@ -25,7 +26,7 @@ export default function StepIndicator({ currentStep }: StepIndicatorProps) {
         style={{ width: progressWidth }}
       ></div>
 
-      {STEPS.map((step) => {
+      {steps.map((step) => {
         const isCompleted = currentStep > step.num;
         const isActive = currentStep === step.num;
 
