@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Send } from "lucide-react";
+import { toast } from "sonner";
+import { createAdmin } from "@/actions/admin-management";
+import { useAdminStore } from '@/store/useAdminStore';
 import {
   Drawer,
   DrawerClose,
@@ -13,13 +16,8 @@ import {
 } from "@/components/ui/drawer";
 import { Dropdown } from "@/components/ui/dropdown";
 
-interface AddAdminDrawerProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  children?: React.ReactNode;
-}
-
-export const AddAdminDrawer = ({ open, onOpenChange, children }: AddAdminDrawerProps) => {
+export const AddAdminDrawer = ({ children }: { children?: React.ReactNode }) => {
+  const { isAddAdminOpen: open, setIsAddAdminOpen: onOpenChange, fetchAdmins } = useAdminStore();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -65,32 +63,51 @@ export const AddAdminDrawer = ({ open, onOpenChange, children }: AddAdminDrawerP
   const handleSubmit = async () => {
     if (!validate()) return;
     setIsSubmitting(true);
-    // Mock API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    
+    const res = await createAdmin({
+      fullName: formData.fullName,
+      email: formData.email,
+      role: formData.role
+    });
+
     setIsSubmitting(false);
-    onOpenChange(false);
+
+    if (res.success) {
+      toast.success("Admin berhasil ditambahkan");
+      onOpenChange(false);
+      fetchAdmins();
+    } else {
+      toast.error(res.error || "Gagal menambahkan admin");
+    }
   };
 
   const roles = [
-    { label: "Super Admin", value: "super_admin" },
-    { label: "Koordinator", value: "koordinator" },
-    { label: "Staff", value: "staff" },
+    { label: "Super Admin", value: "SUPER_ADMIN" },
+    { label: "Koordinator", value: "COORDINATOR" },
+    { label: "Staff", value: "STAFF" },
   ];
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
+    <Drawer open={open} onOpenChange={(val) => !isSubmitting && onOpenChange(val)} direction="right">
       {children}
-      <DrawerContent className="w-[90%] md:w-[600px] lg:w-[45%] xl:w-[40%] bg-white shadow-2xl border-l border-[#bbcabf]/20 flex flex-col">
+      <DrawerContent className="w-[90%] md:w-[600px] lg:w-[45%] xl:w-[40%] bg-white shadow-2xl border-l border-[#bbcabf]/20 flex flex-col overflow-hidden">
+        {isSubmitting && (
+          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[2px] animate-fade-in">
+            <span className="material-symbols-outlined text-primary text-[40px] animate-spin mb-3">progress_activity</span>
+            <h4 className="font-headline-md font-bold text-on-surface text-lg">Menyimpan Data</h4>
+            <p className="text-sm text-on-surface-variant mt-1">Mohon tunggu sebentar...</p>
+          </div>
+        )}
         <DrawerHeader className="border-b border-[#bbcabf]/10 p-6 flex flex-row items-center justify-between shrink-0">
           <div>
             <DrawerTitle className="font-headline-md text-[20px] font-semibold text-[#191c1e] tracking-tight text-left">Add New Admin</DrawerTitle>
             <DrawerDescription className="text-left mt-1 text-[#3c4a42]">Fill in the details to add a new administrator.</DrawerDescription>
           </div>
-          <DrawerClose asChild>
-            <button className="p-2 text-[#3c4a42] hover:bg-black/5 rounded-full transition-colors cursor-pointer -mt-4">
-              <span className="material-symbols-outlined text-[20px]">close</span>
-            </button>
-          </DrawerClose>
+            <DrawerClose asChild>
+              <button disabled={isSubmitting} className="p-2 text-[#3c4a42] hover:bg-black/5 rounded-full transition-colors cursor-pointer -mt-4 disabled:opacity-50 disabled:cursor-not-allowed">
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </DrawerClose>
         </DrawerHeader>
 
         <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
@@ -137,7 +154,7 @@ export const AddAdminDrawer = ({ open, onOpenChange, children }: AddAdminDrawerP
 
         <DrawerFooter className="border-t border-[#bbcabf]/10 flex flex-row justify-between gap-3 bg-white shrink-0 p-6">
           <DrawerClose asChild>
-            <button className="px-6 py-2.5 font-semibold text-sm text-red-500 hover:text-red-600 border border-red-500 hover:border-red-500 rounded-lg transition-colors cursor-pointer shadow-sm">
+            <button disabled={isSubmitting} className="px-6 py-2.5 font-semibold text-sm text-red-500 hover:text-red-600 border border-red-500 hover:border-red-500 rounded-lg transition-colors cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
               Cancel
             </button>
           </DrawerClose>

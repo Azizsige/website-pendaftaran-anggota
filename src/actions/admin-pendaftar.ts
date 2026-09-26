@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function getApplicants(
   search: string = "",
@@ -60,6 +62,12 @@ export async function updateApplicantStatus(
   newStatus: "ACTIVE" | "REJECTED" | "PENDING" | "SUSPENDED", 
   notes?: string
 ) {
+  const session = await getServerSession(authOptions);
+  const role = (session?.user as any)?.role;
+  if (role === "STAFF" || !role) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     const profile = await prisma.memberProfile.findUnique({
       where: { id },
@@ -106,6 +114,12 @@ export async function updateApplicantStatus(
 }
 
 export async function updateAdminNotes(id: string, notes: string) {
+  const session = await getServerSession(authOptions);
+  const role = (session?.user as any)?.role;
+  if (role === "STAFF" || !role) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     await prisma.memberProfile.update({
       where: { id },
@@ -120,6 +134,12 @@ export async function updateAdminNotes(id: string, notes: string) {
 }
 
 export async function deleteApplicant(id: string) {
+  const session = await getServerSession(authOptions);
+  const role = (session?.user as any)?.role;
+  if (role !== "OWNER" && role !== "SUPER_ADMIN") {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     const profile = await prisma.memberProfile.findUnique({
       where: { id },

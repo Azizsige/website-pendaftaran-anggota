@@ -6,9 +6,22 @@ const prisma = new PrismaClient();
 async function main() {
   console.log('Seeding database...');
 
-  // 1. Data Akun Admin (Super Admin)
+  // 1. Data Akun Admin (Owner & Super Admin)
   const adminPassword = await bcrypt.hash('admin123', 10);
   
+  const owner = await prisma.user.upsert({
+    where: { email: 'owner@system.local' },
+    update: {},
+    create: {
+      email: 'owner@system.local',
+      name: 'System Owner',
+      password: adminPassword,
+      role: 'OWNER',
+      status: 'ACTIVE',
+    },
+  });
+  console.log('Created/Verified Owner:', owner.email);
+
   const superAdmin = await prisma.user.upsert({
     where: { email: 'admin@system.local' },
     update: {},
@@ -20,8 +33,33 @@ async function main() {
       status: 'ACTIVE',
     },
   });
-
   console.log('Created/Verified Super Admin:', superAdmin.email);
+
+  const coordinator = await prisma.user.upsert({
+    where: { email: 'coordinator@system.local' },
+    update: {},
+    create: {
+      email: 'coordinator@system.local',
+      name: 'Koordinator',
+      password: adminPassword,
+      role: 'COORDINATOR',
+      status: 'ACTIVE',
+    },
+  });
+  console.log('Created/Verified Coordinator:', coordinator.email);
+
+  const staff = await prisma.user.upsert({
+    where: { email: 'staff@system.local' },
+    update: {},
+    create: {
+      email: 'staff@system.local',
+      name: 'Staff',
+      password: adminPassword,
+      role: 'STAFF',
+      status: 'ACTIVE',
+    },
+  });
+  console.log('Created/Verified Staff:', staff.email);
 
   // 2. Data Setting
   const settingRegActive = await prisma.systemSetting.upsert({

@@ -10,6 +10,7 @@ type Props = {
   onSaveNotes?: (id: string, notes: string) => void;
   isPending?: boolean;
   titleMode?: "pendaftar" | "member";
+  userRole?: string;
 };
 
 export default function ApplicantDetailModal({
@@ -21,6 +22,7 @@ export default function ApplicantDetailModal({
   onSaveNotes,
   isPending = false,
   titleMode = "pendaftar",
+  userRole,
 }: Props) {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [tempNotes, setTempNotes] = useState(applicant.adminNotes || "");
@@ -197,7 +199,7 @@ export default function ApplicantDetailModal({
                   <label className="font-semibold text-on-surface text-sm flex items-center gap-2">
                     <span className="material-symbols-outlined text-secondary text-[20px]">rate_review</span> Catatan Admin
                   </label>
-                  {!isEditingNotes && titleMode === "pendaftar" && (
+                  {!isEditingNotes && titleMode === "pendaftar" && userRole !== "STAFF" && (
                     <button 
                       onClick={() => setIsEditingNotes(true)}
                       className="text-primary text-xs font-medium hover:underline flex items-center gap-1"
@@ -239,15 +241,15 @@ export default function ApplicantDetailModal({
                 ) : (
                   <div 
                     className={`w-full p-3 border border-outline-variant/30 rounded-lg text-xs font-body-sm min-h-[44px] ${
-                      titleMode === "pendaftar" 
+                      titleMode === "pendaftar" && userRole !== "STAFF"
                         ? "bg-surface-container-low cursor-pointer hover:bg-surface-container-highest transition-colors" 
                         : "bg-surface-container-lowest/50 text-on-surface-variant/90"
                     }`}
                     onClick={() => {
-                      if (titleMode === "pendaftar") setIsEditingNotes(true);
+                      if (titleMode === "pendaftar" && userRole !== "STAFF") setIsEditingNotes(true);
                     }}
                   >
-                    {applicant.adminNotes || (titleMode === "pendaftar" ? "Tidak ada catatan admin. Klik untuk menambahkan." : "Tidak ada catatan admin.")}
+                    {applicant.adminNotes || (titleMode === "pendaftar" && userRole !== "STAFF" ? "Tidak ada catatan admin. Klik untuk menambahkan." : "Tidak ada catatan admin.")}
                   </div>
                 )}
               </div>
@@ -258,7 +260,7 @@ export default function ApplicantDetailModal({
         <div className="px-6 py-4 border-t border-outline-variant/20 bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
           <div className="flex-1"></div>
           <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
-            {applicant.status === "PENDING" && titleMode === "pendaftar" && (
+            {applicant.status === "PENDING" && titleMode === "pendaftar" && userRole !== "STAFF" && (
               <>
                 <button
                   className="flex-1 sm:flex-none px-4 py-2.5 border border-error/30 text-error hover:bg-error/10 rounded-lg font-label-md text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5"

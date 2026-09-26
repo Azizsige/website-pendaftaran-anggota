@@ -1,8 +1,13 @@
 import React from 'react';
 import { getApplicants } from '@/actions/admin-pendaftar';
 import ApplicantsClient from '@/components/admin/ApplicantsClient';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export default async function ApplicantsPage() {
+  const session = await getServerSession(authOptions);
+  const role = (session?.user as any)?.role;
+
   // Fetch initial data for the first page, no filters
   const { data, totalCount, totalPages, currentPage } = await getApplicants("", "all", 1);
 
@@ -27,6 +32,7 @@ export default async function ApplicantsPage() {
           totalCount={totalCount} 
           totalPages={totalPages} 
           currentPage={currentPage} 
+          userRole={role}
         />
       </div>
     </div>

@@ -3,6 +3,8 @@
 import { revalidatePath, unstable_noStore } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function getMembers(
   search: string = "",
@@ -10,6 +12,8 @@ export async function getMembers(
   page: number = 1,
   limit: number = 10
 ) {
+  const session = await getServerSession(authOptions);
+  if (!session) return { data: [], totalCount: 0, totalPages: 1, currentPage: 1 };
   unstable_noStore();
   try {
     const whereClause: any = {
@@ -63,6 +67,12 @@ export async function updateMemberStatus(
   id: string, 
   newStatus: "ACTIVE" | "INACTIVE" | "SUSPENDED", 
 ) {
+  const session = await getServerSession(authOptions);
+  const role = (session?.user as any)?.role;
+  if (role !== "OWNER" && role !== "SUPER_ADMIN") {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     const profile = await prisma.memberProfile.findUnique({
       where: { id },
@@ -107,6 +117,12 @@ export async function updateMemberStatus(
 }
 
 export async function deleteMember(id: string) {
+  const session = await getServerSession(authOptions);
+  const role = (session?.user as any)?.role;
+  if (role !== "OWNER" && role !== "SUPER_ADMIN") {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     const profile = await prisma.memberProfile.findUnique({
       where: { id },
@@ -129,6 +145,12 @@ export async function deleteMember(id: string) {
 
 // Tambahkan member langsung, bypass PENDING
 export async function createMember(formData: any) {
+  const session = await getServerSession(authOptions);
+  const role = (session?.user as any)?.role;
+  if (role !== "OWNER" && role !== "SUPER_ADMIN") {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     // 1. Cek apakah email atau NIK sudah terdaftar
     const existingUser = await prisma.user.findUnique({
@@ -210,6 +232,12 @@ export async function createMember(formData: any) {
 }
 
 export async function updateMember(id: string, data: { phoneNumber: string, address: string, faculty: string, major: string, batchYear: string }) {
+  const session = await getServerSession(authOptions);
+  const role = (session?.user as any)?.role;
+  if (role === "STAFF" || !role) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     const profile = await prisma.memberProfile.findUnique({
       where: { id },

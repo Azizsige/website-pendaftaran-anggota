@@ -7,7 +7,7 @@ type Props = {
   onClose: () => void;
   onConfirm: (id: string) => void;
   isPending: boolean;
-  titleMode?: "pendaftar" | "member";
+  titleMode?: "pendaftar" | "member" | "admin";
 };
 
 export default function ApplicantDeleteModal({
@@ -42,7 +42,7 @@ export default function ApplicantDeleteModal({
               </div>
               <div>
                 <h3 className="font-headline-md text-[20px] font-bold text-on-surface leading-tight">
-                  {titleMode === "pendaftar" ? "Hapus Data Pendaftar?" : "Hapus Data Member?"}
+                  {titleMode === "pendaftar" ? "Hapus Data Pendaftar?" : titleMode === "member" ? "Hapus Data Member?" : "Hapus Data Admin?"}
                 </h3>
                 <p className="text-xs text-on-surface-variant/70 mt-0.5">Konfirmasi tindakan destruktif sistem</p>
               </div>
@@ -61,17 +61,17 @@ export default function ApplicantDeleteModal({
           <div className="bg-surface-container-low border border-outline-variant/20 rounded-xl p-4 mb-5">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-sm shrink-0 border border-primary/20">
-                {applicant.user.name?.substring(0, 2).toUpperCase() || "NA"}
+                {applicant.user?.name?.substring(0, 2).toUpperCase() || applicant.name?.substring(0, 2).toUpperCase() || "NA"}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <h4 className="font-semibold text-on-surface text-sm truncate">{applicant.user.name}</h4>
+                  <h4 className="font-semibold text-on-surface text-sm truncate">{applicant.user?.name || applicant.name}</h4>
                   <span className="px-2 py-0.5 rounded text-[11px] font-code-sm bg-surface-container-highest/60 text-secondary border border-outline-variant/20">
                     {formatId(applicant.id)}
                   </span>
                 </div>
                 <p className="text-xs text-on-surface-variant truncate mb-2">
-                  {applicant.user.email} {applicant.phoneNumber ? `• ${applicant.phoneNumber}` : ""}
+                  {applicant.user?.email || applicant.email} {applicant.phoneNumber ? `• ${applicant.phoneNumber}` : ""}
                 </p>
                 <div className="flex items-center gap-2 pt-2 border-t border-outline-variant/10">
                   <span className="text-[11px] text-on-surface-variant/70">Status saat ini:</span>
@@ -84,7 +84,7 @@ export default function ApplicantDeleteModal({
                   }`}>
                     {applicant.status === "PENDING" && <span className="w-1.5 h-1.5 rounded-full bg-[#f57f17] mr-1.5"></span>}
                     {applicant.status === "PENDING" ? "Pending (Menunggu Verifikasi)" : 
-                     applicant.status === "ACTIVE" ? "Approved" : 
+                     applicant.status === "ACTIVE" ? "Active" : 
                      applicant.status === "REJECTED" ? "Rejected" : 
                      applicant.status === "SUSPENDED" ? "Suspended" : applicant.status}
                   </span>
@@ -101,7 +101,7 @@ export default function ApplicantDeleteModal({
                 onChange={(e) => setIsDeleteChecked(e.target.checked)}
               />
               <span className="text-xs text-on-surface leading-snug select-none">
-                Saya memahami bahwa data {titleMode === "pendaftar" ? "pendaftar" : "member"} ini akan dihapus secara permanen dan tidak dapat dipulihkan.
+                Saya memahami bahwa data {titleMode === "pendaftar" ? "pendaftar" : titleMode === "member" ? "member" : "admin"} ini akan dihapus secara permanen dan tidak dapat dipulihkan.
               </span>
             </label>
             <div>

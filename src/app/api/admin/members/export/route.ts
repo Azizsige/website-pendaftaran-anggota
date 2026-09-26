@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(request: Request) {
+  const session = await getServerSession(authOptions);
+  const role = (session?.user as any)?.role;
+  if (role === "STAFF" || !role) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
