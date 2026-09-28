@@ -147,7 +147,6 @@ export async function submitRegistration(formData: FormData) {
       });
     });
 
-    console.log(`[${nim}] Berhasil disimpan ke database!`);
     return { success: true };
 
   } catch (error: any) {

@@ -188,21 +188,6 @@ export default function LoginPage() {
         </div>
       </main>
 
-      {/* Demo Credentials */}
-      <div className="login-demo-credentials">
-        <p className="login-demo-title">Demo Credentials:</p>
-        <div className="login-demo-list">
-          <p>
-            Owner: <code>owner@system.local</code> /{" "}
-            <code>admin123</code>
-          </p>
-          <p>
-            Super Admin: <code>admin@system.local</code> /{" "}
-            <code>admin123</code>
-          </p>
-        </div>
-      </div>
-
       {/* Footer */}
       <footer className="login-footer">
         <Link href="#">Privacy Policy</Link>
