@@ -109,15 +109,6 @@ export async function getDashboardData({
     }
   }
 
-  // ---- DEBUGGING CONSOLE LOG FOR CHART ----
-  console.log("===============================");
-  console.log("📊 DEBUG: Chart Data Generation");
-  console.log("Filter Range:", cRange);
-  console.log("Calculated Start Date:", startDate);
-  console.log("Generated Labels:", chartLabels);
-  console.log("Generated Data:", chartDataArray);
-  console.log("===============================");
-
   return {
     stats: {
       totalAnggota,

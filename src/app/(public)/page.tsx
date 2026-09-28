@@ -295,7 +295,7 @@ export default async function LandingPage() {
             </h2>
             <p className="text-lg leading-7 text-[#4edea3]">
               Bergabunglah hari ini dan nikmati semua manfaat eksklusif yang
-              telah menanti Anda di dalam ekosistem MemberHub.
+              telah menanti Anda di dalam ekosistem {orgName}.
             </p>
           </div>
           <div className="relative z-10 shrink-0 w-full md:w-auto flex justify-center md:justify-end">

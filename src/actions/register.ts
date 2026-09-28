@@ -141,8 +141,8 @@ export async function submitRegistration(formData: FormData) {
           major: formData.get("jurusan") as string,
           batchYear: formData.get("angkatan") as string,
           status: "PENDING",
-          photoUrl: "https://dummyimage.com/150x200/006c49/fff&text=Pas+Foto",
-          ktmImageUrl: "https://dummyimage.com/400x250/006c49/fff&text=KTM",
+          photoUrl: "",
+          ktmImageUrl: "",
         }
       });
     });
