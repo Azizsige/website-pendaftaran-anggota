@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useAdminStore } from '../useAdminStore';
+import { useAdminStore, type Admin } from '../useAdminStore';
 import * as adminManagementActions from '@/actions/admin-management';
 
 vi.mock('@/actions/admin-management', () => ({
@@ -29,8 +29,8 @@ describe('useAdminStore (Zustand)', () => {
   });
 
   it('2. fetchAdmins mengubah loading true/false dan set admins jika success', async () => {
-    const mockData = [{ id: '1', name: 'Budi', email: 'budi@test.com', role: 'STAFF', status: 'ACTIVE' }];
-    vi.mocked(adminManagementActions.getAdmins).mockResolvedValueOnce({ data: mockData as any });
+    const mockData: Admin[] = [{ id: '1', name: 'Budi', email: 'budi@test.com', role: 'STAFF', status: 'ACTIVE' }];
+    vi.mocked(adminManagementActions.getAdmins).mockResolvedValueOnce({ data: mockData });
     
     // We cannot easily test the `loading` true state because it's synchronous before await,
     // but we can test the final state.
@@ -46,7 +46,7 @@ describe('useAdminStore (Zustand)', () => {
     vi.mocked(adminManagementActions.deleteAdmin).mockResolvedValueOnce({ success: true });
     vi.mocked(adminManagementActions.getAdmins).mockResolvedValueOnce({ data: [] });
 
-    useAdminStore.setState({ isDeleteModalOpen: true, adminToDelete: { id: '1' } as any });
+    useAdminStore.setState({ isDeleteModalOpen: true, adminToDelete: { id: '1', name: 'Budi', email: 'budi@test.com', role: 'STAFF', status: 'ACTIVE' } });
     
     await useAdminStore.getState().executeDeleteAdmin('1');
     

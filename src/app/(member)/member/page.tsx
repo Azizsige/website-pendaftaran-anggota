@@ -18,10 +18,10 @@ export default function MemberDashboard() {
     <div className="max-w-6xl mx-auto space-y-6 animate-fade-in-up">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-white">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
           Beranda Dashboard
         </h1>
-        <p className="text-[var(--text-secondary)] mt-1">
+        <p className="text-slate-600 mt-1">
           Selamat datang kembali di portal keanggotaan Anda.
         </p>
       </div>
@@ -32,17 +32,17 @@ export default function MemberDashboard() {
         <div className="md:col-span-2 card-glass relative overflow-hidden">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-[var(--primary)] opacity-[0.06] blur-3xl rounded-full" />
           <div className="relative z-10">
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">
               Selamat Datang, Andi! 👋
             </h2>
-            <p className="text-[var(--text-secondary)] mb-6">
+            <p className="text-slate-600 mb-6">
               Keanggotaan Anda aktif. Akses profil, unduh KTA, atau perbarui
               data Anda melalui menu di samping.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/member/profil"
-                className="btn-ghost inline-flex items-center gap-2 !bg-[var(--bg-surface)] !border !border-[var(--border-default)] !rounded-xl !text-white"
+                className="btn-ghost inline-flex items-center gap-2 !bg-white !border !border-slate-200 !rounded-xl !text-slate-800 shadow-xs hover:!bg-slate-50"
               >
                 <User size={16} />
                 Edit Profil
@@ -62,7 +62,7 @@ export default function MemberDashboard() {
         <div className="card-glass text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-[rgba(34,197,94,0.05)] to-transparent" />
           <div className="relative z-10">
-            <p className="text-sm text-[var(--text-secondary)] mb-3">
+            <p className="text-sm text-slate-600 mb-3">
               Status Keanggotaan
             </p>
             <div className="w-16 h-16 rounded-full bg-[rgba(34,197,94,0.15)] border-2 border-[rgba(34,197,94,0.3)] flex items-center justify-center mx-auto mb-3">
@@ -71,7 +71,7 @@ export default function MemberDashboard() {
             <p className="text-lg font-bold text-[var(--success)] mb-1">
               AKTIF
             </p>
-            <div className="flex items-center justify-center gap-1 text-xs text-[var(--text-tertiary)]">
+            <div className="flex items-center justify-center gap-1 text-xs text-slate-500">
               <Calendar size={12} />
               Berlaku hingga: 12 Des 2027
             </div>
@@ -81,8 +81,8 @@ export default function MemberDashboard() {
 
       {/* Info Summary */}
       <div className="card-glass">
-        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-          <User size={18} className="text-[var(--primary-light)]" />
+        <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+          <User size={18} className="text-[var(--primary)]" />
           Informasi Dasar
         </h3>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -98,17 +98,17 @@ export default function MemberDashboard() {
             return (
               <div
                 key={item.label}
-                className="flex items-start gap-3 p-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]"
+                className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200"
               >
                 <Icon
                   size={16}
-                  className="text-[var(--text-tertiary)] mt-0.5 shrink-0"
+                  className="text-slate-500 mt-0.5 shrink-0"
                 />
                 <div>
-                  <p className="text-xs text-[var(--text-tertiary)]">
+                  <p className="text-xs text-slate-500">
                     {item.label}
                   </p>
-                  <p className="text-sm text-white font-medium">{item.value}</p>
+                  <p className="text-sm text-slate-900 font-medium">{item.value}</p>
                 </div>
               </div>
             );
@@ -153,10 +153,10 @@ export default function MemberDashboard() {
               >
                 <Icon size={18} className="text-white" />
               </div>
-              <h4 className="font-semibold text-white text-sm mb-1">
+              <h4 className="font-semibold text-slate-900 text-sm mb-1">
                 {action.title}
               </h4>
-              <p className="text-xs text-[var(--text-secondary)]">
+              <p className="text-xs text-slate-500">
                 {action.desc}
               </p>
             </Link>

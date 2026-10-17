@@ -9,8 +9,11 @@ import StepDataDiri from "@/app/(auth)/daftar/_components/StepDataDiri";
 import StepDokumen from "@/app/(auth)/daftar/_components/StepDokumen";
 import StepKonfirmasi from "@/app/(auth)/daftar/_components/StepKonfirmasi";
 import { createMember } from "@/actions/admin-members";
+import { checkDuplicateRegistration } from "@/actions/register";
 import { hashFile } from "@/lib/utils";
-import { getSystemSettings } from "@/app/actions/setting-actions";
+import { getSystemSettings } from "@/actions/setting-actions";
+import { parseRegistrationSettings } from "@/lib/constants/settings";
+import { logger } from "@/lib/logger";
 import {
   Drawer,
   DrawerClose,
@@ -41,7 +44,7 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
   const topRef = useRef<HTMLDivElement>(null);
-  const firstInputRef = useRef<any>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -50,13 +53,12 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
         try {
           const res = await getSystemSettings();
           if (res.success && res.data) {
-            res.data.forEach((setting: any) => {
-              if (setting.key === 'reg_req_ktm') setReqKtm(setting.value === 'true');
-              if (setting.key === 'reg_req_foto') setReqFoto(setting.value === 'true');
-            });
+            const parsed = parseRegistrationSettings(res.data);
+            setReqKtm(parsed.reqKtm);
+            setReqFoto(parsed.reqFoto);
           }
         } catch (e) {
-          console.error(e);
+          logger.error("Gagal memuat setting di AddMemberDrawer:", e);
         } finally {
           setIsLoadingSettings(false);
         }
@@ -116,10 +118,35 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
 
   const hasStep2 = reqKtm || reqFoto;
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep === 1) {
       if (validateStep1()) {
-        setCurrentStep(hasStep2 ? 2 : 3);
+        setIsSubmitting(true);
+        try {
+          const duplicateCheck = await checkDuplicateRegistration(formData.nim, formData.email);
+          if (duplicateCheck.isDuplicate) {
+            setErrors(prev => ({
+              ...prev,
+              nim: duplicateCheck.error?.includes("NIM") ? duplicateCheck.error : undefined,
+              email: duplicateCheck.error?.includes("email") || duplicateCheck.error?.includes("Email") ? duplicateCheck.error : undefined,
+            }));
+            toast.error(duplicateCheck.error);
+            setTimeout(() => {
+              const firstError = document.querySelector('.border-\\[\\#ba1a1a\\]') as HTMLElement;
+              if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+              }
+            }, 100);
+            return;
+          }
+          setCurrentStep(hasStep2 ? 2 : 3);
+        } catch (error) {
+          logger.error("Duplicate check error:", error);
+          toast.error("Gagal memverifikasi data ke server.");
+        } finally {
+          setIsSubmitting(false);
+        }
       } else {
         setTimeout(() => {
           const firstError = document.querySelector('.border-\\[\\#ba1a1a\\]') as HTMLElement;
@@ -179,7 +206,7 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
         toast.error(res.error || "Gagal menambahkan member.");
       }
     } catch (error) {
-      console.error(error);
+      logger.error("Gagal submit tambah member:", error);
       toast.error("Terjadi kesalahan sistem.");
     } finally {
       setIsSubmitting(false);

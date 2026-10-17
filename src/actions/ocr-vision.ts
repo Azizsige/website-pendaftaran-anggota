@@ -1,5 +1,7 @@
 "use server";
 
+import { logger } from "@/lib/logger";
+
 export async function verifyKtpWithVision(base64Image: string) {
   try {
     const apiKey = process.env.OCR_SPACE_API_KEY;
@@ -30,7 +32,7 @@ export async function verifyKtpWithVision(base64Image: string) {
     const data = await response.json();
 
     if (data.IsErroredOnProcessing) {
-      console.error("OCR.Space Error:", data.ErrorMessage);
+      logger.error("OCR.Space Error:", data.ErrorMessage);
       return { 
         success: false, 
         error: Array.isArray(data.ErrorMessage) ? data.ErrorMessage[0] : data.ErrorMessage 
@@ -49,11 +51,11 @@ export async function verifyKtpWithVision(base64Image: string) {
       success: true,
       text: rawText,
     };
-  } catch (error: any) {
-    console.error("Error in verifyKtpWithOCRSpace:", error);
-    return { 
-      success: false, 
-      error: error.message || "Terjadi kesalahan internal saat menghubungi OCR Server" 
+  } catch (error) {
+    logger.error("verifyKtpWithVision gagal", error);
+    return {
+      success: false,
+      error: "Terjadi kesalahan internal saat menghubungi OCR Server."
     };
   }
 }

@@ -8,7 +8,7 @@ import { useAdminUIStore } from '@/store/useAdminUIStore';
 export default function AdminSidebar() {
   const { data: session } = useSession();
   const pathname = usePathname();
-  const role = (session?.user as any)?.role;
+  const role = session?.user?.role;
   const showSettings = role === 'OWNER' || role === 'SUPER_ADMIN';
   const { isSidebarOpen, setSidebarOpen } = useAdminUIStore();
 

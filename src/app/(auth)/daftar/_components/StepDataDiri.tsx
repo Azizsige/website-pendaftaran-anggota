@@ -1,13 +1,12 @@
 "use client";
 
 import React from "react";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { FormData, Errors, FAKULTAS_LIST, ANGKATAN_LIST, inputClasses } from "./types";
 
@@ -15,7 +14,7 @@ interface StepDataDiriProps {
   formData: FormData;
   errors: Errors;
   updateField: (field: keyof FormData, value: string | File | null | boolean) => void;
-  firstInputRef: React.RefObject<any>;
+  firstInputRef: React.RefObject<HTMLInputElement | null>;
 }
 
 export default function StepDataDiri({ formData, errors, updateField, firstInputRef }: StepDataDiriProps) {
@@ -124,14 +123,17 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
                   )}
                 >
                   <CalendarIcon className="mr-[8px] h-4 w-4" />
-                  {formData.tanggalLahir ? format(new Date(formData.tanggalLahir), "PPP", { locale: id }) : <span>Select date</span>}
+                  {formData.tanggalLahir ? formatDate(formData.tanggalLahir) : <span>Select date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 text-[#191c1e]" align="start">
                 <Calendar
                   mode="single"
+                  captionLayout="dropdown"
+                  fromYear={1970}
+                  toYear={new Date().getFullYear()}
                   selected={formData.tanggalLahir ? new Date(formData.tanggalLahir) : undefined}
-                  onSelect={(date) => {
+                  onSelect={(date: Date | undefined) => {
                     if (date) {
                       const offset = date.getTimezoneOffset();
                       const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));

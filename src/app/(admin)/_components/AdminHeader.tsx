@@ -10,7 +10,7 @@ export default function AdminHeader() {
   const { toggleSidebar } = useAdminUIStore();
   
   return (
-    <header className="bg-surface dark:bg-surface-container docked full-width top-0 bg-surface-container-low dark:bg-surface-container-high flat no shadows z-10 sticky">
+    <header className="bg-white border-b border-outline-variant/20 top-0 z-10 sticky">
       <div className="flex justify-between items-center w-full px-lg h-16 max-w-container-max mx-auto">
         <div className="flex items-center gap-md">
           <button onClick={toggleSidebar} className="md:hidden text-on-surface-variant p-sm hover:bg-surface-variant/50 rounded-full transition-colors cursor-pointer">

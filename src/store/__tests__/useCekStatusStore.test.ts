@@ -28,7 +28,7 @@ describe('useCekStatusStore', () => {
   });
 
   it('should update status data', () => {
-    const mockData = { status: 'APPROVED', name: 'John Doe' };
+    const mockData = { status: 'APPROVED', name: 'John Doe' } as unknown as import('@/types/member').RegistrationStatusData;
     useCekStatusStore.getState().setStatusData(mockData);
     expect(useCekStatusStore.getState().statusData).toEqual(mockData);
   });
@@ -38,7 +38,7 @@ describe('useCekStatusStore', () => {
     store.setNim('123');
     store.setEmail('test@test.com');
     store.setError('Error');
-    store.setStatusData({ name: 'Test' });
+    store.setStatusData({ name: 'Test' } as unknown as import('@/types/member').RegistrationStatusData);
 
     store.reset();
     

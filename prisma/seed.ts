@@ -8,7 +8,7 @@ async function main() {
 
   // 1. Data Akun Admin (Owner & Super Admin)
   const adminPassword = await bcrypt.hash('admin123', 10);
-  
+
   const owner = await prisma.user.upsert({
     where: { email: 'owner@system.local' },
     update: {},
@@ -79,8 +79,8 @@ async function main() {
   const ktaSettings = [
     { key: 'kta_bg_front_url', value: '' },
     { key: 'kta_bg_back_url', value: '' },
-    { key: 'kta_org_name', value: 'BEM FT UNSRI' },
-    { key: 'kta_member_prefix', value: 'BEM-2026-' },
+    { key: 'kta_org_name', value: 'BEM Fakultas Ilmu Komputer' },
+    { key: 'kta_member_prefix', value: 'BEM-24-' },
     { key: 'kta_validity_months', value: '12' },
     { key: 'kta_show_photo', value: 'true' },
     { key: 'kta_show_name', value: 'true' },
@@ -106,62 +106,7 @@ async function main() {
   }
   console.log('Created/Verified Default KTA Settings');
 
-  // 3. Data Dummy Member Profile (Untuk testing UI & Chart)
-  const dummyPassword = await bcrypt.hash('member123', 10);
-  
-  const statuses = ['PENDING', 'REJECTED', 'ACTIVE', 'INACTIVE', 'SUSPENDED'];
-  const firstNames = ['Budi', 'Siti', 'Andi', 'Dewi', 'Rudi', 'Sri', 'Agus', 'Tari', 'Eko', 'Rina', 'Cahyo', 'Ayu', 'Joko', 'Dian', 'Wahyu', 'Nia'];
-  const lastNames = ['Santoso', 'Rahayu', 'Setiawan', 'Lestari', 'Wibowo', 'Mulyani', 'Saputra', 'Handayani', 'Pratama', 'Sari', 'Kurniawan', 'Putri'];
-
-  console.log('Generating 30 dummy members...');
-
-  for (let i = 1; i <= 30; i++) {
-    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-    const name = `${firstName} ${lastName}`;
-    const email = `dummy${i}@example.local`;
-    const status = statuses[Math.floor(Math.random() * statuses.length)];
-    
-    // Random date within the last 6 months
-    const d = new Date();
-    d.setDate(d.getDate() - Math.floor(Math.random() * 180));
-    
-    const dummyUser = await prisma.user.upsert({
-      where: { email },
-      update: {},
-      create: {
-        email,
-        name,
-        password: dummyPassword,
-        role: 'MEMBER',
-        status: 'ACTIVE',
-        createdAt: d,
-      },
-    });
-
-    await prisma.memberProfile.upsert({
-      where: { userId: dummyUser.id },
-      update: {},
-      create: {
-        userId: dummyUser.id,
-        nim: `2314020${i.toString().padStart(2, '0')}`,
-        phoneNumber: `081${Math.floor(Math.random() * 100000000)}`,
-        placeOfBirth: 'Jakarta',
-        dateOfBirth: new Date(2000 + Math.floor(Math.random() * 5), Math.floor(Math.random() * 12), 1),
-        gender: Math.random() > 0.5 ? 'Laki-Laki' : 'Perempuan',
-        address: `Jl. Dummy No. ${i}, Kampus`,
-        faculty: 'FASILKOM-TI',
-        major: 'Teknologi Informasi',
-        batchYear: '2023',
-        status: status,
-        createdAt: d,
-      },
-    });
-  }
-
-  console.log('Created 30 Dummy Members for chart and table visualization.');
-
-  console.log('Seeding finished.');
+  console.log('Seeding finished (No dummy members, clean slate ready for demo!).');
 }
 
 main()

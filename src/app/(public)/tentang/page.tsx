@@ -1,4 +1,11 @@
-"use client";
+import { prisma } from "@/lib/prisma";
+import type { Metadata } from "next";
+import { SETTING_KEYS } from "@/lib/constants/settings";
+
+export const metadata: Metadata = {
+  title: "Tentang Kami | Komunitas Profesional",
+  description: "Pelajari lebih lanjut tentang nilai, visi, dan misi komunitas profesional kami.",
+};
 
 import {
   Target,
@@ -40,7 +47,12 @@ const stats = [
   { value: "96%", label: "Tingkat Kepuasan" },
 ];
 
-export default function TentangPage() {
+export default async function TentangPage() {
+  const setting = await prisma.systemSetting.findUnique({
+    where: { key: SETTING_KEYS.ORG_NAME }
+  });
+  const orgName = setting?.value || "Komunitas Profesional";
+
   return (
     <div className="pt-24">
       {/* Hero */}
@@ -54,7 +66,7 @@ export default function TentangPage() {
             </span>
           </h1>
           <p className="text-lg text-[var(--text-secondary)] leading-relaxed max-w-2xl mx-auto animate-fade-in-up delay-100">
-            MemberHub adalah platform digital yang dibangun untuk mempermudah
+            {orgName} adalah platform digital yang dibangun untuk mempermudah
             proses pendaftaran, verifikasi, dan pengelolaan keanggotaan secara
             online, transparan, dan efisien.
           </p>

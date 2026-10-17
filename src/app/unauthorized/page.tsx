@@ -1,5 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: "Akses Ditolak | Portal Pendaftaran",
+  description: "Anda tidak memiliki izin yang cukup untuk mengakses halaman ini.",
+};
 
 export default function UnauthorizedPage() {
   return (
@@ -15,7 +21,7 @@ export default function UnauthorizedPage() {
         </p>
         <Link 
           href="/admin" 
-          className="flex items-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-xl font-label-md text-label-md hover:bg-primary/90 transition-colors shadow-sm cursor-pointer w-full justify-center"
+          className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-xl font-label-md text-label-md hover:bg-primary/90 transition-colors shadow-sm cursor-pointer w-full justify-center"
         >
           <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           Kembali ke Dashboard

@@ -22,8 +22,9 @@ export default function StepIndicator({ currentStep, hasStep2 = true }: StepIndi
       <div className="absolute left-0 top-[16px] w-full h-[2px] bg-[#e0e3e5] z-0"></div>
       {/* Progress line */}
       <div
-        className="absolute left-0 top-[16px] h-[2px] bg-[#006c49] z-0 transition-all duration-500 ease-in-out"
-        style={{ width: progressWidth }}
+        className={`absolute left-0 top-[16px] h-[2px] bg-[#006c49] z-0 transition-all duration-500 ease-in-out ${
+          currentStep === 1 ? "w-0" : currentStep === 2 ? "w-1/2" : "w-full"
+        }`}
       ></div>
 
       {steps.map((step) => {
