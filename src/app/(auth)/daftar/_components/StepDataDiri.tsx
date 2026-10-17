@@ -1,13 +1,12 @@
 "use client";
 
 import React from "react";
-import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { id } from "date-fns/locale";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { FormData, Errors, FAKULTAS_LIST, ANGKATAN_LIST, inputClasses } from "./types";
 
@@ -15,7 +14,7 @@ interface StepDataDiriProps {
   formData: FormData;
   errors: Errors;
   updateField: (field: keyof FormData, value: string | File | null | boolean) => void;
-  firstInputRef: React.RefObject<any>;
+  firstInputRef: React.RefObject<HTMLInputElement | null>;
 }
 
 export default function StepDataDiri({ formData, errors, updateField, firstInputRef }: StepDataDiriProps) {
@@ -52,7 +51,7 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
             </label>
             <input
               type="text"
-              maxLength={20}
+              maxLength={15}
               placeholder="e.g. 231402011"
               value={formData.nim}
               onChange={(e) => updateField("nim", e.target.value.replace(/\D/g, ""))}
@@ -77,13 +76,23 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
             <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
               Phone Number <span className="text-[#ba1a1a]">*</span>
             </label>
-            <input
-              type="tel"
-              placeholder="+62 812..."
-              value={formData.noTelepon}
-              onChange={(e) => updateField("noTelepon", e.target.value)}
-              className={inputClasses(!!errors.noTelepon)}
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#3c4a42] text-[14px] font-sans">+62</span>
+              <input
+                type="tel"
+                placeholder="812-3456-7890"
+                maxLength={15}
+                value={formData.noTelepon}
+                onChange={(e) => {
+                  let val = e.target.value.replace(/\D/g, '').substring(0, 13);
+                  let formatted = val;
+                  if (val.length > 3 && val.length <= 7) formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
+                  else if (val.length > 7) formatted = `${val.slice(0, 3)}-${val.slice(3, 7)}-${val.slice(7)}`;
+                  updateField("noTelepon", formatted);
+                }}
+                className={inputClasses(!!errors.noTelepon) + " pl-[44px]"}
+              />
+            </div>
             {errors.noTelepon && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.noTelepon}</p>}
           </div>
           <div>
@@ -114,14 +123,17 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
                   )}
                 >
                   <CalendarIcon className="mr-[8px] h-4 w-4" />
-                  {formData.tanggalLahir ? format(new Date(formData.tanggalLahir), "PPP", { locale: id }) : <span>Select date</span>}
+                  {formData.tanggalLahir ? formatDate(formData.tanggalLahir) : <span>Select date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0 text-[#191c1e]" align="start">
                 <Calendar
                   mode="single"
+                  captionLayout="dropdown"
+                  fromYear={1970}
+                  toYear={new Date().getFullYear()}
                   selected={formData.tanggalLahir ? new Date(formData.tanggalLahir) : undefined}
-                  onSelect={(date) => {
+                  onSelect={(date: Date | undefined) => {
                     if (date) {
                       const offset = date.getTimezoneOffset();
                       const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));

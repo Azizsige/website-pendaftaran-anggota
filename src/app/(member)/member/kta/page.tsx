@@ -6,8 +6,8 @@ export default function KTAPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in-up">
       <div>
-        <h1 className="text-2xl font-bold text-white">Kartu Tanda Anggota</h1>
-        <p className="text-[var(--text-secondary)] mt-1">
+        <h1 className="text-2xl font-bold text-slate-900">Kartu Tanda Anggota</h1>
+        <p className="text-slate-600 mt-1">
           Lihat dan unduh KTA digital Anda.
         </p>
       </div>
@@ -15,8 +15,8 @@ export default function KTAPage() {
       {/* KTA Card Preview */}
       <div className="card-glass p-0 overflow-hidden">
         <div className="p-6 sm:p-8">
-          <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-            <CreditCard size={18} className="text-[var(--primary-light)]" />
+          <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+            <CreditCard size={18} className="text-[var(--primary)]" />
             Preview KTA Digital
           </h3>
 
@@ -24,7 +24,7 @@ export default function KTAPage() {
           <div className="max-w-md mx-auto">
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               {/* Front Side */}
-              <div className="bg-gradient-to-br from-[#0a1128] via-[#0f1729] to-[#1a2540] p-6 border border-[var(--border-default)]">
+              <div className="bg-gradient-to-br from-[#0a1128] via-[#0f1729] to-[#1a2540] p-6 border border-slate-200">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
@@ -47,7 +47,7 @@ export default function KTAPage() {
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">
+                      <p className="text-[10px] text-slate-300 uppercase tracking-wider">
                         Nama Lengkap
                       </p>
                       <p className="text-sm font-semibold text-white">
@@ -55,7 +55,7 @@ export default function KTAPage() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">
+                      <p className="text-[10px] text-slate-300 uppercase tracking-wider">
                         Nomor Induk Anggota
                       </p>
                       <p className="text-sm font-mono font-bold text-[var(--primary-light)]">
@@ -63,7 +63,7 @@ export default function KTAPage() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider">
+                      <p className="text-[10px] text-slate-300 uppercase tracking-wider">
                         Berlaku Hingga
                       </p>
                       <p className="text-sm text-white">12 Desember 2027</p>
@@ -72,18 +72,18 @@ export default function KTAPage() {
                 </div>
 
                 {/* Bottom */}
-                <div className="flex items-end justify-between mt-6 pt-4 border-t border-[var(--border-subtle)]">
+                <div className="flex items-end justify-between mt-6 pt-4 border-t border-white/10">
                   <div className="space-y-1">
-                    <p className="text-[10px] text-[var(--text-tertiary)]">
+                    <p className="text-[10px] text-slate-300">
                       NIK: 3275012345678901
                     </p>
-                    <p className="text-[10px] text-[var(--text-tertiary)]">
+                    <p className="text-[10px] text-slate-300">
                       Diterbitkan: 15 Januari 2024
                     </p>
                   </div>
                   {/* QR Code Placeholder */}
                   <div className="w-16 h-16 rounded-lg bg-white p-1.5 flex items-center justify-center">
-                    <QrCode size={44} className="text-[var(--bg-deep)]" />
+                    <QrCode size={44} className="text-slate-900" />
                   </div>
                 </div>
               </div>
@@ -92,7 +92,7 @@ export default function KTAPage() {
         </div>
 
         {/* Download Actions */}
-        <div className="bg-[var(--bg-surface)] border-t border-[var(--border-subtle)] p-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <div className="bg-white border-t border-slate-200 p-6 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button className="btn-primary inline-flex items-center gap-2 w-full sm:w-auto justify-center">
             <Download size={16} />
             Unduh PDF
@@ -105,9 +105,9 @@ export default function KTAPage() {
       </div>
 
       {/* Info */}
-      <div className="p-4 rounded-xl bg-[rgba(59,130,246,0.05)] border border-[rgba(59,130,246,0.1)]">
-        <p className="text-sm text-[var(--text-secondary)]">
-          <strong className="text-white">Catatan:</strong> KTA digital ini
+      <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200/60">
+        <p className="text-sm text-slate-700">
+          <strong className="text-slate-900">Catatan:</strong> KTA digital ini
           memiliki QR Code unik yang dapat diverifikasi. Tunjukkan KTA ini saat
           diperlukan sebagai bukti keanggotaan yang sah.
         </p>

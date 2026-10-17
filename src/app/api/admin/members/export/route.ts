@@ -1,15 +1,24 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
+import { requireAdmin } from "@/lib/auth/guards";
+import { Prisma } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
+  try {
+    await requireAdmin();
+  } catch (e) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "all";
     const ids = searchParams.get("ids");
 
-    const whereClause: any = {
+    const whereClause: Prisma.MemberProfileWhereInput = {
       status: {
         not: "PENDING"
       }
@@ -153,7 +162,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error("Export error:", error);
+    logger.error("Export error:", error);
     return NextResponse.json({ error: "Failed to export data" }, { status: 500 });
   }
 }

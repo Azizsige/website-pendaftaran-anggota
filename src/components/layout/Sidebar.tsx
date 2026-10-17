@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   User,
@@ -12,7 +13,6 @@ import {
   ChevronLeft,
   Menu,
   X,
-  FileText,
   Users,
   BarChart3,
   ClipboardList,
@@ -26,7 +26,7 @@ interface NavItem {
 }
 
 interface SidebarProps {
-  variant: "member" | "admin";
+  variant?: "member" | "admin";
 }
 
 const memberNav: NavItem[] = [
@@ -38,21 +38,22 @@ const memberNav: NavItem[] = [
 
 const adminNav: NavItem[] = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Pendaftar Baru", href: "/admin/pendaftar", icon: ClipboardList, badge: 5 },
-  { label: "Data Anggota", href: "/admin/anggota", icon: Users },
-  { label: "Laporan", href: "/admin/laporan", icon: BarChart3 },
-  { label: "Pengaturan", href: "/admin/pengaturan", icon: Settings },
+  { label: "Pendaftar Baru", href: "/admin/pendaftar", icon: ClipboardList },
+  { label: "Data Anggota", href: "/admin/members", icon: Users },
+  { label: "Laporan", href: "/admin/reports", icon: BarChart3 },
+  { label: "Pengaturan", href: "/admin/settings", icon: Settings },
 ];
 
-export default function Sidebar({ variant }: SidebarProps) {
+export default function Sidebar({ variant = "member" }: SidebarProps) {
+  const { data: session } = useSession();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navItems = variant === "member" ? memberNav : adminNav;
-  const userName = variant === "member" ? "Andi Pratama" : "Admin";
-  const userRole = variant === "member" ? "Member" : "Super Admin";
-  const memberId = variant === "member" ? "IDN-12345678" : undefined;
+  const userName = session?.user?.name || (variant === "member" ? "Member" : "Admin");
+  const userRole = session?.user?.role || (variant === "member" ? "Member" : "Admin");
+  const memberId = session?.user?.id ? `IDN-${session.user.id.slice(0, 8).toUpperCase()}` : undefined;
 
   const isActive = (href: string) => {
     if (href === `/${variant}`) return pathname === href;
@@ -68,7 +69,7 @@ export default function Sidebar({ variant }: SidebarProps) {
             M
           </div>
           {!collapsed && (
-            <span className="text-lg font-bold text-white tracking-tight whitespace-nowrap">
+            <span className="text-lg font-bold text-[var(--text-primary)] tracking-tight whitespace-nowrap">
               Member<span className="text-[var(--primary-light)]">Hub</span>
             </span>
           )}
@@ -77,7 +78,7 @@ export default function Sidebar({ variant }: SidebarProps) {
         {/* Collapse Toggle (Desktop) */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden lg:flex w-7 h-7 rounded-md bg-[var(--bg-card)] border border-[var(--border-subtle)] items-center justify-center text-[var(--text-tertiary)] hover:text-white transition-colors"
+          className="hidden lg:flex w-7 h-7 rounded-md bg-[var(--bg-card)] border border-[var(--border-subtle)] items-center justify-center text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
         >
           <ChevronLeft
             size={14}
@@ -88,7 +89,7 @@ export default function Sidebar({ variant }: SidebarProps) {
         {/* Close (Mobile) */}
         <button
           onClick={() => setMobileOpen(false)}
-          className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-secondary)] hover:text-white"
+          className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] cursor-pointer"
         >
           <X size={18} />
         </button>
@@ -99,13 +100,13 @@ export default function Sidebar({ variant }: SidebarProps) {
         <div className="px-5 pb-5 mb-2">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border-subtle)]">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--accent-blue)] to-[var(--accent-purple)] flex items-center justify-center text-white font-semibold text-sm shrink-0">
-              {userName[0]}
+              {userName[0]?.toUpperCase() || "U"}
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-white truncate">
+              <p className="text-sm font-semibold text-[var(--text-primary)] truncate">
                 {userName}
               </p>
-              <p className="text-xs text-[var(--text-tertiary)]">
+              <p className="text-xs text-[var(--text-tertiary)] truncate">
                 {userRole}
                 {memberId && ` · ${memberId}`}
               </p>
@@ -127,8 +128,8 @@ export default function Sidebar({ variant }: SidebarProps) {
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative ${
                 active
-                  ? "bg-[rgba(15,157,110,0.1)] text-[var(--primary-light)]"
-                  : "text-[var(--text-secondary)] hover:text-white hover:bg-[rgba(255,255,255,0.04)]"
+                  ? "bg-[rgba(15,157,110,0.1)] text-[var(--primary)] font-semibold"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-slate-100"
               }`}
               title={collapsed ? item.label : undefined}
             >
@@ -169,14 +170,14 @@ export default function Sidebar({ variant }: SidebarProps) {
 
       {/* Logout */}
       <div className="p-3 mt-auto border-t border-[var(--border-subtle)]">
-        <Link
-          href="/login"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--danger)] hover:bg-[rgba(239,68,68,0.05)] transition-all"
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--danger)] hover:bg-[rgba(239,68,68,0.05)] transition-all w-full text-left cursor-pointer"
           title={collapsed ? "Logout" : undefined}
         >
           <LogOut size={20} className="shrink-0" />
           {!collapsed && <span>Logout</span>}
-        </Link>
+        </button>
       </div>
     </div>
   );
@@ -186,7 +187,7 @@ export default function Sidebar({ variant }: SidebarProps) {
       {/* Mobile Toggle */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl glass flex items-center justify-center text-white"
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-800 cursor-pointer"
         aria-label="Open menu"
       >
         <Menu size={20} />

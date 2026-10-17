@@ -224,6 +224,11 @@
   padding-right: 48px;
 }
 
+.login-input-password::-ms-reveal,
+.login-input-password::-ms-clear {
+  display: none;
+}
+
 .login-visibility-btn {
   position: absolute;
   right: 12px;

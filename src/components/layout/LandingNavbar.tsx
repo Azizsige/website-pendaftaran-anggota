@@ -2,13 +2,25 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
-export default function LandingNavbar() {
+export default function LandingNavbar({ 
+  orgName = "MemberHub", 
+  orgLogo = "" 
+}: { 
+  orgName?: string; 
+  orgLogo?: string; 
+}) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const pathname = usePathname();
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setIsMobileOpen(false);
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -17,10 +29,6 @@ export default function LandingNavbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  useEffect(() => {
-    setIsMobileOpen(false);
-  }, [pathname]);
 
   return (
     <nav
@@ -36,36 +44,17 @@ export default function LandingNavbar() {
           href="/"
           className="font-bold text-xl text-[#006c49] flex items-center gap-2"
         >
-          <span
-            className="material-symbols-outlined text-[#006c49]"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            hub
-          </span>
-          MemberHub
+          {orgLogo ? (
+            <Image src={orgLogo} alt="Logo" width={32} height={32} className="h-8 w-auto object-contain" unoptimized />
+          ) : (
+            <span className="material-symbols-outlined text-[#006c49] [font-variation-settings:'FILL'_1]">
+              hub
+            </span>
+          )}
+          <span className="truncate max-w-[200px] sm:max-w-none">{orgName}</span>
         </Link>
 
-        {/* Navigation Links */}
-        <div className="hidden md:flex items-center gap-6">
-          <Link
-            href="/tentang"
-            className="text-[#3c4a42] hover:text-[#006c49] transition-colors py-2"
-          >
-            About
-          </Link>
-          <Link
-            href="#benefits"
-            className="text-[#3c4a42] hover:text-[#006c49] transition-colors py-2"
-          >
-            Benefits
-          </Link>
-        </div>
-
-        {/* Actions */}
         <div className="flex items-center gap-4">
-          <button className="text-[#3c4a42] hover:text-[#006c49] transition-colors p-2 rounded-full hover:bg-[#e0e3e5]/50">
-            <span className="material-symbols-outlined">search</span>
-          </button>
           <div className="hidden md:flex gap-2">
             <Link
               href="/login"
@@ -100,19 +89,6 @@ export default function LandingNavbar() {
       >
         <div className="bg-white mx-4 mt-3 p-4 rounded-xl border border-[#bbcabf]/20 shadow-md">
           <div className="flex flex-col gap-1">
-            <Link
-              href="/tentang"
-              className="px-4 py-3 rounded-lg text-sm font-medium text-[#3c4a42] hover:text-[#006c49] hover:bg-[#e0e3e5]/50 transition-all"
-            >
-              About
-            </Link>
-            <Link
-              href="#benefits"
-              className="px-4 py-3 rounded-lg text-sm font-medium text-[#3c4a42] hover:text-[#006c49] hover:bg-[#e0e3e5]/50 transition-all"
-            >
-              Benefits
-            </Link>
-            <hr className="border-[#bbcabf]/30 my-2" />
             <Link
               href="/login"
               className="px-4 py-3 rounded-lg text-sm font-medium text-[#3c4a42] hover:text-[#006c49] transition-colors"

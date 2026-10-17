@@ -2,13 +2,15 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
-import Cropper from "react-easy-crop";
+import Cropper, { type Area } from "react-easy-crop";
 import { Check, X } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface ImageCropperProps {
   imageSrc: string;
   onCropComplete: (croppedBlob: Blob) => void;
   onCancel: () => void;
+  isInline?: boolean;
 }
 
 const createImage = (url: string): Promise<HTMLImageElement> =>
@@ -21,7 +23,7 @@ const createImage = (url: string): Promise<HTMLImageElement> =>
 
 async function getCroppedImg(
   imageSrc: string,
-  pixelCrop: { x: number; y: number; width: number; height: number }
+  pixelCrop: Area
 ): Promise<Blob | null> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -55,10 +57,10 @@ async function getCroppedImg(
   });
 }
 
-export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: ImageCropperProps) {
+export default function ImageCropper({ imageSrc, onCropComplete, onCancel, isInline = false }: ImageCropperProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
   }, []);
 
   const onCropChange = (crop: { x: number; y: number }) => setCrop(crop);
-  const onCropCompleteCallback = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+  const onCropCompleteCallback = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
@@ -79,12 +81,19 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
         }
       }
     } catch (e) {
-      console.error(e);
+      logger.error("Gagal melakukan crop gambar:", e);
     }
   };
 
   const content = (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-black">
+    <div 
+      id="cropper-portal"
+      className={`${isInline ? "absolute" : "fixed"} inset-0 z-[100] flex flex-col bg-black`}
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      data-vaul-no-drag
+    >
       <div className="relative flex-1">
         <Cropper
           image={imageSrc}
@@ -117,5 +126,8 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel }: Ima
     </div>
   );
 
-  return mounted ? createPortal(content, document.body) : null;
+  if (!mounted) return null;
+
+  const target = (isInline && document.getElementById("admin-member-drawer-content")) || document.body;
+  return createPortal(content, target);
 }

@@ -1,10 +1,20 @@
 import React from 'react';
-import { getApplicants } from '@/actions/admin-pendaftar';
-import ApplicantsClient from '@/components/admin/ApplicantsClient';
+import { getApplicants, ApplicantsClient } from '@/features/applicants';
+import { requireAdmin } from '@/lib/auth/guards';
 
-export default async function ApplicantsPage() {
-  // Fetch initial data for the first page, no filters
-  const { data, totalCount, totalPages, currentPage } = await getApplicants("", "all", 1);
+export default async function ApplicantsPage(props: {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const user = await requireAdmin();
+  const role = user.role;
+
+  const searchParams = await props.searchParams;
+  const search = typeof searchParams?.search === 'string' ? searchParams.search : '';
+  const status = typeof searchParams?.status === 'string' ? searchParams.status : 'all';
+  const page = typeof searchParams?.page === 'string' ? parseInt(searchParams.page) : 1;
+
+  // Fetch real data on server!
+  const { data, totalCount, totalPages, currentPage } = await getApplicants(search, status, page, 10);
 
   return (
     <div className="flex-1 overflow-y-auto bg-surface-container-low p-4 md:p-6 lg:p-8">
@@ -23,10 +33,13 @@ export default async function ApplicantsPage() {
 
         {/* Client Component for Data Table and Interactivity */}
         <ApplicantsClient 
-          initialApplicants={data as any} 
+          initialApplicants={data} 
           totalCount={totalCount} 
           totalPages={totalPages} 
           currentPage={currentPage} 
+          userRole={role}
+          search={search}
+          status={status}
         />
       </div>
     </div>

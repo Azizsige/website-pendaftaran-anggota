@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
@@ -13,13 +13,26 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [activeRole, setActiveRole] = useState<"member" | "admin">("member");
   const [rememberMe, setRememberMe] = useState(false);
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
+
+    if (rememberMe) {
+      localStorage.setItem("rememberedEmail", email);
+    } else {
+      localStorage.removeItem("rememberedEmail");
+    }
 
     const res = await signIn("credentials", {
       email,
@@ -44,14 +57,7 @@ export default function LoginPage() {
           {/* Brand & Headline */}
           <div className="login-brand">
             <div className="login-brand-icon">
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: "28px",
-                  fontVariationSettings: "'FILL' 1",
-                  color: "white",
-                }}
-              >
+              <span className="material-symbols-outlined text-[28px] text-white [font-variation-settings:'FILL'_1]">
                 diamond
               </span>
             </div>
@@ -61,31 +67,12 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Role Toggle */}
-          <div className="login-role-toggle">
-            <button
-              type="button"
-              className={`login-role-btn ${activeRole === "member" ? "login-role-btn-active" : ""}`}
-              onClick={() => setActiveRole("member")}
-            >
-              Member
-            </button>
-            <button
-              type="button"
-              className={`login-role-btn ${activeRole === "admin" ? "login-role-btn-active" : ""}`}
-              onClick={() => setActiveRole("admin")}
-            >
-              Admin
-            </button>
-          </div>
+
 
           {/* Error */}
           {error && (
             <div className="login-error">
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: "18px" }}
-              >
+              <span className="material-symbols-outlined text-[18px]">
                 error
               </span>
               <p>{error}</p>
@@ -117,14 +104,9 @@ export default function LoginPage() {
 
             {/* Password Field */}
             <div className="login-field-group">
-              <div className="login-label-row">
-                <label htmlFor="password" className="login-label">
-                  Password
-                </label>
-                <Link href="/lupa-password" className="login-forgot-link">
-                  Forgot Password?
-                </Link>
-              </div>
+              <label htmlFor="password" className="login-label">
+                Password
+              </label>
               <div className="login-input-wrapper">
                 <span className="login-input-icon material-symbols-outlined">
                   lock
@@ -175,10 +157,7 @@ export default function LoginPage() {
               ) : (
                 <>
                   Sign In
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: "18px" }}
-                  >
+                  <span className="material-symbols-outlined text-[18px]">
                     arrow_forward
                   </span>
                 </>
@@ -195,21 +174,6 @@ export default function LoginPage() {
           </p>
         </div>
       </main>
-
-      {/* Demo Credentials */}
-      <div className="login-demo-credentials">
-        <p className="login-demo-title">Demo Credentials:</p>
-        <div className="login-demo-list">
-          <p>
-            Admin: <code>admin@system.local</code> /{" "}
-            <code>admin123</code>
-          </p>
-          <p>
-            Member: <code>budi@example.local</code> /{" "}
-            <code>member123</code>
-          </p>
-        </div>
-      </div>
 
       {/* Footer */}
       <footer className="login-footer">

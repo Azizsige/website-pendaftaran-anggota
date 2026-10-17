@@ -4,15 +4,16 @@ import { Check } from "lucide-react";
 
 interface StepIndicatorProps {
   currentStep: number;
+  hasStep2?: boolean;
 }
 
-const STEPS = [
-  { num: 1, label: "Data Diri" },
-  { num: 2, label: "Dokumen" },
-  { num: 3, label: "Konfirmasi" },
-];
+export default function StepIndicator({ currentStep, hasStep2 = true }: StepIndicatorProps) {
+  const steps = [
+    { num: 1, label: "Data Diri" },
+    ...(hasStep2 ? [{ num: 2, label: "Dokumen" }] : []),
+    { num: 3, label: "Konfirmasi" },
+  ];
 
-export default function StepIndicator({ currentStep }: StepIndicatorProps) {
   const progressWidth = currentStep === 1 ? "0%" : currentStep === 2 ? "50%" : "100%";
 
   return (
@@ -21,11 +22,12 @@ export default function StepIndicator({ currentStep }: StepIndicatorProps) {
       <div className="absolute left-0 top-[16px] w-full h-[2px] bg-[#e0e3e5] z-0"></div>
       {/* Progress line */}
       <div
-        className="absolute left-0 top-[16px] h-[2px] bg-[#006c49] z-0 transition-all duration-500 ease-in-out"
-        style={{ width: progressWidth }}
+        className={`absolute left-0 top-[16px] h-[2px] bg-[#006c49] z-0 transition-all duration-500 ease-in-out ${
+          currentStep === 1 ? "w-0" : currentStep === 2 ? "w-1/2" : "w-full"
+        }`}
       ></div>
 
-      {STEPS.map((step) => {
+      {steps.map((step) => {
         const isCompleted = currentStep > step.num;
         const isActive = currentStep === step.num;
 

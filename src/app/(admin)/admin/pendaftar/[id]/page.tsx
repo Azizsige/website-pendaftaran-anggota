@@ -56,7 +56,7 @@ export default function DetailPendaftarPage() {
       {/* Back */}
       <Link
         href="/admin/pendaftar"
-        className="inline-flex items-center gap-2 text-[var(--text-secondary)] text-sm hover:text-white transition-colors"
+        className="inline-flex items-center gap-2 text-slate-600 text-sm hover:text-slate-900 transition-colors"
       >
         <ArrowLeft size={16} />
         Kembali ke Daftar Pendaftar
@@ -65,8 +65,8 @@ export default function DetailPendaftarPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Detail Pendaftar</h1>
-          <p className="text-[var(--text-secondary)] mt-1">
+          <h1 className="text-2xl font-bold text-slate-900">Detail Pendaftar</h1>
+          <p className="text-slate-600 mt-1">
             Review data dan dokumen pendaftar.
           </p>
         </div>
@@ -74,9 +74,9 @@ export default function DetailPendaftarPage() {
       </div>
 
       {/* Data Diri */}
-      <div className="card-glass">
-        <h3 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
-          <User size={18} className="text-[var(--primary-light)]" />
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+        <h3 className="text-lg font-semibold text-slate-900 mb-5 flex items-center gap-2">
+          <User size={18} className="text-[#006c49]" />
           Data Diri
         </h3>
         <div className="grid sm:grid-cols-2 gap-4">
@@ -107,17 +107,17 @@ export default function DetailPendaftarPage() {
             return (
               <div
                 key={item.label}
-                className="flex items-start gap-3 p-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]"
+                className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200"
               >
                 <Icon
                   size={16}
-                  className="text-[var(--text-tertiary)] mt-0.5 shrink-0"
+                  className="text-slate-500 mt-0.5 shrink-0"
                 />
                 <div>
-                  <p className="text-xs text-[var(--text-tertiary)]">
+                  <p className="text-xs text-slate-500 font-medium">
                     {item.label}
                   </p>
-                  <p className="text-sm text-white font-medium">{item.value}</p>
+                  <p className="text-sm text-slate-900 font-medium">{item.value}</p>
                 </div>
               </div>
             );
@@ -126,31 +126,31 @@ export default function DetailPendaftarPage() {
       </div>
 
       {/* Dokumen */}
-      <div className="card-glass">
-        <h3 className="text-lg font-semibold text-white mb-5 flex items-center gap-2">
-          <FileImage size={18} className="text-[var(--primary-light)]" />
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+        <h3 className="text-lg font-semibold text-slate-900 mb-5 flex items-center gap-2">
+          <FileImage size={18} className="text-[#006c49]" />
           Dokumen
         </h3>
         <div className="grid sm:grid-cols-2 gap-4">
           {["Pas Foto (3x4)", "Foto KTP"].map((doc) => (
             <div
               key={doc}
-              className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] overflow-hidden"
+              className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs"
             >
-              <div className="h-48 bg-gradient-to-br from-[var(--bg-elevated)] to-[var(--bg-card)] flex items-center justify-center">
+              <div className="h-48 bg-slate-100 flex items-center justify-center">
                 <div className="text-center">
                   <FileImage
                     size={32}
-                    className="text-[var(--text-tertiary)] mx-auto mb-2"
+                    className="text-slate-400 mx-auto mb-2"
                   />
-                  <p className="text-xs text-[var(--text-tertiary)]">
+                  <p className="text-xs text-slate-500">
                     Preview Dokumen
                   </p>
                 </div>
               </div>
-              <div className="p-3">
-                <p className="text-sm font-medium text-white">{doc}</p>
-                <p className="text-xs text-[var(--text-tertiary)]">
+              <div className="p-3 bg-white border-t border-slate-100">
+                <p className="text-sm font-medium text-slate-900">{doc}</p>
+                <p className="text-xs text-slate-500">
                   JPG · 456 KB
                 </p>
               </div>
@@ -161,7 +161,7 @@ export default function DetailPendaftarPage() {
 
       {/* Action Buttons */}
       {status === "Pending" && (
-        <div className="card-glass flex flex-col sm:flex-row gap-3 justify-end">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col sm:flex-row gap-3 justify-end">
           <button
             onClick={() => setShowRejectModal(true)}
             className="btn-danger inline-flex items-center justify-center gap-2"
@@ -183,14 +183,14 @@ export default function DetailPendaftarPage() {
       {showRejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/60"
+            className="absolute inset-0 bg-black/40 backdrop-blur-xs"
             onClick={() => setShowRejectModal(false)}
           />
-          <div className="relative glass p-6 sm:p-8 rounded-2xl max-w-md w-full animate-scale-in">
-            <h3 className="text-xl font-bold text-white mb-2">
+          <div className="relative bg-white p-6 sm:p-8 rounded-2xl max-w-md w-full border border-slate-200 shadow-2xl animate-scale-in">
+            <h3 className="text-xl font-bold text-slate-900 mb-2">
               Tolak Pendaftaran
             </h3>
-            <p className="text-sm text-[var(--text-secondary)] mb-5">
+            <p className="text-sm text-slate-600 mb-5">
               Berikan alasan penolakan untuk dikirimkan ke pendaftar.
             </p>
             <textarea
@@ -198,12 +198,12 @@ export default function DetailPendaftarPage() {
               value={rejectReason}
               onChange={(e) => setRejectReason(e.target.value)}
               placeholder="Tuliskan alasan penolakan..."
-              className="input-field resize-none mb-5"
+              className="w-full p-3 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none mb-5"
             />
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowRejectModal(false)}
-                className="btn-ghost"
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg text-sm font-medium transition-colors"
               >
                 Batal
               </button>

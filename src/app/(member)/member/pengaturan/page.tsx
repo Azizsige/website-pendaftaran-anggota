@@ -21,8 +21,8 @@ export default function PengaturanPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-fade-in-up">
       <div>
-        <h1 className="text-2xl font-bold text-white">Pengaturan</h1>
-        <p className="text-[var(--text-secondary)] mt-1">
+        <h1 className="text-2xl font-bold text-slate-900">Pengaturan</h1>
+        <p className="text-slate-600 mt-1">
           Kelola keamanan dan preferensi akun Anda.
         </p>
       </div>
@@ -35,8 +35,8 @@ export default function PengaturanPage() {
 
       {/* Change Password */}
       <form onSubmit={handleSave} className="card-glass space-y-5">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <Lock size={18} className="text-[var(--primary-light)]" />
+        <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+          <Lock size={18} className="text-[var(--primary)]" />
           Ubah Password
         </h3>
 
@@ -51,7 +51,7 @@ export default function PengaturanPage() {
             <button
               type="button"
               onClick={() => setShowOld(!showOld)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
               {showOld ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -69,7 +69,7 @@ export default function PengaturanPage() {
             <button
               type="button"
               onClick={() => setShowNew(!showNew)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] hover:text-[var(--text-secondary)]"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
             >
               {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -103,8 +103,8 @@ export default function PengaturanPage() {
 
       {/* Notification Preferences */}
       <div className="card-glass space-y-5">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <Settings size={18} className="text-[var(--primary-light)]" />
+        <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+          <Settings size={18} className="text-[var(--primary)]" />
           Preferensi Notifikasi
         </h3>
         <div className="space-y-4">
@@ -127,11 +127,11 @@ export default function PengaturanPage() {
           ].map((pref) => (
             <div
               key={pref.label}
-              className="flex items-center justify-between p-4 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)]"
+              className="flex items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-200"
             >
               <div>
-                <p className="text-sm font-medium text-white">{pref.label}</p>
-                <p className="text-xs text-[var(--text-tertiary)]">
+                <p className="text-sm font-medium text-slate-900">{pref.label}</p>
+                <p className="text-xs text-slate-500">
                   {pref.desc}
                 </p>
               </div>
@@ -141,7 +141,7 @@ export default function PengaturanPage() {
                   defaultChecked={pref.defaultChecked}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-[var(--bg-elevated)] rounded-full peer peer-checked:bg-[var(--primary)] after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
+                <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:bg-[var(--primary)] after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" />
               </label>
             </div>
           ))}

@@ -12,8 +12,19 @@ export default function PendaftaranBerhasil() {
     const container = containerRef.current;
     if (!container) return;
 
+    interface Particle {
+      element: HTMLDivElement;
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      rotation: number;
+      rotationSpeed: number;
+      opacity: number;
+      life: number;
+    }
     const colors = ['#10b981', '#6ffbbe', '#006c49', '#dae2fd', '#d3e4fe'];
-    const particles: any[] = [];
+    const particles: Particle[] = [];
     const numConfetti = 100;
     
     for (let i = 0; i < numConfetti; i++) {
@@ -136,9 +147,12 @@ export default function PendaftaranBerhasil() {
               <Info className="text-[#006c49] w-5 h-5" />
               Langkah Selanjutnya
             </h3>
-            <p className="text-[16px] text-[#3c4a42]">
-                Admin kami akan memverifikasi data Anda dalam waktu 1-2 hari kerja. Pemberitahuan lebih lanjut akan dikirimkan melalui email yang terdaftar.
+            <p className="text-[16px] text-[#3c4a42] mb-[12px]">
+                Admin kami akan memverifikasi data Anda. Anda dapat mengecek status pendaftaran Anda secara mandiri menggunakan NIM dan Email yang didaftarkan.
             </p>
+            <Link href="/cek-status" className="inline-flex items-center gap-[4px] text-[#006c49] font-semibold hover:underline">
+              Cek Status Pendaftaran <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-[16px] w-full justify-center print:hidden">
