@@ -12,8 +12,19 @@ export default function PendaftaranBerhasil() {
     const container = containerRef.current;
     if (!container) return;
 
+    interface Particle {
+      element: HTMLDivElement;
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      rotation: number;
+      rotationSpeed: number;
+      opacity: number;
+      life: number;
+    }
     const colors = ['#10b981', '#6ffbbe', '#006c49', '#dae2fd', '#d3e4fe'];
-    const particles: any[] = [];
+    const particles: Particle[] = [];
     const numConfetti = 100;
     
     for (let i = 0; i < numConfetti; i++) {

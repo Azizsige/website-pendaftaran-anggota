@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useRegistrationSettingStore } from '../useRegistrationSettingStore';
 
 // Mock the setting actions
-vi.mock('@/app/actions/setting-actions', () => ({
+vi.mock('@/actions/setting-actions', () => ({
   getSystemSettings: vi.fn(),
   updateMultipleSettings: vi.fn(),
 }));
@@ -15,7 +15,7 @@ vi.mock('sonner', () => ({
   },
 }));
 
-import { getSystemSettings, updateMultipleSettings } from '@/app/actions/setting-actions';
+import { getSystemSettings, updateMultipleSettings } from '@/actions/setting-actions';
 import { toast } from 'sonner';
 
 describe('useRegistrationSettingStore', () => {
@@ -52,13 +52,13 @@ describe('useRegistrationSettingStore', () => {
 
   it('should load settings from API', async () => {
     const mockData = [
-      { key: 'reg_is_active', value: 'false' },
-      { key: 'reg_max_quota', value: '250' },
-      { key: 'reg_req_ktm', value: 'false' },
-      { key: 'reg_req_foto', value: 'true' },
+      { id: '1', category: 'REGISTRATION', key: 'reg_is_active', value: 'false', description: null, updatedAt: new Date() },
+      { id: '2', category: 'REGISTRATION', key: 'reg_max_quota', value: '250', description: null, updatedAt: new Date() },
+      { id: '3', category: 'REGISTRATION', key: 'reg_req_ktm', value: 'false', description: null, updatedAt: new Date() },
+      { id: '4', category: 'REGISTRATION', key: 'reg_req_foto', value: 'true', description: null, updatedAt: new Date() },
     ];
     
-    (getSystemSettings as any).mockResolvedValue({ success: true, data: mockData });
+    vi.mocked(getSystemSettings).mockResolvedValue({ success: true, data: mockData });
 
     const { loadSettings } = useRegistrationSettingStore.getState();
     await loadSettings();
@@ -72,7 +72,7 @@ describe('useRegistrationSettingStore', () => {
   });
 
   it('should handle save settings', async () => {
-    (updateMultipleSettings as any).mockResolvedValue({ success: true });
+    vi.mocked(updateMultipleSettings).mockResolvedValue({ success: true, message: "OK" });
 
     const { handleSave, setField } = useRegistrationSettingStore.getState();
     setField('maxQuota', '750');
@@ -80,10 +80,10 @@ describe('useRegistrationSettingStore', () => {
     await handleSave();
 
     expect(updateMultipleSettings).toHaveBeenCalled();
-    const calls = (updateMultipleSettings as any).mock.calls[0][0];
+    const calls = vi.mocked(updateMultipleSettings).mock.calls[0][0];
     
-    const maxQuotaUpdate = calls.find((c: any) => c.key === 'reg_max_quota');
-    expect(maxQuotaUpdate.value).toBe('750');
+    const maxQuotaUpdate = calls.find((c) => c.key === 'reg_max_quota');
+    expect(maxQuotaUpdate?.value).toBe('750');
     
     expect(toast.success).toHaveBeenCalledWith("Registration settings updated successfully!");
     expect(useRegistrationSettingStore.getState().isSaving).toBe(false);

@@ -11,7 +11,7 @@ interface StepDokumenProps {
   formData: FormData;
   errors: Errors;
   updateField: (field: keyof FormData, value: string | File | null | boolean) => void;
-  firstInputRef: React.RefObject<any>;
+  firstInputRef: React.RefObject<HTMLInputElement | null>;
   reqKtm?: boolean;
   reqFoto?: boolean;
   isInline?: boolean;
@@ -101,9 +101,9 @@ export default function StepDokumen({ formData, errors, updateField, firstInputR
 
       {/* Camera Capture Modal */}
       {showCamera && (
-        <KtmCameraCapture 
-          onCapture={handleCameraCapture} 
-          onCancel={() => setShowCamera(false)} 
+        <KtmCameraCapture
+          onCapture={handleCameraCapture}
+          onCancel={() => setShowCamera(false)}
           isInline={isInline}
         />
       )}

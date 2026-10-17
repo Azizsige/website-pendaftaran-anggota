@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Camera, X, RefreshCcw } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface KtmCameraCaptureProps {
   onCapture: (blob: Blob) => void;
@@ -27,7 +28,7 @@ export default function KtmCameraCapture({ onCapture, onCancel, isInline = false
         videoRef.current.srcObject = mediaStream;
       }
     } catch (err) {
-      console.error("Camera access error:", err);
+      logger.error("Camera access error:", err);
       setError("Gagal mengakses kamera. Pastikan Anda telah memberikan izin kamera.");
     }
   };

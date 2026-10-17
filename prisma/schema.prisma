@@ -29,6 +29,11 @@ model User {
   // Relasi
   memberProfile MemberProfile? // One-to-One
   activityLogs  ActivityLog[]  // One-to-Many
+
+  // Indeks untuk pencarian dan pemfilteran cepat
+  @@index([role, status])
+  @@index([status])
+  @@index([updatedAt])
 }
 
 // ----------------------------------------------------
@@ -70,6 +75,14 @@ model MemberProfile {
   
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+
+  // Indeks untuk filter status, sorting joinDate, angkatan, fakultas, dan updatedAt
+  @@index([status])
+  @@index([updatedAt])
+  @@index([joinDate])
+  @@index([batchYear])
+  @@index([faculty, major])
+  @@index([status, joinDate])
 }
 
 // ----------------------------------------------------
@@ -83,6 +96,8 @@ model SystemSetting {
   description String?  @db.Text
   
   updatedAt   DateTime @updatedAt
+
+  @@index([category])
 }
 
 // ----------------------------------------------------
@@ -102,4 +117,9 @@ model ActivityLog {
   details     String?  @db.Text 
   
   createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([entityType, entityId])
 }

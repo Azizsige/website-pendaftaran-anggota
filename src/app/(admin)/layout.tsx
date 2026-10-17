@@ -1,6 +1,6 @@
 import AdminSidebar from "./_components/AdminSidebar";
 import AdminHeader from "./_components/AdminHeader";
-import ScrollToTop from "@/components/ScrollToTop";
+import ScrollToTop from "@/components/providers/ScrollToTop";
 
 export default function AdminLayout({
   children,

@@ -1,0 +1,148 @@
+import React from "react";
+import type { Applicant } from "../types";
+import { formatId } from "../utils";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { formatDateTime } from "@/lib/format";
+
+type Props = {
+  applicants: Applicant[];
+  isPending: boolean;
+  onViewDetail: (applicant: Applicant) => void;
+  onDelete: (applicant: Applicant) => void;
+  onSuspend: (id: string) => void;
+  userRole?: string;
+};
+
+export default function ApplicantsTable({
+  applicants,
+  isPending,
+  onViewDetail,
+  onDelete,
+  onSuspend,
+  userRole,
+}: Props) {
+  return (
+    <div className="overflow-x-auto relative z-0">
+      <table className="w-full text-left border-collapse min-w-[800px]">
+        <thead>
+          <tr className="bg-surface-container-highest/30 border-b border-outline-variant/20 font-label-md text-label-md uppercase tracking-wider text-on-surface-variant">
+            <th className="py-4 px-6 font-semibold w-40">NIM & Info</th>
+            <th className="py-4 px-6 font-semibold">Nama Lengkap</th>
+            <th className="py-4 px-6 font-semibold">Fakultas / Jurusan</th>
+            <th className="py-4 px-6 font-semibold">Kontak</th>
+            <th className="py-4 px-6 font-semibold">Tanggal Daftar</th>
+            <th className="py-4 px-6 font-semibold w-32">Status</th>
+            <th className="py-4 px-6 font-semibold text-right w-48">Aksi</th>
+          </tr>
+        </thead>
+        <tbody className="font-body-sm text-body-sm text-on-surface">
+          {isPending ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-b border-outline-variant/10">
+                  <td className="py-4 px-6">
+                    <div className="flex flex-col gap-1">
+                      <div className="h-4 w-24 bg-surface-variant/50 animate-pulse rounded"></div>
+                      <div className="h-3 w-16 bg-surface-variant/40 animate-pulse rounded"></div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6"><div className="h-4 w-32 bg-surface-variant/50 animate-pulse rounded"></div></td>
+                  <td className="py-4 px-6">
+                    <div className="flex flex-col gap-1">
+                      <div className="h-4 w-28 bg-surface-variant/50 animate-pulse rounded"></div>
+                      <div className="h-3 w-20 bg-surface-variant/40 animate-pulse rounded"></div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex flex-col gap-1">
+                      <div className="h-4 w-36 bg-surface-variant/50 animate-pulse rounded"></div>
+                      <div className="h-3 w-24 bg-surface-variant/40 animate-pulse rounded"></div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6"><div className="h-4 w-24 bg-surface-variant/50 animate-pulse rounded"></div></td>
+                  <td className="py-4 px-6"><div className="h-6 w-16 bg-surface-variant/50 animate-pulse rounded-full"></div></td>
+                  <td className="py-4 px-6 text-right"><div className="h-8 w-8 ml-auto bg-surface-variant/50 animate-pulse rounded"></div></td>
+                </tr>
+              ))
+          ) : applicants.length === 0 ? (
+            <tr>
+              <td colSpan={7} className="py-8 text-center text-on-surface-variant">
+                Tidak ada data pendaftar.
+              </td>
+            </tr>
+          ) : (
+            applicants.map((applicant) => (
+              <tr
+                key={applicant.id}
+                className="border-b border-outline-variant/10 hover:bg-surface-container-highest/20 transition-colors group"
+              >
+                <td className="py-4 px-6 font-code-sm text-code-sm text-on-surface">
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-on-surface">{applicant.nim || "N/A"}</span>
+                    <span className="text-xs text-on-surface-variant">{formatId(applicant.id)}</span>
+                  </div>
+                </td>
+                <td className="py-4 px-6 font-medium text-on-surface">
+                  {applicant.user.name || "N/A"}
+                </td>
+                <td className="py-4 px-6 text-on-surface-variant">
+                  <div className="flex flex-col">
+                    <span>{applicant.faculty || "N/A"}</span>
+                    <span className="text-xs text-on-surface-variant/70">{applicant.major || "-"}</span>
+                  </div>
+                </td>
+                <td className="py-4 px-6 text-on-surface-variant">
+                  <div className="flex flex-col">
+                    <span>{applicant.user.email || "N/A"}</span>
+                    <span className="text-xs text-on-surface-variant/70">
+                      {applicant.phoneNumber || "N/A"}
+                    </span>
+                  </div>
+                </td>
+                <td className="py-4 px-6 text-on-surface-variant">
+                  {formatDateTime(applicant.joinDate)}
+                </td>
+                <td className="py-4 px-6">
+                  <StatusBadge status={applicant.status} />
+                </td>
+                <td className="py-4 px-6 text-right">
+                  <div className="flex items-center justify-end gap-1 transition-opacity">
+                    <button
+                      className="p-1.5 text-on-surface-variant hover:text-primary rounded hover:bg-primary/10 transition-colors cursor-pointer"
+                      title="Lihat Detail"
+                      onClick={() => onViewDetail(applicant)}
+                    >
+                      <span className="material-symbols-outlined text-[20px]">visibility</span>
+                    </button>
+                    {applicant.status === "ACTIVE" && userRole !== "STAFF" && (
+                      <button
+                        onClick={() => onSuspend(applicant.id)}
+                        className="p-1.5 text-on-surface-variant hover:text-warning rounded hover:bg-warning/10 transition-colors cursor-pointer text-[#f57f17]"
+                        title="Blokir"
+                        disabled={isPending}
+                      >
+                        <span className="material-symbols-outlined text-[20px]">block</span>
+                      </button>
+                    )}
+                    {(userRole === "OWNER" || userRole === "SUPER_ADMIN") && (
+                      <>
+                        <div className="w-px h-4 bg-outline-variant/30 mx-1"></div>
+                        <button
+                          onClick={() => onDelete(applicant)}
+                          className="p-1.5 text-on-surface-variant hover:text-error rounded hover:bg-error/10 transition-colors cursor-pointer"
+                          title="Hapus"
+                          disabled={isPending}
+                        >
+                          <span className="material-symbols-outlined text-[20px]">delete</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}

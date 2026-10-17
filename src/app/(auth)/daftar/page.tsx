@@ -4,17 +4,20 @@ import React, { useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Send } from "lucide-react";
-import { useRegistrationStore } from "@/store/useRegistrationStore";
-
-import StepIndicator from "./_components/StepIndicator";
-import StepDataDiri from "./_components/StepDataDiri";
-import StepDokumen from "./_components/StepDokumen";
-import StepKonfirmasi from "./_components/StepKonfirmasi";
+import { toast } from "sonner";
+import {
+  useRegistrationStore,
+  StepIndicator,
+  StepDataDiri,
+  StepDokumen,
+  StepKonfirmasi,
+} from "@/features/registration";
 
 export default function DaftarPage() {
   const router = useRouter();
   const topRef = useRef<HTMLDivElement>(null);
-  const firstInputRef = useRef<any>(null);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+  const isFirstMount = useRef(true);
 
   const {
     currentStep, formData, errors, isSubmitting, isValidating,
@@ -22,7 +25,19 @@ export default function DaftarPage() {
     updateField, setIsImageValid, setIsValidating, fetchSettings, handleNext, handlePrev, handleSubmit
   } = useRegistrationStore();
 
-  useEffect(() => { fetchSettings(); }, [fetchSettings]);
+  useEffect(() => {
+    fetchSettings();
+    const store = useRegistrationStore.getState();
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      if (store.isReapplying) {
+        store.setIsReapplying(false);
+      } else {
+        store.resetForm();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -30,8 +45,8 @@ export default function DaftarPage() {
     if (currentStep === 1) setTimeout(() => firstInputRef.current?.focus(), 100);
   }, [currentStep]);
 
-  const onNextClick = () => {
-    handleNext(() => {
+  const onNextClick = async () => {
+    const res = await handleNext(() => {
       setTimeout(() => {
         const firstError = document.querySelector('.border-\\[\\#ba1a1a\\]') as HTMLElement;
         if (firstError) {
@@ -40,13 +55,31 @@ export default function DaftarPage() {
         }
       }, 100);
     });
+    if (res && !res.success && res.error) {
+      toast.error(res.error);
+    }
   };
 
-  const onSubmitClick = () => handleSubmit(() => router.push("/daftar/sukses"));
+  const onSubmitClick = async () => {
+    const res = await handleSubmit(() => router.push("/daftar/sukses"));
+    if (res && !res.success) {
+      if (res.error) toast.error(res.error);
+      if (res.reloadRequired) {
+        setTimeout(() => window.location.reload(), 2000);
+      }
+    }
+  };
 
   const isStep2Complete = (!reqFoto || !!formData.pasFoto) && (!reqKtm || !!formData.fotoKTM);
   const isStep3SubmitReady = formData.persetujuan && useRegistrationStore.getState().isImageValid && !isSubmitting;
   const hasStep2 = reqKtm || reqFoto;
+
+  const handleValidationStatusChange = React.useCallback(
+    (status: string) => {
+      setIsValidating(status === "VALIDATING");
+    },
+    [setIsValidating]
+  );
 
   return (
     <div className="bg-[#f7f9fb] text-[#191c1e] font-sans min-h-screen flex flex-col relative overflow-x-hidden">
@@ -82,7 +115,7 @@ export default function DaftarPage() {
               <div className="p-[24px] md:p-[48px] flex flex-col bg-white/50 relative">
                 {currentStep === 1 && <StepDataDiri formData={formData} errors={errors} updateField={updateField} firstInputRef={firstInputRef} />}
                 {currentStep === 2 && hasStep2 && <StepDokumen formData={formData} errors={errors} updateField={updateField} firstInputRef={firstInputRef} reqKtm={reqKtm} reqFoto={reqFoto} />}
-                {currentStep === 3 && <StepKonfirmasi formData={formData} errors={errors} updateField={updateField} onValidationChange={setIsImageValid} onValidationStatusChange={(s) => setIsValidating(s === "VALIDATING")} reqKtm={reqKtm} reqFoto={reqFoto} />}
+                {currentStep === 3 && <StepKonfirmasi formData={formData} errors={errors} updateField={updateField} onValidationChange={setIsImageValid} onValidationStatusChange={handleValidationStatusChange} reqKtm={reqKtm} reqFoto={reqFoto} />}
               </div>
               
               {isSubmitting && (

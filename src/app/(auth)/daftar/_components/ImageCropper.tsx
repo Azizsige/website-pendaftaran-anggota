@@ -2,8 +2,9 @@
 
 import React, { useState, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
-import Cropper from "react-easy-crop";
+import Cropper, { type Area } from "react-easy-crop";
 import { Check, X } from "lucide-react";
+import { logger } from "@/lib/logger";
 
 interface ImageCropperProps {
   imageSrc: string;
@@ -22,7 +23,7 @@ const createImage = (url: string): Promise<HTMLImageElement> =>
 
 async function getCroppedImg(
   imageSrc: string,
-  pixelCrop: { x: number; y: number; width: number; height: number }
+  pixelCrop: Area
 ): Promise<Blob | null> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -59,7 +60,7 @@ async function getCroppedImg(
 export default function ImageCropper({ imageSrc, onCropComplete, onCancel, isInline = false }: ImageCropperProps) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel, isInl
   }, []);
 
   const onCropChange = (crop: { x: number; y: number }) => setCrop(crop);
-  const onCropCompleteCallback = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+  const onCropCompleteCallback = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
@@ -80,7 +81,7 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel, isInl
         }
       }
     } catch (e) {
-      console.error(e);
+      logger.error("Gagal melakukan crop gambar:", e);
     }
   };
 

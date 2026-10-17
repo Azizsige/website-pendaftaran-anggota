@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
+import Image from "next/image";
 import { Upload, X, FileImage } from "lucide-react";
+import { toast } from "sonner";
 
 interface FileUploadFieldProps {
   label: string;
@@ -29,14 +31,24 @@ export default function FileUploadField({
 
   const handleFile = useCallback(
     (f: File) => {
-      if (f.size > 2 * 1024 * 1024) return;
+      if (f.size > 2 * 1024 * 1024) {
+        toast.error(`Ukuran file terlalu besar! Maksimal 2MB. File Anda: ${(f.size / (1024 * 1024)).toFixed(2)}MB`);
+        return;
+      }
       onChange(f);
-      const reader = new FileReader();
-      reader.onload = () => setPreview(reader.result as string);
-      reader.readAsDataURL(f);
     },
     [onChange]
   );
+
+  React.useEffect(() => {
+    if (file) {
+      const objectUrl = URL.createObjectURL(file);
+      setPreview(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    } else {
+      setPreview(null);
+    }
+  }, [file]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -66,13 +78,12 @@ export default function FileUploadField({
       </label>
       {file && preview ? (
         <div className="relative rounded-xl overflow-hidden border border-[#bbcabf] bg-[#ffffff]">
-          <img src={preview} alt="Preview" className="w-full h-48 object-cover" />
+          <Image src={preview} alt="Preview" width={400} height={192} className="w-full h-48 object-cover" unoptimized />
           <div className="absolute top-2 right-2">
             <button
               type="button"
               onClick={() => {
                 onRemove();
-                setPreview(null);
               }}
               className="w-8 h-8 rounded-lg bg-[rgba(0,0,0,0.6)] text-white flex items-center justify-center hover:bg-[rgba(186,26,26,0.8)] transition-colors"
             >
@@ -97,13 +108,12 @@ export default function FileUploadField({
           }}
           onDragLeave={() => setDragActive(false)}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-xl p-[24px] flex flex-col items-center justify-center transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-[#006c49] ${
-            dragActive
+          className={`border-2 border-dashed rounded-xl p-[24px] flex flex-col items-center justify-center transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-[#006c49] ${dragActive
               ? "border-[#006c49] bg-[#eceef0]"
               : error
-              ? "border-[#ba1a1a] bg-[#ffdad6]/20"
-              : "border-[#bbcabf] bg-[#ffffff] hover:bg-[#eceef0]"
-          }`}
+                ? "border-[#ba1a1a] bg-[#ffdad6]/20"
+                : "border-[#bbcabf] bg-[#ffffff] hover:bg-[#eceef0]"
+            }`}
           onClick={openFilePicker}
         >
           <Icon size={32} className="mb-[8px] text-[#006c49]" />

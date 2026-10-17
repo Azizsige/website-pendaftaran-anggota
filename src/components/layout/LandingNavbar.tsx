@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
@@ -15,6 +16,11 @@ export default function LandingNavbar({
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const pathname = usePathname();
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    setIsMobileOpen(false);
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,10 +29,6 @@ export default function LandingNavbar({
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  useEffect(() => {
-    setIsMobileOpen(false);
-  }, [pathname]);
 
   return (
     <nav
@@ -43,12 +45,9 @@ export default function LandingNavbar({
           className="font-bold text-xl text-[#006c49] flex items-center gap-2"
         >
           {orgLogo ? (
-            <img src={orgLogo} alt="Logo" className="h-8 object-contain" />
+            <Image src={orgLogo} alt="Logo" width={32} height={32} className="h-8 w-auto object-contain" unoptimized />
           ) : (
-            <span
-              className="material-symbols-outlined text-[#006c49]"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
+            <span className="material-symbols-outlined text-[#006c49] [font-variation-settings:'FILL'_1]">
               hub
             </span>
           )}

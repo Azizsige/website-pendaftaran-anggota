@@ -2,6 +2,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { submitRegistration } from '../register';
 import { prisma } from '@/lib/prisma';
 
+vi.mock('next/headers', () => ({
+  headers: vi.fn().mockResolvedValue(new Map([['x-forwarded-for', '127.0.0.1']]))
+}));
+
+vi.mock('@/lib/turnstile', () => ({
+  verifyTurnstileToken: vi.fn().mockResolvedValue(true)
+}));
+
+vi.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: vi.fn().mockReturnValue({ success: true })
+}));
+
 // 1. KITA MOCK (Palsukan) DATABASE PRISMA 
 // Tujuannya agar unit test kita tidak beneran nyimpan data sampah ke database asli
 vi.mock('@/lib/prisma', () => {
@@ -30,7 +42,7 @@ describe('Server Action: submitRegistration (Keamanan & Kuota)', () => {
     const result = await submitRegistration(formData);
     
     expect(result.success).toBe(false);
-    expect(result.error).toContain('Manipulasi form terdeteksi');
+    expect(result.error).toContain('Data pendaftaran tidak valid');
   });
 
   it('2. [Duplikasi] Harus menolak jika email atau NIM sudah pernah terdaftar', async () => {
@@ -40,6 +52,13 @@ describe('Server Action: submitRegistration (Keamanan & Kuota)', () => {
     formData.append('namaLengkap', 'Budi');
     formData.append('fakultas', 'FASILKOM');
     formData.append('jurusan', 'TI');
+    formData.append('noTelepon', '081234567890');
+    formData.append('tempatLahir', 'Jakarta');
+    formData.append('tanggalLahir', '2000-01-01');
+    formData.append('jenisKelamin', 'L');
+    formData.append('alamat', 'Jl. Sudirman');
+    formData.append('angkatan', '2023');
+    formData.append('turnstileToken', 'dummy-token');
 
     // Simulasikan seolah-olah fungsi cek duplikat menemukan email ini di database
     // @ts-ignore
@@ -58,6 +77,13 @@ describe('Server Action: submitRegistration (Keamanan & Kuota)', () => {
     formData.append('namaLengkap', 'Pendaftar Baru');
     formData.append('fakultas', 'FASILKOM');
     formData.append('jurusan', 'TI');
+    formData.append('noTelepon', '081234567890');
+    formData.append('tempatLahir', 'Jakarta');
+    formData.append('tanggalLahir', '2000-01-01');
+    formData.append('jenisKelamin', 'L');
+    formData.append('alamat', 'Jl. Sudirman');
+    formData.append('angkatan', '2023');
+    formData.append('turnstileToken', 'dummy-token');
 
     // Simulasikan database mengizinkan tahap duplikasi (lolos)
     // @ts-ignore

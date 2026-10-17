@@ -1,4 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import type { Metadata } from "next";
+import { SETTING_KEYS } from "@/lib/constants/settings";
+
+export const metadata: Metadata = {
+  title: "Tentang Kami | Komunitas Profesional",
+  description: "Pelajari lebih lanjut tentang nilai, visi, dan misi komunitas profesional kami.",
+};
+
 import {
   Target,
   Eye,
@@ -41,7 +49,7 @@ const stats = [
 
 export default async function TentangPage() {
   const setting = await prisma.systemSetting.findUnique({
-    where: { key: 'org_name' }
+    where: { key: SETTING_KEYS.ORG_NAME }
   });
   const orgName = setting?.value || "Komunitas Profesional";
 

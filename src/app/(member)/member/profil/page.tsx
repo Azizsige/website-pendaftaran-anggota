@@ -19,8 +19,8 @@ export default function ProfilPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-fade-in-up">
       <div>
-        <h1 className="text-2xl font-bold text-white">Profil Saya</h1>
-        <p className="text-[var(--text-secondary)] mt-1">
+        <h1 className="text-2xl font-bold text-slate-900">Profil Saya</h1>
+        <p className="text-slate-600 mt-1">
           Kelola informasi pribadi dan data diri Anda.
         </p>
       </div>
@@ -43,11 +43,11 @@ export default function ProfilPage() {
             </button>
           </div>
           <div>
-            <p className="text-white font-semibold text-lg">Andi Pratama</p>
-            <p className="text-[var(--text-secondary)] text-sm">
+            <p className="text-slate-900 font-semibold text-lg">Andi Pratama</p>
+            <p className="text-slate-500 text-sm">
               Member ID: IDN-12345678
             </p>
-            <button className="mt-2 text-xs text-[var(--primary-light)] hover:text-[var(--primary)] transition-colors">
+            <button className="mt-2 text-xs text-[var(--primary)] hover:underline transition-colors">
               Ganti foto profil
             </button>
           </div>
@@ -56,8 +56,8 @@ export default function ProfilPage() {
 
       {/* Form */}
       <form onSubmit={handleSave} className="card-glass space-y-5">
-        <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-          <User size={18} className="text-[var(--primary-light)]" />
+        <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+          <User size={18} className="text-[var(--primary)]" />
           Data Diri
         </h3>
 
