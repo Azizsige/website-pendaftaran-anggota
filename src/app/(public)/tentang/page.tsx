@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import { SETTING_KEYS } from "@/lib/constants/settings";
+import { logger } from "@/lib/logger";
 
 export const metadata: Metadata = {
   title: "Tentang Kami | Komunitas Profesional",
@@ -48,10 +49,15 @@ const stats = [
 ];
 
 export default async function TentangPage() {
-  const setting = await prisma.systemSetting.findUnique({
-    where: { key: SETTING_KEYS.ORG_NAME }
-  });
-  const orgName = setting?.value || "Komunitas Profesional";
+  let orgName = "Komunitas Profesional";
+  try {
+    const setting = await prisma.systemSetting.findUnique({
+      where: { key: SETTING_KEYS.ORG_NAME },
+    });
+    if (setting?.value) orgName = setting.value;
+  } catch (error) {
+    logger.error("Failed to load tentang page settings:", error);
+  }
 
   return (
     <div className="pt-24">

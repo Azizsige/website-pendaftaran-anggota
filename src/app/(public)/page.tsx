@@ -8,6 +8,8 @@ import { LandingSteps } from "./_components/LandingSteps";
 import { LandingCta } from "./_components/LandingCta";
 import { LandingFooter } from "./_components/LandingFooter";
 
+import { logger } from "@/lib/logger";
+
 export const metadata: Metadata = {
   title: "Beranda | Komunitas Profesional",
   description:
@@ -15,20 +17,26 @@ export const metadata: Metadata = {
 };
 
 export default async function LandingPage() {
-  const settings = await prisma.systemSetting.findMany({
-    where: {
-      key: {
-        in: [
-          SETTING_KEYS.ORG_NAME,
-          SETTING_KEYS.ORG_DESCRIPTION,
-          SETTING_KEYS.ORG_WHATSAPP,
-          SETTING_KEYS.ORG_INSTAGRAM,
-          SETTING_KEYS.ORG_ADDRESS,
-          SETTING_KEYS.ORG_LOGO,
-        ],
+  let settings: Array<{ key: string; value: string }> = [];
+
+  try {
+    settings = await prisma.systemSetting.findMany({
+      where: {
+        key: {
+          in: [
+            SETTING_KEYS.ORG_NAME,
+            SETTING_KEYS.ORG_DESCRIPTION,
+            SETTING_KEYS.ORG_WHATSAPP,
+            SETTING_KEYS.ORG_INSTAGRAM,
+            SETTING_KEYS.ORG_ADDRESS,
+            SETTING_KEYS.ORG_LOGO,
+          ],
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    logger.error("Failed to load landing page settings:", error);
+  }
 
   const settingMap = settingsToMap(settings);
 
