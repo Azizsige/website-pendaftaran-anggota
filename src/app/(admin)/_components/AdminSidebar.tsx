@@ -213,7 +213,10 @@ export default function AdminSidebar({
           </Link>
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={async () => {
+              await signOut({ redirect: false, callbackUrl: "/login" });
+              window.location.assign("/login");
+            }}
             className="min-h-[44px] px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-medium text-[#4b5850] dark:text-[#cbd6d0] hover:bg-[#fef2f2] dark:hover:bg-[#3b1214] hover:text-[#991b1b] dark:hover:text-[#fca5a5] transition-colors w-full text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dc2626] dark:focus-visible:ring-[#f87171]"
           >
             <LogOut className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />

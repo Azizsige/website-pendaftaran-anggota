@@ -2,9 +2,12 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { isAdminRole, ROLES, SETTINGS_FORBIDDEN_ROLES } from "@/lib/constants/roles";
+import { normalizeNextAuthUrlEnv } from "@/lib/env";
 
 export async function proxy(req: NextRequest) {
-  const rawToken = await getToken({ req });
+  normalizeNextAuthUrlEnv();
+  const secureCookie = req.nextUrl.protocol === "https:" || Boolean(process.env.VERCEL);
+  const rawToken = await getToken({ req, secureCookie });
   const nowSeconds = Math.floor(Date.now() / 1000);
   const isExpired =
     typeof rawToken?.sessionExp === "number" && nowSeconds > rawToken.sessionExp;
@@ -17,7 +20,7 @@ export async function proxy(req: NextRequest) {
   if (path.startsWith("/admin")) {
     if (!token) {
       const url = new URL("/login", req.url);
-      url.searchParams.set("callbackUrl", req.url);
+      url.searchParams.set("callbackUrl", `${req.nextUrl.pathname}${req.nextUrl.search}`);
       return NextResponse.redirect(url);
     }
 

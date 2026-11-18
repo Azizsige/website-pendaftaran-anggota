@@ -75,7 +75,10 @@ export function MaintenanceLockScreen({
               <>
                 <button
                   type="button"
-                  onClick={() => signOut({ callbackUrl: "/login" })}
+                  onClick={async () => {
+                    await signOut({ redirect: false, callbackUrl: "/login" });
+                    window.location.assign("/login");
+                  }}
                   className="inline-flex items-center justify-center gap-2 min-h-[44px] px-5 py-2.5 rounded-lg bg-[#991b1b] hover:bg-[#7f1d1d] dark:bg-[#b91c1c] dark:hover:bg-[#991b1b] text-white font-semibold text-sm transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dc2626] dark:focus-visible:ring-[#f87171]"
                 >
                   <LogOut className="w-4 h-4" aria-hidden="true" />

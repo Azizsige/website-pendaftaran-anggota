@@ -15,6 +15,9 @@ import {
 } from "@/lib/owner-access";
 import { USER_STATUS } from "@/lib/constants/status";
 import { ROLES, type Role } from "@/lib/constants/roles";
+import { normalizeNextAuthUrlEnv } from "@/lib/env";
+
+normalizeNextAuthUrlEnv();
 
 export const SHORT_SESSION_SECONDS = 8 * 60 * 60; // 8 jam
 export const REMEMBER_SESSION_SECONDS = 30 * 24 * 60 * 60; // 30 hari
@@ -146,6 +149,28 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    redirect: ({ url, baseUrl }) => {
+      if (url.startsWith("/") && !url.startsWith("//")) return `${baseUrl}${url}`;
+      try {
+        const parsedUrl = new URL(url);
+        const parsedBase = new URL(baseUrl);
+        if (parsedUrl.origin === parsedBase.origin) return url;
+        const isLoopbackTarget =
+          parsedUrl.hostname === "localhost" ||
+          parsedUrl.hostname === "127.0.0.1" ||
+          parsedUrl.hostname === "[::1]";
+        const isLoopbackBase =
+          parsedBase.hostname === "localhost" ||
+          parsedBase.hostname === "127.0.0.1" ||
+          parsedBase.hostname === "[::1]";
+        if (isLoopbackTarget && !isLoopbackBase) {
+          return `${baseUrl}${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+        }
+      } catch {
+        return baseUrl;
+      }
+      return baseUrl;
+    },
     session: ({ session, token }) => {
       const nowSeconds = Math.floor(Date.now() / 1000);
       const isExpired =

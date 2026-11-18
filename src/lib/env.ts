@@ -39,6 +39,30 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
+const LOOPBACK_URL_REGEX = /^(https?:\/\/)?(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?(\/|$)/i;
+
+/**
+ * Menghapus `NEXTAUTH_URL` yang masih mengarah ke localhost saat berjalan di Vercel/production
+ * agar NextAuth otomatis mengikuti domain deployment yang aktif.
+ */
+export function normalizeNextAuthUrlEnv(): void {
+  const rawUrl = process.env.NEXTAUTH_URL?.trim();
+  const isVercel = Boolean(process.env.VERCEL);
+  const isProd = process.env.NODE_ENV === "production";
+
+  if ((isVercel || isProd) && rawUrl && LOOPBACK_URL_REGEX.test(rawUrl)) {
+    delete process.env.NEXTAUTH_URL;
+    process.env.AUTH_TRUST_HOST = "true";
+    return;
+  }
+
+  if (isVercel && !rawUrl) {
+    process.env.AUTH_TRUST_HOST = "true";
+  }
+}
+
+normalizeNextAuthUrlEnv();
+
 let cached: Env | undefined;
 
 /**
@@ -46,6 +70,7 @@ let cached: Env | undefined;
  * Dipanggil dari `instrumentation.ts` agar app gagal cepat saat boot.
  */
 export function getEnv(): Env {
+  normalizeNextAuthUrlEnv();
   if (cached) return cached;
 
   const parsed = envSchema.safeParse(process.env);

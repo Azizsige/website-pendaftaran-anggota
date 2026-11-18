@@ -34,7 +34,10 @@ export default function AdminError({
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {isUnauthorized ? (
             <Button
-              onClick={() => signOut({ callbackUrl: "/login" })}
+              onClick={async () => {
+                await signOut({ redirect: false, callbackUrl: "/login" });
+                window.location.assign("/login");
+              }}
               className="w-full sm:w-auto"
             >
               Masuk Kembali
