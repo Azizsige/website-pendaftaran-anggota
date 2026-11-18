@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+
 import type { MemberWithUser } from "@/types/member";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { LoadingWaveDots } from "@/components/ui/loading-wave-dots";
 import { Pagination } from "@/components/ui/pagination";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatDate } from "@/lib/format";
@@ -17,46 +19,89 @@ interface ReportTableProps {
   onPageChange: (newPage: number) => void;
 }
 
+function getInitials(name?: string | null): string {
+  if (!name?.trim()) return "AG";
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 const columns: DataTableColumn<MemberWithUser>[] = [
   {
     key: "joinDate",
     header: "Tanggal Mendaftar",
-    cell: (member) => formatDate(member.joinDate),
-    className: "font-body-sm text-body-sm text-on-surface",
+    headerClassName: "min-w-[170px]",
+    className: "whitespace-nowrap",
+    cell: (member) => (
+      <span className="text-[13px] text-[#475569] tabular-nums dark:text-[#cbd6d0]">
+        {formatDate(member.joinDate)}
+      </span>
+    ),
   },
   {
     key: "nim",
     header: "NIM",
-    cell: (member) => member.nim || "-",
-    className: "font-body-sm text-on-surface-variant",
+    headerClassName: "w-40 min-w-[140px]",
+    cell: (member) => (
+      <span className="font-mono text-[13px] font-semibold text-[#0f172a] tabular-nums dark:text-[#eef2f4]">
+        {member.nim || "-"}
+      </span>
+    ),
   },
   {
     key: "name",
     header: "Nama Lengkap",
-    cell: (member) => member.user?.name || "-",
-    className: "font-body-sm text-body-sm font-medium text-on-surface",
+    headerClassName: "min-w-[210px]",
+    cell: (member) => (
+      <div className="flex items-center gap-3">
+        <div
+          aria-hidden
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#006c49]/15 bg-[#e6f4ee] text-xs font-semibold text-[#005236] dark:border-[#34d399]/35 dark:bg-[#0a3326] dark:text-[#6ee7b7]"
+        >
+          {getInitials(member.user?.name)}
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-medium text-[#0f172a] dark:text-[#eef2f4]">
+            {member.user?.name || "Tanpa Nama"}
+          </span>
+          <span className="text-xs text-[#64748b] dark:text-[#94a89e]">
+            {member.user?.email || "-"}
+          </span>
+        </div>
+      </div>
+    ),
   },
   {
     key: "facultyMajor",
-    header: "Fakultas / Jurusan",
+    header: "Fakultas & Program Studi",
+    headerClassName: "min-w-[220px]",
     cell: (member) => (
-      <div className="font-body-sm text-body-sm text-on-surface-variant">
-        <span>{member.faculty || "-"}</span>
-        <br />
-        <span className="text-xs">{member.major || "-"}</span>
+      <div className="flex flex-col gap-0.5">
+        <span className="text-[13px] font-medium text-[#0f172a] dark:text-[#eef2f4]">
+          {member.faculty || "-"}
+        </span>
+        <span className="text-xs text-[#64748b] dark:text-[#94a89e]">{member.major || "-"}</span>
       </div>
     ),
   },
   {
     key: "status",
     header: "Status",
+    headerClassName: "w-36 min-w-[140px]",
     cell: (member) => <StatusBadge status={member.status} />,
   },
   {
     key: "notes",
     header: "Keterangan",
-    cell: (member) => member.adminNotes || "-",
-    className: "font-body-sm text-body-sm text-on-surface-variant",
+    headerClassName: "min-w-[160px]",
+    cell: (member) => (
+      <span className="line-clamp-2 text-[13px] text-[#475569] dark:text-[#cbd6d0]">
+        {member.adminNotes || "-"}
+      </span>
+    ),
   },
 ];
 
@@ -70,16 +115,37 @@ export function ReportTable({
   onPageChange,
 }: ReportTableProps) {
   return (
-    <div className="bg-surface rounded-xl border border-outline-variant/20 overflow-hidden shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-[#e2e8f0] bg-white dark:border-[#3c4d46] dark:bg-[#131d1a]">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#f1f5f9] bg-white px-5 py-4 sm:px-6 dark:border-[#24332d] dark:bg-[#131d1a]">
+        <div>
+          <h2 className="text-base font-semibold text-[#0f172a] dark:text-[#eef2f4]">
+            Rincian Data Anggota
+          </h2>
+          <p className="text-xs text-[#64748b] dark:text-[#94a89e]">
+            Hasil penyaringan data keanggotaan sesuai rentang tanggal dan status terpilih.
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-full border border-[#e2e8f0] bg-[#f8fafc] px-3 py-1 text-xs font-semibold text-[#334155] tabular-nums dark:border-[#3c4d46] dark:bg-[#1a2723] dark:text-[#cbd6d0]">
+          {loading ? (
+            <>
+              <span>Memuat</span>
+              <LoadingWaveDots size="sm" label="Memuat rincian data" />
+            </>
+          ) : (
+            `${totalCount.toLocaleString("id-ID")} data`
+          )}
+        </span>
+      </div>
+
       <DataTable
         columns={columns}
         rows={members}
         getRowKey={(m) => m.id}
         isLoading={loading}
-        emptyMessage="Tidak ada data yang cocok dengan filter."
-        tableClassName="min-w-[900px]"
+        emptyMessage="Tidak ada data yang cocok dengan filter yang dipilih."
+        tableClassName="min-w-[1040px]"
         footer={
-          !loading && members.length > 0 ? (
+          !loading && totalCount > 0 ? (
             <Pagination
               currentPage={page}
               totalPages={totalPages}

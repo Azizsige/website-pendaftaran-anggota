@@ -1,4 +1,7 @@
 import React from "react";
+import { FileEdit, Pencil } from "lucide-react";
+
+import { fieldClass } from "@/components/ui/form-field";
 
 interface ApplicantNotesCardProps {
   adminNotes?: string | null;
@@ -9,7 +12,7 @@ interface ApplicantNotesCardProps {
   onCancelEditing: () => void;
   onSaveNotes: () => void;
   isPending: boolean;
-  titleMode: "pendaftar" | "member";
+  titleMode?: "pendaftar" | "member";
   userRole?: string;
 }
 
@@ -28,47 +31,47 @@ export function ApplicantNotesCard({
   const canEditNotes = titleMode === "pendaftar" && userRole !== "STAFF";
 
   return (
-    <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-xs">
-      <div className="flex items-center justify-between mb-2">
-        <label className="font-semibold text-slate-900 text-sm flex items-center gap-2">
-          <span className="material-symbols-outlined text-slate-500 text-[20px]">
-            rate_review
-          </span>{" "}
+    <div className="rounded-xl border border-[#e2e8f0] bg-white p-5 dark:border-[#3c4d46] dark:bg-[#131d1a]">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <label
+          htmlFor="applicant-admin-notes"
+          className="flex items-center gap-2 text-sm font-semibold text-[#0f172a] dark:text-[#eef2f4]"
+        >
+          <FileEdit className="h-4 w-4 text-[#64748b] dark:text-[#94a89e]" aria-hidden />
           Catatan Admin
         </label>
         {!isEditingNotes && canEditNotes && (
           <button
             type="button"
             onClick={onStartEditing}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 active:scale-95 border border-emerald-200/80 shadow-2xs hover:shadow-xs transition-all cursor-pointer select-none"
+            className="inline-flex min-h-[36px] cursor-pointer select-none items-center gap-1.5 rounded-full border border-[#006c49]/20 bg-[#e6f4ee] px-3 py-1 text-xs font-semibold text-[#005236] transition-colors hover:bg-[#cde9dc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:border-[#34d399]/35 dark:bg-[#0a3326] dark:text-[#6ee7b7] dark:hover:bg-[#114d3a] dark:focus-visible:ring-[#34d399]"
           >
-            <span className="material-symbols-outlined text-[14px] leading-none" aria-hidden>
-              edit
-            </span>
+            <Pencil className="h-3.5 w-3.5" aria-hidden />
             <span>Edit</span>
           </button>
         )}
       </div>
 
       {isEditingNotes ? (
-        <div className="flex flex-col gap-2 w-full">
+        <div className="flex w-full flex-col gap-3">
           <textarea
-            className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-body-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#006c49] focus:border-transparent min-h-[80px]"
+            id="applicant-admin-notes"
+            className={fieldClass(false, "min-h-[88px] resize-y text-xs")}
             value={tempNotes}
             onChange={(e) => onTempNotesChange(e.target.value)}
-            placeholder="Masukkan catatan admin di sini..."
+            placeholder="Masukkan catatan verifikasi admin di sini..."
           />
           <div className="flex justify-end gap-2">
             <button
               type="button"
-              className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded cursor-pointer"
+              className="min-h-[40px] cursor-pointer rounded-lg border border-[#85929f] bg-white px-3.5 py-1.5 text-xs font-semibold text-[#334155] transition-colors hover:bg-[#f8fafc] dark:border-[#5f736b] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:hover:bg-[#22322d]"
               onClick={onCancelEditing}
             >
               Batal
             </button>
             <button
               type="button"
-              className="px-3 py-1.5 text-xs font-medium bg-[#006c49] text-white rounded hover:bg-[#005236] transition-colors cursor-pointer"
+              className="min-h-[40px] cursor-pointer rounded-lg bg-[#006c49] px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#005236] disabled:cursor-not-allowed disabled:opacity-60 dark:bg-[#057a55] dark:hover:bg-[#046c4e]"
               disabled={isPending}
               onClick={onSaveNotes}
             >
@@ -76,21 +79,17 @@ export function ApplicantNotesCard({
             </button>
           </div>
         </div>
-      ) : (
-        <div
-          className={`w-full p-3 border border-slate-200 rounded-lg text-xs font-body-sm min-h-[44px] ${
-            canEditNotes
-              ? "bg-slate-50 cursor-pointer hover:bg-slate-100 text-slate-800 transition-colors"
-              : "bg-slate-50/50 text-slate-500"
-          }`}
-          onClick={() => {
-            if (canEditNotes) onStartEditing();
-          }}
+      ) : canEditNotes ? (
+        <button
+          type="button"
+          onClick={onStartEditing}
+          className="min-h-[48px] w-full cursor-pointer rounded-lg border border-[#e2e8f0] bg-[#f8fafc] p-3 text-left text-xs text-[#334155] transition-colors hover:border-[#85929f] hover:bg-[#f1f5f9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:border-[#3c4d46] dark:bg-[#1a2723] dark:text-[#cbd6d0] dark:hover:border-[#5f736b] dark:hover:bg-[#22322d] dark:focus-visible:ring-[#34d399]"
         >
-          {adminNotes ||
-            (canEditNotes
-              ? "Tidak ada catatan admin. Klik untuk menambahkan."
-              : "Tidak ada catatan admin.")}
+          {adminNotes || "Belum ada catatan admin. Klik untuk menambahkan catatan."}
+        </button>
+      ) : (
+        <div className="min-h-[48px] w-full rounded-lg border border-[#e2e8f0] bg-[#f8fafc] p-3 text-xs text-[#64748b] dark:border-[#3c4d46] dark:bg-[#1a2723] dark:text-[#94a89e]">
+          {adminNotes || "Belum ada catatan admin."}
         </div>
       )}
     </div>

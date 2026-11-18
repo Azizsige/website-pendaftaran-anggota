@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useRegistrationStore } from '../useRegistrationStore';
-import { initialFormData } from '@/app/(auth)/daftar/_components/types';
+import { initialFormData } from '@/features/registration/types';
 
 describe('useRegistrationStore - Validation & State Logic', () => {
   // Reset store sebelum tiap test berjalan

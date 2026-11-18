@@ -1,52 +1,91 @@
-import React from 'react';
-import { useGeneralSettingStore } from '@/store/useGeneralSettingStore';
+import React from "react";
+
+import { useGeneralSettingStore } from "@/store/useGeneralSettingStore";
+import { FormField, TextField, TextareaField, fieldClass } from "@/components/ui/form-field";
 
 export const GeneralInfoSection = () => {
   const { formData, emailError, handleChange } = useGeneralSettingStore();
-  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => handleChange(e.target.name, e.target.value);
-
-  const inputClass = "w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none";
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    handleChange(e.target.name, e.target.value);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-      <div className="flex flex-col gap-2 min-w-0">
-        <label className="text-sm font-semibold text-on-surface">Organization Name</label>
-        <input name="org_name" value={formData.org_name} onChange={onChange} className={inputClass} type="text" placeholder="Nama Organisasi / BEM"/>
-      </div>
-      
-      <div className="flex flex-col gap-2 min-w-0">
-        <label className="text-sm font-semibold text-on-surface">Official Email</label>
-        <input name="org_email" value={formData.org_email} onChange={onChange} 
-               className={`${inputClass} ${emailError ? 'border-red-500 focus:ring-red-500/50 focus:border-red-500' : ''}`} 
-               type="email" placeholder="email@kampus.ac.id"/>
-        {emailError && <span className="text-xs text-red-500 font-medium">{emailError}</span>}
-      </div>
+    <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2">
+      <TextField
+        id="org_name"
+        name="org_name"
+        label="Nama Organisasi"
+        value={formData.org_name}
+        onChange={onChange}
+        placeholder="Contoh: BEM Fakultas Ilmu Komputer"
+      />
 
-      <div className="flex flex-col gap-2 md:col-span-2 min-w-0">
-        <label className="text-sm font-semibold text-on-surface">Description / About</label>
-        <textarea name="org_description" value={formData.org_description} onChange={onChange} className={`${inputClass} resize-none`} rows={3} placeholder="Deskripsi singkat..."></textarea>
-      </div>
+      <TextField
+        id="org_email"
+        name="org_email"
+        type="email"
+        label="Email Resmi"
+        value={formData.org_email}
+        onChange={onChange}
+        error={emailError || undefined}
+        placeholder="sekretariat@organisasi.ac.id"
+      />
 
-      <div className="flex flex-col gap-2 md:col-span-2 min-w-0">
-        <label className="text-sm font-semibold text-on-surface">Alamat Sekretariat</label>
-        <textarea name="org_address" value={formData.org_address} onChange={onChange} className={`${inputClass} resize-none`} rows={2} placeholder="Contoh: Gedung Rektorat..."></textarea>
-      </div>
+      <TextareaField
+        id="org_description"
+        name="org_description"
+        label="Deskripsi Organisasi"
+        value={formData.org_description}
+        onChange={onChange}
+        rows={3}
+        placeholder="Ringkasan visi, peran, atau tujuan organisasi..."
+        wrapperClassName="md:col-span-2"
+      />
 
-      <div className="flex flex-col gap-2 min-w-0">
-        <label className="text-sm font-semibold text-on-surface">No. WhatsApp (Contact Person)</label>
+      <TextareaField
+        id="org_address"
+        name="org_address"
+        label="Alamat Sekretariat"
+        value={formData.org_address}
+        onChange={onChange}
+        rows={2}
+        placeholder="Contoh: Gedung Student Center Lt. 2, Kampus Utama"
+        wrapperClassName="md:col-span-2"
+      />
+
+      <FormField label="Nomor WhatsApp (Narahubung)" htmlFor="org_whatsapp">
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">+62</span>
-          <input name="org_whatsapp" value={formData.org_whatsapp} onChange={onChange} className={`${inputClass} pl-12`} type="tel" placeholder="812-3456-7890" maxLength={15}/>
+          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-[#475569] dark:text-[#94a89e]">
+            +62
+          </span>
+          <input
+            id="org_whatsapp"
+            name="org_whatsapp"
+            value={formData.org_whatsapp}
+            onChange={onChange}
+            className={fieldClass(false, "pl-12 tabular-nums")}
+            type="tel"
+            placeholder="812-3456-7890"
+            maxLength={15}
+          />
         </div>
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-2 min-w-0">
-        <label className="text-sm font-semibold text-on-surface">Link Instagram</label>
+      <FormField label="Akun Instagram" htmlFor="org_instagram">
         <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">@</span>
-          <input name="org_instagram" value={formData.org_instagram} onChange={onChange} className={`${inputClass} pl-10`} type="text" placeholder="bem_xyz"/>
+          <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-[#475569] dark:text-[#94a89e]">
+            @
+          </span>
+          <input
+            id="org_instagram"
+            name="org_instagram"
+            value={formData.org_instagram}
+            onChange={onChange}
+            className={fieldClass(false, "pl-9")}
+            type="text"
+            placeholder="bem_fasilkom"
+          />
         </div>
-      </div>
+      </FormField>
     </div>
   );
 };

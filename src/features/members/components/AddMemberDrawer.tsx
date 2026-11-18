@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Send } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { ArrowLeft, ArrowRight, Loader2, Send, X } from "lucide-react";
 import { toast } from "sonner";
+
 import {
   type FormData,
   type Errors,
@@ -31,11 +32,16 @@ import {
 interface AddMemberDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   onSuccess?: () => void;
 }
 
-export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: AddMemberDrawerProps) => {
+export const AddMemberDrawer = ({
+  open,
+  onOpenChange,
+  children,
+  onSuccess,
+}: AddMemberDrawerProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [errors, setErrors] = useState<Errors>({});
@@ -52,33 +58,41 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
 
   useEffect(() => {
     if (open) {
-      setIsLoadingSettings(true);
+      let active = true;
       const fetchSettings = async () => {
+        setIsLoadingSettings(true);
         try {
           const res = await getSystemSettings();
-          if (res.success && res.data) {
+          if (active && res.success && res.data) {
             const parsed = parseRegistrationSettings(res.data);
             setReqKtm(parsed.reqKtm);
             setReqFoto(parsed.reqFoto);
           }
         } catch (e) {
-          logger.error("Gagal memuat setting di AddMemberDrawer:", e);
+          logger.error("Gagal memuat pengaturan di AddMemberDrawer:", e);
         } finally {
-          setIsLoadingSettings(false);
+          if (active) setIsLoadingSettings(false);
         }
       };
-      fetchSettings();
+      void fetchSettings();
 
-      setTimeout(() => {
+      const focusTimer = setTimeout(() => {
         topRef.current?.scrollTo({ top: 0, behavior: "smooth" });
         if (currentStep === 1) firstInputRef.current?.focus();
       }, 100);
-    } else {
-      // Reset form when drawer closes
+
+      return () => {
+        active = false;
+        clearTimeout(focusTimer);
+      };
+    }
+
+    const resetTimer = setTimeout(() => {
       setCurrentStep(1);
       setFormData(initialFormData);
       setErrors({});
-    }
+    }, 0);
+    return () => clearTimeout(resetTimer);
   }, [open, currentStep]);
 
   const updateField = (field: keyof FormData, value: string | File | null | boolean) => {
@@ -98,23 +112,22 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
     if (!formData.nim.trim()) errs.nim = "NIM wajib diisi";
     if (!formData.email.trim()) errs.email = "Email wajib diisi";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errs.email = "Format email tidak valid";
-    if (!formData.noTelepon.trim()) errs.noTelepon = "No. telepon wajib diisi";
-    else if (formData.noTelepon.replace(/\D/g, "").length < 9) errs.noTelepon = "Format no. telepon tidak valid";
+    if (!formData.noTelepon.trim()) errs.noTelepon = "Nomor telepon wajib diisi";
+    else if (formData.noTelepon.replace(/\D/g, "").length < 9) errs.noTelepon = "Format nomor telepon tidak valid";
     if (!formData.tempatLahir.trim()) errs.tempatLahir = "Tempat lahir wajib diisi";
     if (!formData.tanggalLahir) errs.tanggalLahir = "Tanggal lahir wajib diisi";
     if (!formData.jenisKelamin) errs.jenisKelamin = "Jenis kelamin wajib dipilih";
-    if (!formData.alamat.trim()) errs.alamat = "Alamat wajib diisi";
+    if (!formData.alamat.trim()) errs.alamat = "Alamat domisili wajib diisi";
     if (!formData.fakultas) errs.fakultas = "Fakultas wajib dipilih";
-    if (!formData.jurusan.trim()) errs.jurusan = "Jurusan wajib diisi";
+    if (!formData.jurusan.trim()) errs.jurusan = "Program studi wajib diisi";
     if (!formData.angkatan) errs.angkatan = "Angkatan wajib dipilih";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   const validateStep2 = (): boolean => {
-    const errs: Errors = {};
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+    setErrors({});
+    return true;
   };
 
   const hasStep2 = reqKtm || reqFoto;
@@ -126,16 +139,19 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
         try {
           const duplicateCheck = await checkDuplicateRegistration(formData.nim, formData.email);
           if (duplicateCheck.isDuplicate) {
-            setErrors(prev => ({
+            setErrors((prev) => ({
               ...prev,
               nim: duplicateCheck.error?.includes("NIM") ? duplicateCheck.error : undefined,
-              email: duplicateCheck.error?.includes("email") || duplicateCheck.error?.includes("Email") ? duplicateCheck.error : undefined,
+              email:
+                duplicateCheck.error?.includes("email") || duplicateCheck.error?.includes("Email")
+                  ? duplicateCheck.error
+                  : undefined,
             }));
             toast.error(duplicateCheck.error);
             setTimeout(() => {
-              const firstError = document.querySelector('.border-\\[\\#ba1a1a\\]') as HTMLElement;
+              const firstError = document.querySelector(".border-\\[\\#ba1a1a\\]") as HTMLElement;
               if (firstError) {
-                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.scrollIntoView({ behavior: "smooth", block: "center" });
                 firstError.focus();
               }
             }, 100);
@@ -150,9 +166,9 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
         }
       } else {
         setTimeout(() => {
-          const firstError = document.querySelector('.border-\\[\\#ba1a1a\\]') as HTMLElement;
+          const firstError = document.querySelector(".border-\\[\\#ba1a1a\\]") as HTMLElement;
           if (firstError) {
-            firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstError.scrollIntoView({ behavior: "smooth", block: "center" });
             firstError.focus();
           }
         }, 100);
@@ -177,10 +193,10 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
           const reader = new FileReader();
           reader.readAsDataURL(file);
           reader.onload = () => resolve(reader.result as string);
-          reader.onerror = error => reject(error);
+          reader.onerror = (error) => reject(error);
         });
       };
-      
+
       const pasFotoUrl = await getBase64(formData.pasFoto);
       const fotoKTMUrl = await getBase64(formData.fotoKTM);
 
@@ -196,16 +212,16 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
       });
 
       if (res.success) {
-        toast.success("Member berhasil ditambahkan!");
+        toast.success("Anggota baru berhasil ditambahkan.");
         onOpenChange(false);
         setCurrentStep(1);
         setFormData(initialFormData);
         if (onSuccess) onSuccess();
       } else {
-        toast.error(res.error || "Gagal menambahkan member.");
+        toast.error(res.error || "Gagal menambahkan anggota.");
       }
     } catch (error) {
-      logger.error("Gagal submit tambah member:", error);
+      logger.error("Gagal submit tambah anggota:", error);
       toast.error("Terjadi kesalahan sistem.");
     } finally {
       setIsSubmitting(false);
@@ -216,59 +232,86 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
   const isStep3SubmitReady = formData.persetujuan && !isSubmitting && isImageValid;
 
   return (
-    <Drawer open={open} onOpenChange={(val) => {
-      if (isSubmitting) return;
-      onOpenChange(val);
-    }} direction="right">
+    <Drawer
+      open={open}
+      onOpenChange={(val) => {
+        if (isSubmitting) return;
+        onOpenChange(val);
+      }}
+      direction="right"
+    >
       {children}
-      <DrawerContent 
+      <DrawerContent
         id="admin-member-drawer-content"
         onInteractOutside={(e) => {
-          if ((e.target as Element).closest('#cropper-portal')) {
+          if ((e.target as Element).closest("#cropper-portal")) {
             e.preventDefault();
           }
         }}
         onPointerDownOutside={(e) => {
-          if ((e.target as Element).closest('#cropper-portal')) {
+          if ((e.target as Element).closest("#cropper-portal")) {
             e.preventDefault();
           }
         }}
-        className="w-[90%] md:w-[600px] lg:w-[45%] xl:w-[40%] bg-white shadow-2xl border-l border-[#bbcabf]/20 flex flex-col"
+        className="flex w-[92%] flex-col border-l border-[#e2e8f0] bg-white shadow-2xl md:w-[600px] lg:w-[45%] xl:w-[40%] dark:border-[#3c4d46] dark:bg-[#131d1a]"
       >
-        <DrawerHeader className="border-b border-[#bbcabf]/10 p-6 flex flex-row items-center justify-between shrink-0">
+        <DrawerHeader className="flex shrink-0 flex-row items-start justify-between gap-4 border-b border-[#f1f5f9] px-6 py-5 dark:border-[#24332d]">
           <div>
-            <DrawerTitle className="font-headline-md text-[20px] font-semibold text-[#191c1e] tracking-tight text-left">Add New Member</DrawerTitle>
-            <DrawerDescription className="text-left mt-1 text-[#3c4a42]">Fill in the details to add a new member.</DrawerDescription>
+            <DrawerTitle className="text-left text-lg font-semibold tracking-tight text-[#0f172a] dark:text-[#eef2f4]">
+              Tambah Anggota Baru
+            </DrawerTitle>
+            <DrawerDescription className="mt-1 text-left text-sm text-[#475569] dark:text-[#cbd6d0]">
+              Lengkapi data mahasiswa berikut untuk menambahkan anggota secara langsung.
+            </DrawerDescription>
           </div>
           <DrawerClose asChild>
-            <button disabled={isSubmitting} className="p-2 text-[#3c4a42] hover:bg-black/5 rounded-full transition-colors cursor-pointer -mt-4 disabled:opacity-50">
-              <span className="material-symbols-outlined text-[20px]">close</span>
+            <button
+              type="button"
+              aria-label="Tutup"
+              disabled={isSubmitting}
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-[#475569] transition-colors hover:bg-[#f1f5f9] hover:text-[#0f172a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] disabled:opacity-50 dark:text-[#cbd6d0] dark:hover:bg-[#1a2723] dark:hover:text-[#eef2f4] dark:focus-visible:ring-[#34d399]"
+            >
+              <X className="h-5 w-5" aria-hidden />
             </button>
           </DrawerClose>
         </DrawerHeader>
 
-        <div className="flex-1 overflow-y-auto" ref={topRef}>
+        <div className="relative flex-1 overflow-y-auto" ref={topRef}>
           {isLoadingSettings ? (
-            <div className="flex justify-center items-center h-40 mt-10">
-              <div className="w-8 h-8 border-4 border-[#006c49] border-t-transparent rounded-full animate-spin"></div>
+            <div className="mt-10 flex h-40 flex-col items-center justify-center gap-2 text-[#475569] dark:text-[#cbd6d0]">
+              <Loader2 className="h-7 w-7 animate-spin text-[#006c49] dark:text-[#34d399]" aria-hidden />
+              <span className="text-xs font-medium">Memuat konfigurasi pendaftaran...</span>
             </div>
           ) : (
             <>
-              <div className="px-6 pt-6 pb-4 border-b border-[#bbcabf]/10">
+              <div className="border-b border-[#f1f5f9] px-6 pb-4 pt-6 dark:border-[#24332d]">
                 <StepIndicator currentStep={currentStep} hasStep2={hasStep2} />
               </div>
-              <div className="p-6 pb-20 [&_.animate-fade-in>h2]:hidden [&_.animate-fade-in>p]:hidden [&_.animate-fade-in>.text-center]:hidden">
+              <div className="p-6 pb-20 [&_.animate-fade-in>.text-center]:hidden [&_.animate-fade-in>h2]:hidden [&_.animate-fade-in>p]:hidden">
                 {currentStep === 1 && (
-                  <StepDataDiri formData={formData} errors={errors} updateField={updateField} firstInputRef={firstInputRef} />
+                  <StepDataDiri
+                    formData={formData}
+                    errors={errors}
+                    updateField={updateField}
+                    firstInputRef={firstInputRef}
+                  />
                 )}
                 {currentStep === 2 && hasStep2 && (
-                  <StepDokumen formData={formData} errors={errors} updateField={updateField} firstInputRef={firstInputRef} reqKtm={reqKtm} reqFoto={reqFoto} isInline={true} />
+                  <StepDokumen
+                    formData={formData}
+                    errors={errors}
+                    updateField={updateField}
+                    firstInputRef={firstInputRef}
+                    reqKtm={reqKtm}
+                    reqFoto={reqFoto}
+                    isInline={true}
+                  />
                 )}
                 {currentStep === 3 && (
-                  <StepKonfirmasi 
-                    formData={formData} 
-                    errors={errors} 
-                    updateField={updateField} 
+                  <StepKonfirmasi
+                    formData={formData}
+                    errors={errors}
+                    updateField={updateField}
                     onValidationChange={setIsImageValid}
                     onValidationStatusChange={(status) => setIsValidating(status === "VALIDATING")}
                     reqKtm={reqKtm}
@@ -276,12 +319,18 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
                   />
                 )}
               </div>
-              
+
               {isSubmitting && (
-                <div className="absolute inset-0 z-[60] bg-white/60 backdrop-blur-[1px] flex items-center justify-center rounded-lg">
-                  <div className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl shadow-lg border border-[#bbcabf]/20">
-                    <div className="w-10 h-10 border-4 border-[#006c49] border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-[#006c49] font-medium animate-pulse">Menyimpan data...</p>
+                <div
+                  role="status"
+                  aria-live="polite"
+                  className="absolute inset-0 z-[60] flex items-center justify-center rounded-lg bg-white/80 backdrop-blur-[2px] dark:bg-[#0d1412]/80"
+                >
+                  <div className="flex flex-col items-center gap-3 rounded-xl border border-[#e2e8f0] bg-white p-6 shadow-lg dark:border-[#3c4d46] dark:bg-[#131d1a]">
+                    <Loader2 className="h-9 w-9 animate-spin text-[#006c49] dark:text-[#34d399]" aria-hidden />
+                    <p className="text-sm font-semibold text-[#0f172a] dark:text-[#eef2f4]">
+                      Menyimpan data anggota...
+                    </p>
                   </div>
                 </div>
               )}
@@ -289,9 +338,9 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
           )}
         </div>
 
-        <DrawerFooter className="border-t border-[#bbcabf]/10 flex flex-row justify-between gap-3 bg-white shrink-0 p-6">
+        <DrawerFooter className="flex shrink-0 flex-row items-center justify-between gap-3 border-t border-[#f1f5f9] bg-white px-6 py-4 dark:border-[#24332d] dark:bg-[#131d1a]">
           {isLoadingSettings ? (
-            <div className="h-[40px] w-full" />
+            <div className="h-11 w-full" />
           ) : (
             <>
               {currentStep > 1 ? (
@@ -299,19 +348,23 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
                   type="button"
                   onClick={handlePrev}
                   disabled={isSubmitting || isValidating}
-                  className="px-[16px] py-[8px] rounded-lg border border-[#bbcabf] text-[#191c1e] font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold hover:bg-[#e0e3e5]/50 transition-colors flex items-center gap-[4px] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-lg border border-[#85929f] bg-white px-4 py-2 text-sm font-semibold text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] disabled:cursor-not-allowed disabled:opacity-50 dark:border-[#5f736b] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:hover:bg-[#22322d] dark:focus-visible:ring-[#34d399]"
                 >
                   {isValidating ? (
-                    <div className="w-4 h-4 border-2 border-[#191c1e]/30 border-t-[#191c1e] rounded-full animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                   ) : (
-                    <ArrowLeft size={18} />
+                    <ArrowLeft className="h-4 w-4" aria-hidden />
                   )}
-                  Sebelumnya
+                  <span>Sebelumnya</span>
                 </button>
               ) : (
                 <DrawerClose asChild>
-                  <button disabled={isSubmitting || isValidating} className="px-[16px] py-[8px] font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-highest rounded-lg transition-colors cursor-pointer disabled:opacity-50">
-                    Cancel
+                  <button
+                    type="button"
+                    disabled={isSubmitting || isValidating}
+                    className="min-h-[44px] cursor-pointer rounded-lg border border-[#85929f] bg-white px-4 py-2 text-sm font-semibold text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] disabled:opacity-50 dark:border-[#5f736b] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:hover:bg-[#22322d] dark:focus-visible:ring-[#34d399]"
+                  >
+                    Batal
                   </button>
                 </DrawerClose>
               )}
@@ -321,40 +374,40 @@ export const AddMemberDrawer = ({ open, onOpenChange, children, onSuccess }: Add
                   type="button"
                   onClick={handleNext}
                   disabled={currentStep === 2 && !isStep2Complete}
-                  className={`font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold py-[8px] px-[24px] rounded-lg transition-colors flex items-center gap-[4px] shadow-sm ${
+                  className={`flex min-h-[44px] items-center gap-2 rounded-lg px-6 py-2 text-sm font-semibold shadow-sm transition-colors ${
                     currentStep === 2 && !isStep2Complete
-                      ? "bg-[#006c49]/50 text-[#ffffff] opacity-50 cursor-not-allowed"
-                      : "bg-[#006c49] text-[#ffffff] hover:bg-[#006c49]/90 cursor-pointer"
+                      ? "cursor-not-allowed bg-[#006c49]/50 text-white opacity-60 dark:bg-[#057a55]/50"
+                      : "cursor-pointer bg-[#006c49] text-white hover:bg-[#005236] dark:bg-[#057a55] dark:hover:bg-[#046c4e]"
                   }`}
                 >
-                  Selanjutnya
-                  <ArrowRight size={18} />
+                  <span>Selanjutnya</span>
+                  <ArrowRight className="h-4 w-4" aria-hidden />
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handleSubmit}
                   disabled={!isStep3SubmitReady || isValidating}
-                  className={`font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold py-[8px] px-[24px] rounded-lg transition-colors flex items-center gap-[4px] shadow-sm ${
+                  className={`flex min-h-[44px] items-center gap-2 rounded-lg px-6 py-2 text-sm font-semibold shadow-sm transition-colors ${
                     isStep3SubmitReady && !isValidating
-                      ? "bg-[#006c49] text-[#ffffff] hover:bg-[#006c49]/90 cursor-pointer"
-                      : "bg-[#006c49]/50 text-[#ffffff] opacity-50 cursor-not-allowed"
+                      ? "cursor-pointer bg-[#006c49] text-white hover:bg-[#005236] dark:bg-[#057a55] dark:hover:bg-[#046c4e]"
+                      : "cursor-not-allowed bg-[#006c49]/50 text-white opacity-60 dark:bg-[#057a55]/50"
                   }`}
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Memproses...
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      <span>Memproses...</span>
                     </>
                   ) : isValidating ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Mengecek KTM...
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                      <span>Mengecek KTM...</span>
                     </>
                   ) : (
                     <>
-                      Kirim Pendaftaran
-                      <Send size={18} />
+                      <span>Simpan Anggota</span>
+                      <Send className="h-4 w-4" aria-hidden />
                     </>
                   )}
                 </button>

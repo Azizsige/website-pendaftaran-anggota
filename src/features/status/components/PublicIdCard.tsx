@@ -57,8 +57,8 @@ export const PublicIdCard = ({ userData }: PublicIdCardProps) => {
   if (loading) {
     return (
       <div className="p-8 text-center">
-        <div className="w-8 h-8 border-4 border-[#006c49] border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="mt-4 text-[#3c4a42]">Memuat ID Card...</p>
+        <div className="w-8 h-8 border-4 border-[#006c49] dark:border-[#34d399] border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="mt-4 text-[#3c4a42] dark:text-[#cbd6d0]">Memuat ID Card...</p>
       </div>
     );
   }

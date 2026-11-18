@@ -2,15 +2,19 @@ import { DashboardClient, getDashboardData } from "@/features/dashboard";
 import { requireAdmin } from "@/lib/auth/guards";
 import type { Metadata } from "next";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
-  title: "Overview Admin | Portal Pendaftaran",
-  description: "Dashboard ringkasan statistik dan aktivitas pendaftar terbaru.",
+  title: "Ringkasan Admin | Portal Pendaftaran",
+  description:
+    "Ringkasan statistik pendaftaran, antrean verifikasi, dan aktivitas pendaftar terbaru.",
 };
 
 export default async function AdminDashboard(props: {
   searchParams?: Promise<{ from?: string; to?: string; chart_range?: string }>;
 }) {
-  await requireAdmin();
+  const admin = await requireAdmin();
+  const adminName = admin.name?.trim() || "Admin Panitia";
   const searchParams = (await props.searchParams) || {};
 
   const initialFrom = searchParams.from || undefined;
@@ -26,9 +30,8 @@ export default async function AdminDashboard(props: {
   return (
     <DashboardClient
       initialData={initialData}
-      initialFrom={initialFrom}
-      initialTo={initialTo}
-      initialChartRange={initialChartRange}
+      initialChartRange={initialChartRange || "6_months"}
+      adminName={adminName}
     />
   );
 }

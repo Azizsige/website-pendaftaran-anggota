@@ -1,7 +1,10 @@
 "use client";
 
 import React from "react";
+import { Download, UserPlus } from "lucide-react";
+
 import { DrawerTrigger } from "@/components/ui/drawer";
+import { TableToolbar } from "@/components/ui/table-toolbar";
 import { AddMemberDrawer } from "./AddMemberDrawer";
 import { EditMemberDrawer } from "./EditMemberDrawer";
 import type { MemberWithUser } from "../types";
@@ -42,75 +45,76 @@ export function MembersToolbar({
     if (search) params.set("search", search);
     if (status !== "all") params.set("status", status);
     if (selectedIds.length > 0) params.set("ids", selectedIds.join(","));
-    window.location.href = `/api/admin/members/export?${params.toString()}`;
+    const link = document.createElement("a");
+    link.href = `/api/admin/members/export?${params.toString()}`;
+    link.download = "";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
   const canAddMember = userRole === "OWNER" || userRole === "SUPER_ADMIN";
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-      {/* Search Input */}
-      <div className="flex-1 w-full min-w-[250px] md:max-w-md relative group">
-        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
-          search
-        </span>
-        <input
-          type="text"
-          placeholder="Cari anggota berdasarkan nama, NIM, atau email..."
-          value={localSearch}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full min-w-0 pl-12 pr-4 py-3 bg-surface border border-outline-variant/30 rounded-full text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
-        />
-      </div>
-
-      <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
-        {/* Status Filter */}
-        <div className="flex-1 md:flex-none">
-          <select
-            value={status}
-            onChange={(e) => onStatusChange(e.target.value)}
-            className="w-full md:w-[150px] h-[48px] px-4 rounded-lg bg-surface border border-outline-variant/30 text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-          >
-            <option value="all">Semua Status</option>
-            <option value="ACTIVE">Aktif</option>
-            <option value="INACTIVE">Tidak Aktif</option>
-            <option value="SUSPENDED">Dibekukan</option>
-          </select>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2.5 bg-surface hover:bg-surface-container-low border border-outline-variant/30 text-on-surface font-label-md text-label-md rounded-lg transition-colors cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-sm">download</span>
-            <span className="hidden sm:inline">Ekspor Data</span>
-          </button>
-
-          {canAddMember && (
-            <AddMemberDrawer
-              open={isDrawerOpen}
-              onOpenChange={setIsDrawerOpen}
-              onSuccess={onRefresh}
+    <>
+      <TableToolbar
+        title="Daftar Anggota Terdaftar"
+        description={
+          selectedIds.length > 0
+            ? `${selectedIds.length} anggota dipilih untuk ekspor data.`
+            : "Cari anggota berdasarkan nama, NIM, atau alamat email."
+        }
+        searchValue={localSearch}
+        onSearchChange={onSearchChange}
+        searchPlaceholder="Cari nama, NIM, atau email anggota..."
+        filter={{
+          value: status,
+          options: [
+            { label: "Semua Status", value: "all" },
+            { label: "Aktif", value: "ACTIVE" },
+            { label: "Tidak Aktif", value: "INACTIVE" },
+            { label: "Dibekukan", value: "SUSPENDED" },
+          ],
+          onChange: onStatusChange,
+        }}
+        actions={
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={handleExport}
+              className="flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#85929f] bg-white px-4 py-2 text-sm font-medium text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:border-[#5f736b] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:hover:bg-[#22322d] dark:focus-visible:ring-[#34d399]"
             >
-              <DrawerTrigger asChild>
-                <button className="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-white font-label-md text-label-md rounded-lg transition-colors shadow-sm cursor-pointer">
-                  <span className="material-symbols-outlined text-sm">person_add</span>
-                  Tambah Anggota
-                </button>
-              </DrawerTrigger>
-            </AddMemberDrawer>
-          )}
+              <Download className="h-4 w-4 text-[#475569] dark:text-[#94a89e]" aria-hidden />
+              <span>Ekspor Data</span>
+            </button>
 
-          <EditMemberDrawer
-            open={isEditDrawerOpen}
-            onOpenChange={setIsEditDrawerOpen}
-            member={selectedEditMember}
-            onSuccess={onRefresh}
-          />
-        </div>
-      </div>
-    </div>
+            {canAddMember && (
+              <AddMemberDrawer
+                open={isDrawerOpen}
+                onOpenChange={setIsDrawerOpen}
+                onSuccess={onRefresh}
+              >
+                <DrawerTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#006c49] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#005236] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] focus-visible:ring-offset-2 dark:bg-[#057a55] dark:hover:bg-[#046c4e] dark:focus-visible:ring-[#34d399] dark:focus-visible:ring-offset-[#131d1a]"
+                  >
+                    <UserPlus className="h-4 w-4" aria-hidden />
+                    <span>Tambah Anggota</span>
+                  </button>
+                </DrawerTrigger>
+              </AddMemberDrawer>
+            )}
+          </div>
+        }
+      />
+
+      <EditMemberDrawer
+        open={isEditDrawerOpen}
+        onOpenChange={setIsEditDrawerOpen}
+        member={selectedEditMember}
+        onSuccess={onRefresh}
+      />
+    </>
   );
 }

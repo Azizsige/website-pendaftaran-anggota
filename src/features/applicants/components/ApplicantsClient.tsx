@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { updateApplicantStatus, deleteApplicant, updateAdminNotes } from "../actions";
 import { toast } from "sonner";
 
+import { updateApplicantStatus, deleteApplicant, updateAdminNotes } from "../actions";
+import { trackAdminActivity } from "@/features/logs/actions";
 import type { Applicant } from "../types";
 import ApplicantDetailModal from "./ApplicantDetailModal";
 import ApplicantRejectModal from "./ApplicantRejectModal";
@@ -38,16 +39,17 @@ export default function ApplicantsClient({
   const [isPending, startTransition] = useTransition();
 
   const [searchTerm, setSearchTerm] = useState(search);
+  const [prevSearch, setPrevSearch] = useState(search);
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
   const [rejectingApplicant, setRejectingApplicant] = useState<Applicant | null>(null);
+  const [suspendingApplicant, setSuspendingApplicant] = useState<Applicant | null>(null);
   const [deletingApplicant, setDeletingApplicant] = useState<Applicant | null>(null);
 
-  // Sync state if URL changes directly
-  useEffect(() => {
+  if (prevSearch !== search) {
+    setPrevSearch(search);
     setSearchTerm(search);
-  }, [search]);
+  }
 
-  // Handle URL updates
   const updateUrl = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());
     Object.entries(updates).forEach(([key, value]) => {
@@ -59,7 +61,6 @@ export default function ApplicantsClient({
     });
   };
 
-  // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
       if (searchTerm !== search) {
@@ -67,6 +68,7 @@ export default function ApplicantsClient({
       }
     }, 500);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, search]);
 
   const handleStatusChange = (value: string) => {
@@ -81,10 +83,14 @@ export default function ApplicantsClient({
 
   const handleExport = () => {
     const params = new URLSearchParams(searchParams.toString());
-    window.location.href = `/api/admin/pendaftar/export?${params.toString()}`;
+    const link = document.createElement("a");
+    link.href = `/api/admin/pendaftar/export?${params.toString()}`;
+    link.download = "";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   };
 
-  // Actions
   const handleApprove = async (id: string) => {
     startTransition(async () => {
       const res = await updateApplicantStatus(id, "ACTIVE");
@@ -97,6 +103,18 @@ export default function ApplicantsClient({
     });
   };
 
+  const handleViewDetail = (applicant: Applicant) => {
+    setSelectedApplicant(applicant);
+    if (userRole && userRole !== "OWNER") {
+      void trackAdminActivity({
+        action: "VIEW_APPLICANT_DETAIL",
+        entityType: "MemberProfile",
+        entityId: applicant.id,
+        details: `Membuka rincian berkas calon anggota ${applicant.user?.name || "-"} (NIM ${applicant.nim})`,
+      });
+    }
+  };
+
   const handleCloseDetailModal = () => setSelectedApplicant(null);
 
   const confirmReject = async (id: string, reason?: string) => {
@@ -107,6 +125,18 @@ export default function ApplicantsClient({
         toast.success("Pendaftar berhasil ditolak");
         setRejectingApplicant(null);
         if (selectedApplicant?.id === id) handleCloseDetailModal();
+        router.refresh();
+      }
+    });
+  };
+
+  const confirmSuspend = async (id: string) => {
+    startTransition(async () => {
+      const res = await updateApplicantStatus(id, "SUSPENDED");
+      if (!res.success) toast.error("Gagal membekukan pendaftar: " + res.error);
+      else {
+        toast.success("Status pendaftar berhasil dibekukan");
+        setSuspendingApplicant(null);
         router.refresh();
       }
     });
@@ -139,21 +169,8 @@ export default function ApplicantsClient({
     });
   };
 
-  const handleSuspend = async (id: string) => {
-    if (confirm("Are you sure you want to suspend this applicant?")) {
-      startTransition(async () => {
-        const res = await updateApplicantStatus(id, "SUSPENDED");
-        if (!res.success) toast.error("Gagal memblokir pendaftar: " + res.error);
-        else {
-          toast.success("Pendaftar berhasil diblokir (suspended)");
-          router.refresh();
-        }
-      });
-    }
-  };
-
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-xs flex flex-col overflow-hidden relative min-h-[400px]">
+    <div className="relative flex flex-col overflow-hidden rounded-xl border border-[#e2e8f0] bg-white dark:border-[#3c4d46] dark:bg-[#131d1a]">
       <ApplicantsToolbar
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -161,30 +178,34 @@ export default function ApplicantsClient({
         handleStatusChange={handleStatusChange}
         handleExport={handleExport}
       />
+
       <ApplicantsTable
         applicants={initialApplicants}
         isPending={isPending}
-        onViewDetail={setSelectedApplicant}
+        onViewDetail={handleViewDetail}
         onDelete={setDeletingApplicant}
-        onSuspend={handleSuspend}
+        onSuspend={setSuspendingApplicant}
         userRole={userRole}
-      />
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalCount={totalCount}
-        onPageChange={handlePageChange}
-        isPending={isPending}
+        footer={
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            onPageChange={handlePageChange}
+            isPending={isPending}
+          />
+        }
       />
 
-      {/* Modals */}
       {selectedApplicant && (
         <ApplicantDetailModal
           applicant={selectedApplicant}
           isOpen={true}
           onClose={handleCloseDetailModal}
           onApprove={handleApprove}
-          onReject={(id, notes) => notes ? confirmReject(id, notes) : setRejectingApplicant(selectedApplicant)}
+          onReject={(id, notes) =>
+            notes ? confirmReject(id, notes) : setRejectingApplicant(selectedApplicant)
+          }
           onSaveNotes={handleSaveNotes}
           isPending={isPending}
           userRole={userRole}
@@ -199,6 +220,34 @@ export default function ApplicantsClient({
           onConfirm={confirmReject}
           isPending={isPending}
         />
+      )}
+
+      {suspendingApplicant && (
+        <ConfirmDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setSuspendingApplicant(null);
+          }}
+          tone="warning"
+          icon="block"
+          title="Bekukan Pendaftar?"
+          description="Status calon anggota akan diubah menjadi Dibekukan"
+          message="Pendaftar yang dibekukan tidak dapat mengakses kartu anggota hingga diaktifkan kembali oleh admin."
+          confirmLabel="Ya, Bekukan"
+          cancelLabel="Batal"
+          isPending={isPending}
+          pendingTitle="Membekukan Data"
+          pendingMessage="Mohon tunggu sebentar..."
+          onConfirm={() => confirmSuspend(suspendingApplicant.id)}
+        >
+          <PersonSummary
+            id={suspendingApplicant.id}
+            name={suspendingApplicant.user?.name}
+            email={suspendingApplicant.user?.email}
+            phone={suspendingApplicant.phoneNumber}
+            status={suspendingApplicant.status}
+          />
+        </ConfirmDialog>
       )}
 
       {deletingApplicant && (

@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
+
 import { ActionDropdown } from "./ActionDropdown";
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatDate } from "@/lib/format";
 import type { MemberWithUser } from "../types";
@@ -21,6 +23,17 @@ interface MembersTableProps {
     action: "ACTIVATE" | "SUSPEND" | "INACTIVE"
   ) => void;
   onDelete: (member: MemberWithUser) => void;
+  footer?: React.ReactNode;
+}
+
+function getInitials(name?: string | null): string {
+  if (!name?.trim()) return "AG";
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
 }
 
 export function MembersTable({
@@ -35,135 +48,128 @@ export function MembersTable({
   onViewDetail,
   onConfirmAction,
   onDelete,
+  footer,
 }: MembersTableProps) {
-  const isAllSelected =
-    members.length > 0 && selectedIds.length === members.length;
+  const handleSelectionChange = (nextIds: string[]) => {
+    if (nextIds.length === 0) {
+      onSelectAll(false);
+      return;
+    }
+    if (nextIds.length === members.length && selectedIds.length !== members.length) {
+      onSelectAll(true);
+      return;
+    }
+    const added = nextIds.find((id) => !selectedIds.includes(id));
+    const removed = selectedIds.find((id) => !nextIds.includes(id));
+    if (added) onSelectOne(added);
+    else if (removed) onSelectOne(removed);
+  };
 
-  return (
-    <div className="bg-surface border border-outline-variant/20 rounded-xl shadow-sm flex flex-col relative">
-      {isPending && (
-        <div className="absolute inset-0 bg-surface/50 z-10 flex items-center justify-center backdrop-blur-[1px]">
-          <span className="material-symbols-outlined animate-spin text-primary text-3xl">
-            progress_activity
+  const columns: DataTableColumn<MemberWithUser>[] = [
+    {
+      key: "member",
+      header: "Info Anggota",
+      headerClassName: "min-w-[220px]",
+      cell: (member) => (
+        <div className="flex items-center gap-3">
+          <div
+            aria-hidden
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#006c49]/15 bg-[#e6f4ee] text-xs font-semibold text-[#005236] dark:border-[#34d399]/35 dark:bg-[#0a3326] dark:text-[#6ee7b7]"
+          >
+            {getInitials(member.user?.name)}
+          </div>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="truncate font-medium text-[#0f172a] dark:text-[#eef2f4]">
+              {member.user?.name || "Tanpa Nama"}
+            </span>
+            <span className="truncate text-xs text-[#64748b] dark:text-[#94a89e]">
+              {member.user?.email || "-"}
+            </span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "nim",
+      header: "NIM & Kontak",
+      headerClassName: "min-w-[170px]",
+      cell: (member) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="font-mono text-[13px] font-semibold text-[#0f172a] tabular-nums dark:text-[#eef2f4]">
+            {member.nim || "-"}
+          </span>
+          <span className="text-xs text-[#64748b] tabular-nums dark:text-[#94a89e]">
+            {member.phoneNumber
+              ? member.phoneNumber.replace(/\D/g, "").replace(/^62/, "0")
+              : "-"}
           </span>
         </div>
-      )}
+      ),
+    },
+    {
+      key: "academic",
+      header: "Fakultas & Program Studi",
+      headerClassName: "min-w-[220px]",
+      cell: (member) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[13px] font-medium text-[#0f172a] dark:text-[#eef2f4]">
+            {member.faculty || "-"}
+          </span>
+          <span className="text-xs text-[#64748b] dark:text-[#94a89e]">{member.major || "-"}</span>
+        </div>
+      ),
+    },
+    {
+      key: "joinDate",
+      header: "Tanggal Bergabung",
+      headerClassName: "min-w-[170px]",
+      className: "whitespace-nowrap",
+      cell: (member) => (
+        <span className="text-[13px] text-[#475569] tabular-nums dark:text-[#cbd6d0]">
+          {formatDate(member.joinDate)}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      headerClassName: "w-36 min-w-[140px]",
+      cell: (member) => <StatusBadge status={member.status} />,
+    },
+    {
+      key: "actions",
+      header: "Aksi",
+      headerClassName: "w-36 min-w-[120px] text-right",
+      className: "text-right",
+      cell: (member) => (
+        <div className="flex items-center justify-end">
+          <ActionDropdown
+            member={member}
+            onUpdate={onRefresh}
+            onEdit={onEdit}
+            onViewDetail={onViewDetail}
+            onConfirmAction={onConfirmAction}
+            onDelete={onDelete}
+            userRole={userRole}
+          />
+        </div>
+      ),
+    },
+  ];
 
-      <div className="overflow-x-auto min-h-[350px]">
-        <table className="w-full text-left border-collapse min-w-[900px]">
-          <thead>
-            <tr className="bg-surface-container-low border-b border-outline-variant/20">
-              <th className="py-4 px-4 w-12">
-                <input
-                  className="rounded-[4px] border-outline-variant/50 text-[#006c49] focus:ring-[#006c49] accent-[#006c49] cursor-pointer w-[18px] h-[18px] transition-colors"
-                  type="checkbox"
-                  checked={isAllSelected}
-                  onChange={(e) => onSelectAll(e.target.checked)}
-                />
-              </th>
-              <th className="py-4 px-4 font-label-md text-label-md text-on-surface-variant font-medium">
-                Info Anggota
-              </th>
-              <th className="py-4 px-4 font-label-md text-label-md text-on-surface-variant font-medium">
-                NIM & Kontak
-              </th>
-              <th className="py-4 px-4 font-label-md text-label-md text-on-surface-variant font-medium">
-                Fakultas & Jurusan
-              </th>
-              <th className="py-4 px-4 font-label-md text-label-md text-on-surface-variant font-medium">
-                Tanggal Bergabung
-              </th>
-              <th className="py-4 px-4 font-label-md text-label-md text-on-surface-variant font-medium">
-                Status
-              </th>
-              <th className="py-4 px-4 font-label-md text-label-md text-on-surface-variant font-medium text-right w-32">
-                Aksi
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-outline-variant/10">
-            {members.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={7}
-                  className="py-8 text-center text-on-surface-variant"
-                >
-                  Tidak ada anggota yang ditemukan.
-                </td>
-              </tr>
-            ) : (
-              members.map((member) => (
-                <tr
-                  key={member.id}
-                  className="hover:bg-surface-container-lowest transition-colors group"
-                >
-                  <td className="py-3 px-4">
-                    <input
-                      className="rounded-[4px] border-outline-variant/50 text-[#006c49] focus:ring-[#006c49] accent-[#006c49] cursor-pointer w-[18px] h-[18px] transition-colors"
-                      type="checkbox"
-                      checked={selectedIds.includes(member.id)}
-                      onChange={() => onSelectOne(member.id)}
-                    />
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex flex-col">
-                      <span className="font-body-md text-on-surface font-medium">
-                        {member.user?.name}
-                      </span>
-                      <span className="font-body-sm text-on-surface-variant">
-                        {member.user?.email}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex flex-col">
-                      <span className="font-body-md text-on-surface-variant">
-                        {member.nim || "-"}
-                      </span>
-                      <span className="font-body-sm text-on-surface-variant">
-                        {member.phoneNumber
-                          ? member.phoneNumber
-                              .replace(/\D/g, "")
-                              .replace(/^62/, "0")
-                          : "-"}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex flex-col">
-                      <span className="font-body-md text-on-surface-variant">
-                        {member.faculty || "-"}
-                      </span>
-                      <span className="font-body-sm text-on-surface-variant">
-                        {member.major || "-"}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 font-body-md text-on-surface-variant">
-                    {formatDate(member.joinDate)}
-                  </td>
-                  <td className="py-3 px-4">
-                    <StatusBadge status={member.status} />
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center justify-end">
-                      <ActionDropdown
-                        member={member}
-                        onUpdate={onRefresh}
-                        onEdit={onEdit}
-                        onViewDetail={onViewDetail}
-                        onConfirmAction={onConfirmAction}
-                        onDelete={onDelete}
-                        userRole={userRole}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+  return (
+    <DataTable
+      columns={columns}
+      rows={members}
+      getRowKey={(m) => m.id}
+      isLoading={isPending}
+      emptyMessage="Tidak ada anggota yang ditemukan."
+      tableClassName="min-w-[1060px]"
+      selection={{
+        selectedIds,
+        onChange: handleSelectionChange,
+      }}
+      footer={footer}
+    />
   );
 }

@@ -1,9 +1,8 @@
 import {
   checkDuplicateRegistration,
-  getRegistrationQuotaCount,
   submitRegistration,
 } from "@/actions/register";
-import { getSystemSettings } from "@/actions/setting-actions";
+import { getPublicRegistrationConfigData } from "@/actions/setting-actions";
 import { formatDate } from "@/lib/format";
 import { preprocessImageForOCR } from "@/lib/image-processing";
 import { parseRegistrationSettings } from "@/lib/constants/settings";
@@ -24,12 +23,10 @@ export interface RegistrationConfig {
 }
 
 export async function fetchRegistrationConfig(): Promise<RegistrationConfig> {
-  const [res, quotaRes] = await Promise.all([
-    getSystemSettings(),
-    getRegistrationQuotaCount(),
-  ]);
+  const res = await getPublicRegistrationConfigData();
 
-  const parsed = parseRegistrationSettings(res.success && res.data ? res.data : null);
+  const parsed = parseRegistrationSettings(res.success ? res.settings : null);
+  const activeCount = res.activeCount;
   const reqKtm = parsed.reqKtm;
   const reqFoto = parsed.reqFoto;
   const isRegistrationOpen = parsed.isActive;
@@ -54,7 +51,7 @@ export async function fetchRegistrationConfig(): Promise<RegistrationConfig> {
     regStatus = "CLOSED_AFTER";
     closedMessage = `Mohon maaf, pendaftaran telah ditutup sejak ${formatDate(regDateTo)}.`;
     closedTitle = "Pendaftaran Berakhir";
-  } else if (maxQuota > 0 && quotaRes.count >= maxQuota) {
+  } else if (maxQuota > 0 && activeCount >= maxQuota) {
     regStatus = "CLOSED_QUOTA";
     closedMessage = `Mohon maaf, kuota pendaftaran telah penuh (Maksimal ${maxQuota} pendaftar). Silakan pantau informasi selanjutnya untuk gelombang pendaftaran berikutnya.`;
     closedTitle = "Kuota Penuh";
@@ -67,7 +64,7 @@ export async function fetchRegistrationConfig(): Promise<RegistrationConfig> {
     regDateFrom,
     regDateTo,
     maxQuota,
-    currentQuotaCount: quotaRes.count,
+    currentQuotaCount: activeCount,
     regStatus,
     closedTitle,
     closedMessage,

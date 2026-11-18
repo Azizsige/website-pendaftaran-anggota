@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
-import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { ToasterProvider } from "@/components/providers/ToasterProvider";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 import NextTopLoader from "nextjs-toploader";
 
 const inter = Inter({
@@ -10,32 +12,46 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-import { prisma } from "@/lib/prisma";
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
 import { SETTING_KEYS } from "@/lib/constants/settings";
+import { checkDatabaseAvailable } from "@/lib/db-health";
+import { getCachedSettingsMap } from "@/lib/settings-cache";
 import { logger } from "@/lib/logger";
 
 export async function generateMetadata(): Promise<Metadata> {
   let favicon = undefined;
-  let orgName = "Portal Pendaftaran Anggota";
+  let orgName = "Organisasi Mahasiswa";
 
   try {
-    const settings = await prisma.systemSetting.findMany({
-      where: { key: { in: [SETTING_KEYS.ORG_FAVICON, SETTING_KEYS.ORG_NAME] } }
-    });
-    const faviconSetting = settings.find(s => s.key === SETTING_KEYS.ORG_FAVICON);
-    const nameSetting = settings.find(s => s.key === SETTING_KEYS.ORG_NAME);
-    
-    if (faviconSetting?.value) favicon = faviconSetting.value;
-    if (nameSetting?.value) orgName = nameSetting.value;
+    const dbAvailable = await checkDatabaseAvailable();
+    if (dbAvailable) {
+      const map = await getCachedSettingsMap();
+      const faviconSetting = map.get(SETTING_KEYS.ORG_FAVICON);
+      const nameSetting = map.get(SETTING_KEYS.ORG_NAME);
+
+      if (faviconSetting) favicon = faviconSetting;
+      if (nameSetting) orgName = nameSetting;
+    }
   } catch (error) {
     logger.error("Failed to load metadata settings:", error);
   }
 
   return {
-    title: `${orgName} | Bergabung Bersama Kami`,
-    description: "Portal pendaftaran anggota online — Daftar, verifikasi, dan kelola keanggotaan Anda secara mudah dan cepat.",
-    keywords: ["pendaftaran anggota", "registrasi member", "keanggotaan", "KTA digital"],
-    authors: [{ name: "Admin Portal" }],
+    title: `${orgName} | Portal Pendaftaran Anggota`,
+    description: "Portal pendaftaran anggota organisasi mahasiswa: lengkapi data NIM dan fakultas, unggah KTM, pantau verifikasi, dan unduh KTA digital.",
+    keywords: ["pendaftaran anggota", "organisasi mahasiswa", "NIM", "KTM", "KTA digital"],
+    authors: [{ name: "Pengurus Organisasi" }],
     icons: favicon ? { icon: favicon } : undefined,
   };
 }
@@ -46,12 +62,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${inter.variable} antialiased`} suppressHydrationWarning>
+    <html
+      lang="id"
+      className={`${inter.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} antialiased`}
+      suppressHydrationWarning
+    >
       <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-          rel="stylesheet"
-        />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="min-h-screen bg-background text-foreground" suppressHydrationWarning>
         <NextTopLoader
@@ -66,8 +83,10 @@ export default function RootLayout({
           shadow="0 0 10px #006c49,0 0 5px #006c49"
           zIndex={99999}
         />
-        <AuthProvider>{children}</AuthProvider>
-        <Toaster position="top-center" richColors />
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+          <ToasterProvider />
+        </ThemeProvider>
       </body>
     </html>
   );

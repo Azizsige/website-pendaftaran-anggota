@@ -48,7 +48,7 @@ export default function ApplicantDeleteModal({
       description="Konfirmasi tindakan destruktif sistem"
       message={
         <span>
-          Tindakan ini bersifat <strong className="text-error font-semibold">permanen dan tidak dapat dibatalkan</strong>. Semua berkas formulir, dokumen lampiran, dan riwayat verifikasi akan dihapus dari sistem.
+          Tindakan ini bersifat <strong className="font-semibold text-[#dc2626] dark:text-[#fca5a5]">permanen dan tidak dapat dibatalkan</strong>. Semua berkas formulir, dokumen lampiran, dan riwayat verifikasi akan dihapus dari sistem.
         </span>
       }
       confirmLabel="Ya, Hapus Permanen"

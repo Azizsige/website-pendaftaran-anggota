@@ -1,15 +1,32 @@
 "use client";
 
-import React, { useEffect, useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { startOfDay, endOfDay } from "date-fns";
+import { Download, Printer } from "lucide-react";
+import { useSession } from "next-auth/react";
+
 import { getReportMembers } from "../actions";
 import { logger } from "@/lib/logger";
 import { useReportExport } from "../hooks/useReportExport";
+import { Dropdown } from "@/components/ui/dropdown";
 import DashboardFilter from "@/features/dashboard/components/DashboardFilter";
 import { ReportSummaryCards } from "./ReportSummaryCards";
 import { ReportTable } from "./ReportTable";
 import { useReportStore } from "../store";
-import { useSession } from "next-auth/react";
+
+const STATUS_OPTIONS = [
+  { label: "Semua Status", value: "all" },
+  { label: "Aktif / Disetujui", value: "ACTIVE" },
+  { label: "Menunggu", value: "PENDING" },
+  { label: "Ditolak", value: "REJECTED" },
+];
+
+const FACULTY_OPTIONS = [
+  { label: "Semua Fakultas", value: "all_faculty" },
+  { label: "Fakultas Teknik", value: "teknik" },
+  { label: "Fakultas Ekonomi", value: "ekonomi" },
+  { label: "Fakultas Hukum", value: "hukum" },
+];
 
 export function ReportsClient() {
   const { data: session } = useSession();
@@ -44,7 +61,11 @@ export function ReportsClient() {
     setLoading(true);
     try {
       const dateFrom = date?.from ? startOfDay(date.from) : undefined;
-      const dateTo = date?.to ? endOfDay(date.to) : dateFrom ? endOfDay(dateFrom) : undefined;
+      const dateTo = date?.to
+        ? endOfDay(date.to)
+        : dateFrom
+        ? endOfDay(dateFrom)
+        : undefined;
 
       const res = await getReportMembers(status, faculty, dateFrom, dateTo, page, limit);
 
@@ -57,80 +78,85 @@ export function ReportsClient() {
     } finally {
       setLoading(false);
     }
-  }, [status, faculty, date, page, setMembers, setTotalPages, setTotalCount, setSummary, setLoading]);
+  }, [
+    status,
+    faculty,
+    date,
+    page,
+    setMembers,
+    setTotalPages,
+    setTotalCount,
+    setSummary,
+    setLoading,
+  ]);
 
   useEffect(() => {
     fetchReports();
   }, [fetchReports]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-surface-container-lowest min-h-screen">
-      <div className="max-w-[1400px] mx-auto space-y-6">
-        <div>
-          <h2 className="font-display-sm text-[36px] font-bold text-on-surface tracking-tight">
-            Laporan Data Anggota
-          </h2>
-          <p className="text-body-lg text-on-surface-variant mt-1">
-            Hasilkan dan unduh data keanggotaan terperinci.
-          </p>
+    <div className="min-h-screen flex-1 overflow-y-auto bg-[#f4f6f8] p-4 sm:p-6 lg:p-8 dark:bg-[#0d1412]">
+      <div className="mx-auto flex max-w-[1440px] flex-col gap-6">
+        <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-[#0f172a] sm:text-2xl dark:text-[#eef2f4]">
+              Laporan Data Anggota
+            </h1>
+            <p className="mt-1 text-sm text-[#475569] dark:text-[#cbd6d0]">
+              Saring statistik pendaftaran menurut periode, status verifikasi, atau fakultas lalu unduh laporannya.
+            </p>
+          </div>
         </div>
 
-        <div className="bg-surface rounded-xl border border-outline-variant/20 p-4 flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center shadow-sm">
-          <div className="flex flex-wrap gap-4 items-center w-full lg:w-auto">
+        <div className="flex flex-col items-stretch justify-between gap-4 rounded-xl border border-[#e2e8f0] bg-white p-4 sm:p-5 lg:flex-row lg:items-center dark:border-[#3c4d46] dark:bg-[#131d1a]">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="relative">
               <DashboardFilter date={date} onDateChange={(d) => setDate(d)} />
             </div>
 
-            <div className="w-full sm:w-[150px]">
-              <select
+            <div className="w-full sm:w-[190px]">
+              <Dropdown
                 value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full h-11 px-4 rounded-lg bg-surface border border-outline-variant/30 text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="all">Semua Status</option>
-                <option value="ACTIVE">Aktif/Disetujui</option>
-                <option value="PENDING">Menunggu</option>
-                <option value="REJECTED">Ditolak</option>
-              </select>
+                options={STATUS_OPTIONS}
+                onChange={setStatus}
+                placeholder="Pilih Status"
+              />
             </div>
 
-            <div className="w-full sm:w-[200px]">
-              <select
+            <div className="w-full sm:w-[210px]">
+              <Dropdown
                 value={faculty}
-                onChange={(e) => setFaculty(e.target.value)}
-                className="w-full h-11 px-4 rounded-lg bg-surface border border-outline-variant/30 text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-              >
-                <option value="all_faculty">Semua Fakultas</option>
-                <option value="teknik">Fakultas Teknik</option>
-                <option value="ekonomi">Fakultas Ekonomi</option>
-                <option value="hukum">Fakultas Hukum</option>
-              </select>
+                options={FACULTY_OPTIONS}
+                onChange={setFaculty}
+                placeholder="Pilih Fakultas"
+              />
             </div>
           </div>
 
-          <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
-            {userRole !== "STAFF" && (
-              <>
-                <button
-                  onClick={handleExport}
-                  className="flex items-center gap-2 bg-primary text-white px-4 py-2.5 rounded-lg font-label-md text-label-md hover:bg-primary/90 transition-colors shadow-sm cursor-pointer"
-                >
-                  <span className="material-symbols-outlined text-sm">download</span>
-                  Ekspor Data
-                </button>
-                <button
-                  onClick={handlePrint}
-                  className="p-2.5 border border-outline-variant/50 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-primary transition-colors shadow-sm cursor-pointer"
-                  title="Print"
-                >
-                  <span className="material-symbols-outlined text-[20px]">print</span>
-                </button>
-              </>
-            )}
-          </div>
+          {userRole !== "STAFF" && (
+            <div className="flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={handleExport}
+                className="flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#006c49] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#005236] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] focus-visible:ring-offset-2 dark:bg-[#057a55] dark:hover:bg-[#046c4e] dark:focus-visible:ring-[#34d399] dark:focus-visible:ring-offset-[#131d1a]"
+              >
+                <Download className="h-4 w-4" aria-hidden />
+                <span>Ekspor Data</span>
+              </button>
+              <button
+                type="button"
+                onClick={handlePrint}
+                aria-label="Cetak laporan"
+                title="Cetak laporan"
+                className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg border border-[#85929f] bg-white text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:border-[#5f736b] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:hover:bg-[#22322d] dark:focus-visible:ring-[#34d399]"
+              >
+                <Printer className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+          )}
         </div>
 
-        <ReportSummaryCards loading={loading} summary={summary} />
+        <ReportSummaryCards summary={summary} loading={loading} />
 
         <ReportTable
           loading={loading}

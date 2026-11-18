@@ -17,8 +17,8 @@ export default function AuthError({
   }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-[480px] p-8 bg-surface-container-lowest rounded-2xl border border-outline-variant/30 text-center space-y-4 shadow-sm">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background text-foreground">
+      <div className="w-full max-w-[480px] p-8 bg-surface-container-lowest rounded-2xl border border-border text-center space-y-4 shadow-sm">
         <h2 className="text-xl font-bold text-on-surface">Terjadi Kendala Autentikasi</h2>
         <p className="text-sm text-on-surface-variant">
           Gagal memproses sesi autentikasi. Silakan muat ulang atau kembali ke halaman masuk.

@@ -36,21 +36,22 @@ export async function getApplicants(
       ];
     }
 
-    const totalCount = await prisma.memberProfile.count({
-      where: whereClause,
-    });
-
-    const applicants = await prisma.memberProfile.findMany({
-      where: whereClause,
-      include: {
-        user: {
-          select: { name: true, email: true },
+    const [totalCount, applicants] = await Promise.all([
+      prisma.memberProfile.count({
+        where: whereClause,
+      }),
+      prisma.memberProfile.findMany({
+        where: whereClause,
+        include: {
+          user: {
+            select: { name: true, email: true },
+          },
         },
-      },
-      orderBy: { updatedAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+        orderBy: { updatedAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+    ]);
 
     return {
       data: applicants,

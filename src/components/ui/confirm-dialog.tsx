@@ -1,6 +1,17 @@
 "use client";
 
 import * as React from "react";
+import {
+  AlertTriangle,
+  Ban,
+  CheckCircle2,
+  Loader2,
+  PauseCircle,
+  Trash2,
+  UserX,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -13,33 +24,44 @@ import {
 
 export type ConfirmTone = "primary" | "danger" | "warning" | "neutral";
 
+const ICON_MAP: Record<string, LucideIcon> = {
+  delete_forever: Trash2,
+  delete: Trash2,
+  person_cancel: UserX,
+  person_off: UserX,
+  check_circle: CheckCircle2,
+  block: Ban,
+  pause_circle: PauseCircle,
+  warning: AlertTriangle,
+};
+
 const TONES: Record<
   ConfirmTone,
   { icon: string; iconBg: string; confirm: string; spinner: string }
 > = {
   primary: {
-    icon: "text-primary",
-    iconBg: "bg-primary/10 border-primary/20",
-    confirm: "bg-primary hover:bg-primary/90 focus:ring-primary/40",
-    spinner: "text-primary",
+    icon: "text-[#005236] dark:text-[#6ee7b7]",
+    iconBg: "bg-[#e6f4ee] dark:bg-[#0a3326] border-[#006c49]/20 dark:border-[#34d399]/40",
+    confirm: "bg-[#006c49] hover:bg-[#005236] dark:bg-[#057a55] dark:hover:bg-[#046c4e] focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399]",
+    spinner: "text-[#006c49] dark:text-[#34d399]",
   },
   danger: {
-    icon: "text-error",
-    iconBg: "bg-error/10 border-error/20",
-    confirm: "bg-error hover:bg-error/90 focus:ring-error/40",
-    spinner: "text-error",
+    icon: "text-[#991b1b] dark:text-[#fca5a5]",
+    iconBg: "bg-[#fef2f2] dark:bg-[#3b1214] border-[#dc2626]/25 dark:border-[#f87171]/40",
+    confirm: "bg-[#dc2626] hover:bg-[#b91c1c] focus-visible:ring-[#dc2626] dark:focus-visible:ring-[#f87171]",
+    spinner: "text-[#dc2626] dark:text-[#fca5a5]",
   },
   warning: {
-    icon: "text-[#f57f17]",
-    iconBg: "bg-[#fff8e1] border-[#f57f17]/20",
-    confirm: "bg-[#f57f17] hover:bg-[#e65100] focus:ring-[#f57f17]/40",
-    spinner: "text-[#f57f17]",
+    icon: "text-[#92400e] dark:text-[#fcd34d]",
+    iconBg: "bg-[#fef3c7] dark:bg-[#3b2506] border-[#f59e0b]/30 dark:border-[#f59e0b]/45",
+    confirm: "bg-[#d97706] hover:bg-[#b45309] focus-visible:ring-[#d97706] dark:focus-visible:ring-[#fcd34d]",
+    spinner: "text-[#d97706] dark:text-[#fcd34d]",
   },
   neutral: {
-    icon: "text-on-surface-variant",
-    iconBg: "bg-surface-container-high border-outline-variant/30",
-    confirm: "bg-on-surface-variant hover:bg-on-surface focus:ring-outline",
-    spinner: "text-on-surface-variant",
+    icon: "text-[#475569] dark:text-[#cbd6d0]",
+    iconBg: "bg-[#f1f5f9] dark:bg-[#1e2d28] border-[#cbd5e1] dark:border-[#5f736b]",
+    confirm: "bg-[#334155] hover:bg-[#1e293b] dark:bg-[#2a3b34] dark:hover:bg-[#354b42] focus-visible:ring-[#475569] dark:focus-visible:ring-[#94a89e]",
+    spinner: "text-[#475569] dark:text-[#cbd6d0]",
   },
 };
 
@@ -50,7 +72,7 @@ export interface ConfirmDialogProps {
   description?: string;
   /** Teks peringatan di bawah header. */
   message?: React.ReactNode;
-  /** Nama Material Symbol, mis. "delete_forever". */
+  /** Kunci ikon Material atau Lucide, mis. "delete_forever". */
   icon: string;
   tone?: ConfirmTone;
   confirmLabel: string;
@@ -70,8 +92,7 @@ export interface ConfirmDialogProps {
 }
 
 /**
- * Dialog konfirmasi tunggal untuk semua aksi (aktivasi, penolakan, penghapusan, dst.).
- * Menggantikan MemberConfirmModal, ApplicantDeleteModal, dan ApplicantRejectModal.
+ * Dialog konfirmasi tunggal untuk semua aksi (aktivasi, pembekuan, penolakan, penghapusan, dst.).
  */
 export function ConfirmDialog({
   open,
@@ -94,6 +115,7 @@ export function ConfirmDialog({
   className,
 }: ConfirmDialogProps) {
   const styles = TONES[tone];
+  const IconComponent = ICON_MAP[icon] ?? AlertTriangle;
   const [typedText, setTypedText] = React.useState("");
   const [acknowledged, setAcknowledged] = React.useState(false);
   const [prevOpen, setPrevOpen] = React.useState(open);
@@ -111,24 +133,16 @@ export function ConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={(next) => !isPending && onOpenChange(next)}>
-      <DialogContent className={cn("max-w-[520px]", className)}>
+      <DialogContent className={cn("max-w-[520px] rounded-2xl border border-[#e2e8f0] dark:border-[#3c4d46] bg-white dark:bg-[#131d1a] dark:text-[#eef2f4] p-0", className)}>
         {isPending && (
           <div
             role="status"
             aria-live="polite"
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-[2px] animate-fade-in"
+            className="animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center rounded-2xl bg-white/85 dark:bg-[#0d1412]/85 backdrop-blur-[2px]"
           >
-            <span
-              className={cn(
-                "material-symbols-outlined mb-3 animate-spin text-[40px]",
-                styles.spinner
-              )}
-              aria-hidden
-            >
-              progress_activity
-            </span>
-            <h4 className="text-lg font-bold text-on-surface">{pendingTitle}</h4>
-            <p className="mt-1 text-sm text-on-surface-variant">{pendingMessage}</p>
+            <Loader2 className={cn("mb-3 h-9 w-9 animate-spin", styles.spinner)} aria-hidden />
+            <h4 className="text-base font-bold text-[#0f172a] dark:text-[#eef2f4]">{pendingTitle}</h4>
+            <p className="mt-1 text-sm text-[#475569] dark:text-[#cbd6d0]">{pendingMessage}</p>
           </div>
         )}
 
@@ -137,19 +151,17 @@ export function ConfirmDialog({
             <div className="flex items-center gap-3.5">
               <div
                 className={cn(
-                  "flex h-12 w-12 shrink-0 items-center justify-center rounded-full border shadow-sm",
+                  "flex h-12 w-12 shrink-0 items-center justify-center rounded-full border",
                   styles.iconBg,
                   styles.icon
                 )}
               >
-                <span className="material-symbols-outlined text-[26px]" aria-hidden>
-                  {icon}
-                </span>
+                <IconComponent className="h-5 w-5" aria-hidden />
               </div>
               <div>
-                <DialogTitle>{title}</DialogTitle>
+                <DialogTitle className="text-lg font-semibold text-[#0f172a] dark:text-[#eef2f4]">{title}</DialogTitle>
                 {description ? (
-                  <DialogDescription className="mt-0.5">{description}</DialogDescription>
+                  <DialogDescription className="mt-0.5 text-xs text-[#475569] dark:text-[#cbd6d0]">{description}</DialogDescription>
                 ) : (
                   <DialogDescription className="sr-only">{title}</DialogDescription>
                 )}
@@ -158,16 +170,14 @@ export function ConfirmDialog({
             <DialogClose
               aria-label="Tutup"
               disabled={isPending}
-              className="flex h-8 w-8 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-highest hover:text-on-surface cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 shrink-0"
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-[#475569] dark:text-[#cbd6d0] transition-colors hover:bg-[#f1f5f9] dark:hover:bg-[#1a2723] hover:text-[#0f172a] dark:hover:text-[#eef2f4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399]"
             >
-              <span className="material-symbols-outlined text-[18px] leading-none select-none flex items-center justify-center" aria-hidden>
-                close
-              </span>
+              <X className="h-5 w-5" aria-hidden />
             </DialogClose>
           </div>
 
           {message && (
-            <p className="mb-5 text-body-sm leading-relaxed text-on-surface-variant">{message}</p>
+            <p className="mb-5 text-sm leading-relaxed text-[#475569] dark:text-[#cbd6d0]">{message}</p>
           )}
 
           {children && <div className="mb-5">{children}</div>}
@@ -175,14 +185,14 @@ export function ConfirmDialog({
           {(acknowledgement || requireText) && (
             <div className="mb-6 space-y-4">
               {acknowledgement && (
-                <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-red-100 bg-red-50/40 p-3 transition-colors hover:bg-red-50/60">
+                <label className="flex min-h-[44px] cursor-pointer items-start gap-3 rounded-lg border border-[#fecaca] bg-[#fef2f2] p-3 transition-colors hover:bg-[#fee2e2]/70 dark:border-[#f87171]/40 dark:bg-[#3b1214] dark:hover:bg-[#531a1d]">
                   <input
                     type="checkbox"
-                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-red-300 text-error focus:ring-error"
+                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border border-[#dc2626] accent-[#dc2626] dark:border-[#f87171] dark:accent-[#ef4444]"
                     checked={acknowledged}
                     onChange={(e) => setAcknowledged(e.target.checked)}
                   />
-                  <span className="select-none text-xs leading-snug text-on-surface">
+                  <span className="select-none text-xs leading-snug text-[#0f172a] dark:text-[#eef2f4]">
                     {acknowledgement}
                   </span>
                 </label>
@@ -191,10 +201,10 @@ export function ConfirmDialog({
                 <div>
                   <label
                     htmlFor="confirm-dialog-text"
-                    className="mb-1.5 block text-xs font-medium text-on-surface-variant"
+                    className="mb-1.5 block text-xs font-medium text-[#475569] dark:text-[#cbd6d0]"
                   >
                     Ketik{" "}
-                    <span className="rounded border border-red-200 bg-red-50 px-1.5 py-0.5 font-bold text-error">
+                    <span className="rounded border border-[#fecaca] bg-[#fef2f2] px-1.5 py-0.5 font-bold text-[#991b1b] dark:border-[#f87171]/40 dark:bg-[#3b1214] dark:text-[#fca5a5]">
                       {requireText}
                     </span>{" "}
                     untuk mengonfirmasi:
@@ -206,19 +216,19 @@ export function ConfirmDialog({
                     placeholder={requireText}
                     value={typedText}
                     onChange={(e) => setTypedText(e.target.value)}
-                    className="w-full rounded-lg border border-outline-variant/30 bg-surface px-3.5 py-2 text-sm transition-all placeholder:text-on-surface-variant/40 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-error"
+                    className="min-h-[44px] w-full rounded-lg border border-[#85929f] dark:border-[#5f736b] bg-white dark:bg-[#1a2723] px-3.5 py-2 text-sm text-[#0f172a] dark:text-[#eef2f4] placeholder:text-[#64748b] dark:placeholder:text-[#94a89e] transition-colors focus:border-[#dc2626] dark:focus:border-[#f87171] focus:outline-none focus:ring-2 focus:ring-[#dc2626]/20 dark:focus:ring-[#f87171]/25"
                   />
                 </div>
               )}
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-3 border-t border-outline-variant/20 pt-4">
+          <div className="flex items-center justify-end gap-3 border-t border-[#f1f5f9] dark:border-[#3c4d46] pt-4">
             <button
               type="button"
               onClick={() => onOpenChange(false)}
               disabled={isPending}
-              className="rounded-lg border border-outline-variant/30 bg-surface px-4 py-2.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-high focus:outline-none focus:ring-2 focus:ring-outline disabled:opacity-50 cursor-pointer active:scale-98 select-none"
+              className="min-h-[44px] cursor-pointer select-none rounded-lg border border-[#85929f] dark:border-[#5f736b] bg-white dark:bg-[#1a2723] px-4 py-2 text-sm font-semibold text-[#334155] dark:text-[#eef2f4] transition-colors hover:bg-[#f8fafc] dark:hover:bg-[#22322d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399] disabled:opacity-50"
             >
               {cancelLabel}
             </button>
@@ -227,13 +237,11 @@ export function ConfirmDialog({
               onClick={onConfirm}
               disabled={isPending || confirmDisabled || !requirementsMet}
               className={cn(
-                "flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer active:scale-98 select-none",
+                "flex min-h-[44px] cursor-pointer select-none items-center gap-2 rounded-lg px-5 py-2 text-sm font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#131d1a] disabled:cursor-not-allowed disabled:opacity-50",
                 styles.confirm
               )}
             >
-              <span className="material-symbols-outlined text-[18px]" aria-hidden>
-                {icon}
-              </span>
+              <IconComponent className="h-4 w-4" aria-hidden />
               <span>{confirmLabel}</span>
             </button>
           </div>

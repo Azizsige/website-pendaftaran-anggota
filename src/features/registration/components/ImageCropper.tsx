@@ -106,19 +106,19 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel, isInl
           showGrid={true}
         />
       </div>
-      <div className="bg-white p-4 flex items-center justify-between z-10">
+      <div className="bg-white dark:bg-[#131d1a] dark:border-t dark:border-[#3c4d46] p-4 flex items-center justify-between z-10">
         <button
           type="button"
           onClick={onCancel}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md font-medium"
+          className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-[#1a2723] dark:border dark:border-[#5f736b] text-gray-800 dark:text-[#eef2f4] rounded-md font-medium hover:bg-gray-300 dark:hover:bg-[#22322d] transition-colors"
         >
           <X size={18} /> Batal
         </button>
-        <p className="text-sm font-medium text-gray-600 hidden sm:block">Sesuaikan bingkai dengan KTM Anda</p>
+        <p className="text-sm font-medium text-gray-600 dark:text-[#cbd6d0] hidden sm:block">Sesuaikan bingkai dengan KTM Anda</p>
         <button
           type="button"
           onClick={handleSave}
-          className="flex items-center gap-2 px-4 py-2 bg-[#006c49] text-white rounded-md font-medium"
+          className="flex items-center gap-2 px-4 py-2 bg-[#006c49] hover:bg-[#005236] dark:bg-[#057a55] dark:hover:bg-[#046c4e] text-white rounded-md font-medium transition-colors"
         >
           <Check size={18} /> Simpan
         </button>

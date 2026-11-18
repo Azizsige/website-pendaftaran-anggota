@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -33,10 +34,10 @@ export interface DataTableProps<T> {
 }
 
 const checkboxClass =
-  "h-[18px] w-[18px] cursor-pointer rounded-[4px] border-outline-variant/50 accent-primary transition-colors";
+  "h-[18px] w-[18px] cursor-pointer rounded border border-[#85929f] dark:border-[#5f736b] bg-white dark:bg-[#1a2723] accent-[#006c49] dark:accent-[#10b981] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49]/30 dark:focus-visible:ring-[#34d399]/35";
 
 /**
- * Tabel generik dengan state loading (skeleton), kosong, dan pilihan baris.
+ * Tabel generik dengan state loading terstruktur, kosong, dan pilihan baris.
  * Dipakai oleh tabel anggota, pendaftar, laporan, dan admin.
  */
 export function DataTable<T>({
@@ -73,62 +74,84 @@ export function DataTable<T>({
           aria-busy={isLoading}
         >
           <thead>
-            <tr className="border-b border-outline-variant/20 bg-surface-container-low text-label-md font-medium text-on-surface-variant">
+            <tr className="border-y border-[#e2e8f0] dark:border-[#3c4d46] bg-[#f8fafc] dark:bg-[#1a2723] text-[11px] font-semibold uppercase tracking-wider text-[#52606d] dark:text-[#94a89e]">
               {selection && (
-                <th className="w-12 px-4 py-4">
-                  <input
-                    type="checkbox"
-                    aria-label="Pilih semua baris"
-                    className={checkboxClass}
-                    checked={allSelected}
-                    onChange={(e) => toggleAll(e.target.checked)}
-                  />
+                <th className="w-12 px-4 py-3.5">
+                  <div className="flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      aria-label="Pilih semua baris"
+                      className={checkboxClass}
+                      checked={allSelected}
+                      onChange={(e) => toggleAll(e.target.checked)}
+                    />
+                  </div>
                 </th>
               )}
               {columns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
-                  className={cn("px-4 py-4 font-medium", column.headerClassName)}
+                  className={cn(
+                    "px-4 py-3.5 font-semibold whitespace-nowrap",
+                    column.headerClassName
+                  )}
                 >
                   {column.header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-outline-variant/10 text-body-sm text-on-surface">
+          <tbody className="divide-y divide-[#f1f5f9] dark:divide-[#24332d] bg-white dark:bg-[#131d1a] text-[14px] text-[#0f172a] dark:text-[#eef2f4]">
             {isLoading ? (
-              Array.from({ length: loadingRows }).map((_, i) => (
-                <tr key={`skeleton-${i}`}>
-                  <td colSpan={colSpan} className="px-4 py-4">
-                    <div className="h-5 w-full animate-pulse rounded bg-surface-variant/50" />
-                  </td>
-                </tr>
-              ))
+              <tr>
+                <td colSpan={colSpan} className="px-6 py-12">
+                  <div
+                    role="status"
+                    aria-live="polite"
+                    className="flex flex-col items-center justify-center gap-2.5 text-center"
+                  >
+                    <Loader2 className="h-5 w-5 animate-spin text-[#006c49] dark:text-[#34d399]" aria-hidden />
+                    <span className="text-sm font-medium text-[#475569] dark:text-[#cbd6d0]">
+                      Memuat data tabel...
+                    </span>
+                    <span className="sr-only">Menunggu {loadingRows} baris data</span>
+                  </div>
+                </td>
+              </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={colSpan} className="py-8 text-center text-on-surface-variant">
+                <td colSpan={colSpan} className="px-6 py-12 text-center text-sm text-[#475569] dark:text-[#cbd6d0]">
                   {emptyMessage}
                 </td>
               </tr>
             ) : (
               rows.map((row) => {
                 const key = getRowKey(row);
+                const isSelected = !!selection?.selectedIds.includes(key);
                 return (
-                  <tr key={key} className="group transition-colors hover:bg-surface-container-lowest">
+                  <tr
+                    key={key}
+                    className={cn(
+                      "group transition-colors",
+                      isSelected ? "bg-[#e6f4ee]/45 dark:bg-[#0c3528]/70" : "hover:bg-[#f8fafc] dark:hover:bg-[#1a2723]"
+                    )}
+                  >
                     {selection && (
-                      <td className="px-4 py-3">
-                        <input
-                          type="checkbox"
-                          aria-label="Pilih baris"
-                          className={checkboxClass}
-                          checked={selection.selectedIds.includes(key)}
-                          onChange={() => toggleOne(key)}
-                        />
+                      <td className="px-4 py-3.5 align-middle">
+                        <div className="flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            aria-label="Pilih baris"
+                            className={checkboxClass}
+                            checked={isSelected}
+                            onChange={() => toggleOne(key)}
+                          />
+                        </div>
                       </td>
                     )}
                     {columns.map((column) => (
-                      <td key={column.key} className={cn("px-4 py-3", column.className)}>
+                      <td key={column.key} className={cn("px-4 py-3.5 align-middle", column.className)}>
                         {column.cell(row)}
                       </td>
                     ))}

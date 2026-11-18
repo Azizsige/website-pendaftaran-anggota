@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+
 import { Pagination } from "@/components/ui/pagination";
 import { useMembers } from "../hooks/useMembers";
 import { MembersToolbar } from "./MembersToolbar";
@@ -56,40 +57,37 @@ export function MembersClient({
   } = useMembers({ initialMembers, search });
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-6">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="mx-auto flex max-w-[1440px] flex-col gap-6">
+      <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
         <div>
-          <h1 className="font-display-sm text-[36px] font-bold text-on-surface tracking-tight">
+          <h1 className="text-xl font-bold tracking-tight text-[#0f172a] sm:text-2xl dark:text-[#eef2f4]">
             Manajemen Anggota
           </h1>
-          <p className="text-body-lg text-on-surface-variant mt-1">
-            Kelola data seluruh anggota terdaftar dalam organisasi Anda.
+          <p className="mt-1 text-sm text-[#475569] dark:text-[#cbd6d0]">
+            Kelola direktori anggota resmi, perbarui data akademik, dan atur status keanggotaan.
           </p>
         </div>
       </div>
 
-      {/* Toolbar: Search, Filters & Action Buttons */}
-      <MembersToolbar
-        localSearch={localSearch}
-        onSearchChange={setLocalSearch}
-        status={status}
-        onStatusChange={(newStatus) =>
-          updateUrl({ status: newStatus === "all" ? null : newStatus, page: "1" })
-        }
-        selectedIds={selectedIds}
-        search={search}
-        userRole={userRole}
-        isDrawerOpen={isDrawerOpen}
-        setIsDrawerOpen={setIsDrawerOpen}
-        isEditDrawerOpen={isEditDrawerOpen}
-        setIsEditDrawerOpen={setIsEditDrawerOpen}
-        selectedEditMember={selectedEditMember}
-        onRefresh={() => router.refresh()}
-      />
+      <div className="relative flex flex-col overflow-hidden rounded-xl border border-[#e2e8f0] bg-white dark:border-[#3c4d46] dark:bg-[#131d1a]">
+        <MembersToolbar
+          localSearch={localSearch}
+          onSearchChange={setLocalSearch}
+          status={status}
+          onStatusChange={(newStatus) =>
+            updateUrl({ status: newStatus === "all" ? null : newStatus, page: "1" })
+          }
+          selectedIds={selectedIds}
+          search={search}
+          userRole={userRole}
+          isDrawerOpen={isDrawerOpen}
+          setIsDrawerOpen={setIsDrawerOpen}
+          isEditDrawerOpen={isEditDrawerOpen}
+          setIsEditDrawerOpen={setIsEditDrawerOpen}
+          selectedEditMember={selectedEditMember}
+          onRefresh={() => router.refresh()}
+        />
 
-      {/* Table & Pagination Container */}
-      <div className="space-y-4">
         <MembersTable
           members={initialMembers}
           selectedIds={selectedIds}
@@ -108,21 +106,19 @@ export function MembersClient({
             setConfirmAction(action);
           }}
           onDelete={(m) => setSelectedDeleteMember(m)}
+          footer={
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              pageSize={limit}
+              onPageChange={(page) => updateUrl({ page: page.toString() })}
+              isPending={isPending}
+            />
+          }
         />
-
-        {initialMembers.length > 0 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalCount={totalCount}
-            pageSize={limit}
-            onPageChange={(page) => updateUrl({ page: page.toString() })}
-            isPending={isPending}
-          />
-        )}
       </div>
 
-      {/* Modals & Dialogs */}
       <MembersModals
         selectedViewMember={selectedViewMember}
         onCloseView={() => setSelectedViewMember(null)}

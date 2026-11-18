@@ -1,10 +1,15 @@
 import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isAdminRole, SETTINGS_FORBIDDEN_ROLES } from "@/lib/constants/roles";
+import { isAdminRole, ROLES, SETTINGS_FORBIDDEN_ROLES } from "@/lib/constants/roles";
 
 export async function proxy(req: NextRequest) {
-  const token = await getToken({ req });
+  const rawToken = await getToken({ req });
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const isExpired =
+    typeof rawToken?.sessionExp === "number" && nowSeconds > rawToken.sessionExp;
+  const token = rawToken && !isExpired ? rawToken : null;
+
   const path = req.nextUrl.pathname;
   const userRole = token?.role as string | undefined;
 
@@ -22,7 +27,17 @@ export async function proxy(req: NextRequest) {
 
     if (path.startsWith("/admin/settings")) {
       if ((SETTINGS_FORBIDDEN_ROLES as readonly (string | undefined)[]).includes(userRole)) {
-        return NextResponse.redirect(new URL("/unauthorized", req.url));
+        const unauthorizedUrl = new URL("/unauthorized", req.url);
+        unauthorizedUrl.searchParams.set("from", path);
+        return NextResponse.redirect(unauthorizedUrl);
+      }
+    }
+
+    if (path.startsWith("/admin/logs")) {
+      if (userRole !== ROLES.OWNER) {
+        const unauthorizedUrl = new URL("/unauthorized", req.url);
+        unauthorizedUrl.searchParams.set("from", path);
+        return NextResponse.redirect(unauthorizedUrl);
       }
     }
   }

@@ -4,3 +4,7 @@ export { default as DashboardFilter } from "./components/DashboardFilter";
 export { default as RegistrationChart } from "./components/RegistrationChart";
 export { default as ChartFilter } from "./components/ChartFilter";
 export { default as NewMemberButton } from "./components/NewMemberButton";
+export { default as StatusCompositionCard } from "./components/StatusCompositionCard";
+export { default as AcademicInsightsRow } from "./components/AcademicInsightsRow";
+export { default as RecentApplicantsCard } from "./components/RecentApplicantsCard";
+export * from "./components/MiniKpiCharts";

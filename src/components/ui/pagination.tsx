@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -30,7 +31,7 @@ function buildPages(current: number, total: number): PageItem[] {
   return items;
 }
 
-/** Pagination tunggal untuk semua tabel (anggota, pendaftar, laporan, dst.). */
+/** Pagination tunggal bergaya kapsul bundar untuk semua tabel admin. */
 export function Pagination({
   currentPage,
   totalPages,
@@ -52,30 +53,28 @@ export function Pagination({
   return (
     <div
       className={cn(
-        "relative z-0 flex flex-col items-center justify-between gap-4 border-t border-outline-variant/10 bg-surface p-4 sm:flex-row",
+        "relative z-0 flex flex-col items-center justify-between gap-4 border-t border-[#f1f5f9] dark:border-[#3c4d46] bg-white dark:bg-[#131d1a] px-5 py-4 sm:flex-row sm:px-6",
         className
       )}
     >
-      <span className="text-body-sm text-on-surface-variant">
-        Menampilkan <span className="font-medium text-on-surface">{from}</span> hingga{" "}
-        <span className="font-medium text-on-surface">{to}</span> dari{" "}
-        <span className="font-medium text-on-surface">{totalCount}</span> data
+      <span className="text-[13px] text-[#475569] dark:text-[#cbd6d0] tabular-nums">
+        Menampilkan <span className="font-semibold text-[#0f172a] dark:text-[#eef2f4]">{from}</span> hingga{" "}
+        <span className="font-semibold text-[#0f172a] dark:text-[#eef2f4]">{to}</span> dari{" "}
+        <span className="font-semibold text-[#0f172a] dark:text-[#eef2f4]">{totalCount}</span> data
       </span>
 
-      <nav aria-label="Navigasi halaman" className="flex items-center gap-1">
+      <nav aria-label="Navigasi halaman" className="flex flex-wrap items-center justify-center gap-1.5">
         <button
           type="button"
           aria-label="Halaman sebelumnya"
           onClick={() => go(currentPage - 1)}
           disabled={currentPage <= 1 || isPending}
-          className="cursor-pointer rounded p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-highest disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-[#e6f4ee] dark:bg-[#0c3528] text-[#005236] dark:text-[#6ee7b7] transition-colors hover:bg-[#cde9dc] dark:hover:bg-[#104736] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399] disabled:cursor-not-allowed disabled:bg-[#f1f5f9] dark:disabled:bg-[#1a2723] disabled:text-[#94a3b8] dark:disabled:text-[#5f736b]"
         >
-          <span className="material-symbols-outlined text-[20px]" aria-hidden>
-            chevron_left
-          </span>
+          <ChevronLeft className="h-4 w-4" aria-hidden />
         </button>
 
-        <div className="flex items-center gap-1 text-body-sm">
+        <div className="flex items-center gap-1">
           {buildPages(currentPage, safeTotal).map((item) =>
             typeof item === "number" ? (
               <button
@@ -85,16 +84,16 @@ export function Pagination({
                 onClick={() => go(item)}
                 disabled={isPending}
                 className={cn(
-                  "flex h-8 w-8 cursor-pointer items-center justify-center rounded font-medium transition-colors",
+                  "flex h-11 min-w-[44px] cursor-pointer items-center justify-center rounded-full px-3 text-[13px] font-semibold tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399] disabled:cursor-not-allowed disabled:opacity-60",
                   item === currentPage
-                    ? "bg-primary text-white"
-                    : "text-on-surface-variant hover:bg-surface-container-highest"
+                    ? "bg-[#006c49] dark:bg-[#057a55] text-white shadow-sm"
+                    : "text-[#475569] dark:text-[#cbd6d0] hover:bg-[#f1f5f9] dark:hover:bg-[#1a2723] hover:text-[#0f172a] dark:hover:text-[#eef2f4]"
                 )}
               >
-                {item}
+                {String(item).padStart(2, "0")}
               </button>
             ) : (
-              <span key={item} className="px-1 text-on-surface-variant" aria-hidden>
+              <span key={item} className="px-1.5 text-xs font-semibold text-[#64748b] dark:text-[#94a89e]" aria-hidden>
                 ...
               </span>
             )
@@ -106,11 +105,9 @@ export function Pagination({
           aria-label="Halaman berikutnya"
           onClick={() => go(currentPage + 1)}
           disabled={currentPage >= safeTotal || isPending}
-          className="cursor-pointer rounded p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-highest disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-[#e6f4ee] dark:bg-[#0c3528] text-[#005236] dark:text-[#6ee7b7] transition-colors hover:bg-[#cde9dc] dark:hover:bg-[#104736] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399] disabled:cursor-not-allowed disabled:bg-[#f1f5f9] dark:disabled:bg-[#1a2723] disabled:text-[#94a3b8] dark:disabled:text-[#5f736b]"
         >
-          <span className="material-symbols-outlined text-[20px]" aria-hidden>
-            chevron_right
-          </span>
+          <ChevronRight className="h-4 w-4" aria-hidden />
         </button>
       </nav>
     </div>

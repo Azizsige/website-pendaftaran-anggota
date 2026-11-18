@@ -38,6 +38,10 @@ export const SETTING_KEYS = {
   KTA_SIGNATURE_URL: "kta_signature_url",
   KTA_SIGNATURE_NAME: "kta_signature_name",
   KTA_TERMS: "kta_terms",
+
+  // Pemeliharaan Sistem (Owner)
+  MAINTENANCE_MODE: "system_maintenance_mode",
+  MAINTENANCE_MESSAGE: "system_maintenance_message",
 } as const;
 
 export type SettingKey = (typeof SETTING_KEYS)[keyof typeof SETTING_KEYS];

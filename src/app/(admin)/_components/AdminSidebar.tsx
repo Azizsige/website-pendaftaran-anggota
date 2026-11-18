@@ -1,88 +1,226 @@
 "use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { signOut, useSession } from 'next-auth/react';
-import { useAdminUIStore } from '@/store/useAdminUIStore';
+import { useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
+import {
+  BarChart3,
+  Globe,
+  LayoutDashboard,
+  LogOut,
+  ScrollText,
+  Settings,
+  ShieldCheck,
+  UserPlus,
+  Users,
+  X,
+} from "lucide-react";
+import { useAdminUIStore } from "@/store/useAdminUIStore";
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  orgName?: string;
+  orgLogo?: string | null;
+}
+
+export default function AdminSidebar({
+  orgName = "Portal Panitia",
+  orgLogo = null,
+}: AdminSidebarProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const role = session?.user?.role;
-  const showSettings = role === 'OWNER' || role === 'SUPER_ADMIN';
+  const showSettings = role === "OWNER" || role === "SUPER_ADMIN";
+  const isOwner = role === "OWNER";
   const { isSidebarOpen, setSidebarOpen } = useAdminUIStore();
 
-  const getMenuClass = (path: string, exact: boolean = false) => {
+  useEffect(() => {
+    if (!isSidebarOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSidebarOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isSidebarOpen, setSidebarOpen]);
+
+  const getMenuClass = (path: string, exact = false) => {
     const isActive = exact ? pathname === path : pathname?.startsWith(path);
-    const baseClass = "px-md py-sm rounded-r-lg border-l-4 transition-colors w-full cursor-pointer";
+    const base =
+      "min-h-[44px] px-3 py-2.5 rounded-r-lg border-l-[3px] flex items-center gap-3 text-sm transition-colors w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399] focus-visible:ring-offset-1 dark:focus-visible:ring-offset-[#131d1a]";
     if (isActive) {
-      return `${baseClass} border-primary-fixed bg-primary-fixed/10 text-primary-fixed`;
+      return `${base} border-[#006c49] dark:border-[#34d399] bg-[#e6f4ee] dark:bg-[#0c3528] text-[#005236] dark:text-[#6ee7b7] font-semibold`;
     }
-    return `${baseClass} border-transparent text-tertiary-fixed-dim/70 hover:bg-white/5 hover:text-white`;
+    return `${base} border-transparent text-[#4b5850] dark:text-[#cbd6d0] font-medium hover:bg-[#f4f6f8] dark:hover:bg-[#1a2723] hover:text-[#191c1e] dark:hover:text-[#eef2f4]`;
   };
 
   return (
     <>
-      {/* Mobile Backdrop */}
       {isSidebarOpen && (
-        <div 
-          className="md:hidden fixed inset-0 bg-black/50 z-30 transition-opacity"
+        <div
+          aria-hidden="true"
+          className="md:hidden fixed inset-0 bg-black/40 dark:bg-black/70 z-30 transition-opacity"
           onClick={() => setSidebarOpen(false)}
         />
       )}
-      <nav className={`bg-on-tertiary-fixed dark:bg-inverse-surface h-screen fixed left-0 top-0 w-sidebar-width flex flex-col py-lg flat no shadows z-40 transition-transform duration-300 ease-in-out md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-      <div className="px-lg mb-lg">
-        <h1 className="font-headline-md text-headline-md text-primary-fixed">Portal Panitia</h1>
-        <p className="font-label-md text-label-md text-tertiary-fixed-dim/70 mt-xs">Sistem Oprec BEM</p>
-      </div>
-      <ul className="flex-1 space-y-sm mt-md px-sm">
-        <li>
-          <Link onClick={() => setSidebarOpen(false)} className={`${getMenuClass('/admin', true)} flex items-center gap-md`} href="/admin">
-            <span className="material-symbols-outlined">dashboard</span>
-            <span className="font-label-md text-label-md">Dashboard</span>
-          </Link>
-        </li>
-        <li>
-          <Link onClick={() => setSidebarOpen(false)} className={`${getMenuClass('/admin/pendaftar')} flex items-center justify-between`} href="/admin/pendaftar">
-            <div className="flex items-center gap-md">
-              <span className="material-symbols-outlined">person_add</span>
-              <span className="font-label-md text-label-md">Calon Anggota</span>
+
+      <aside
+        aria-label="Navigasi Panel Admin"
+        className={`bg-white dark:bg-[#131d1a] border-r border-[#e2e8f0] dark:border-[#3c4d46] h-screen fixed left-0 top-0 w-[260px] flex flex-col z-40 transition-transform duration-200 ease-out md:translate-x-0 ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="h-16 px-4 flex items-center justify-between border-b border-[#f1f5f9] dark:border-[#3c4d46] shrink-0">
+          <Link
+            href="/admin"
+            onClick={() => setSidebarOpen(false)}
+            className="flex items-center gap-3 min-w-0 rounded-lg py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399]"
+          >
+            {orgLogo ? (
+              <Image
+                src={orgLogo}
+                alt={orgName}
+                width={36}
+                height={36}
+                unoptimized
+                className="w-9 h-9 rounded-lg object-cover border border-[#e2e8f0] dark:border-[#3c4d46] shrink-0 bg-[#f8fafc] dark:bg-[#1a2723]"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-lg bg-[#e6f4ee] dark:bg-[#0a3326] text-[#006c49] dark:text-[#34d399] flex items-center justify-center shrink-0 border border-[#cde9dc] dark:border-[#34d399]/35">
+                <ShieldCheck className="w-5 h-5" aria-hidden="true" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-[#191c1e] dark:text-[#eef2f4] truncate leading-tight">
+                {orgName}
+              </p>
+              <p className="text-xs text-[#52606d] dark:text-[#94a89e] truncate leading-tight mt-0.5">
+                Panel Administrasi
+              </p>
             </div>
           </Link>
-        </li>
-        <li>
-          <Link onClick={() => setSidebarOpen(false)} className={`${getMenuClass('/admin/members')} flex items-center gap-md`} href="/admin/members">
-            <span className="material-symbols-outlined">group</span>
-            <span className="font-label-md text-label-md">Anggota Aktif</span>
-          </Link>
-        </li>
-        <li>
-          <Link onClick={() => setSidebarOpen(false)} className={`${getMenuClass('/admin/reports')} flex items-center gap-md`} href="/admin/reports">
-            <span className="material-symbols-outlined">analytics</span>
-            <span className="font-label-md text-label-md">Laporan Data</span>
-          </Link>
-        </li>
-        {showSettings && (
-          <li>
-            <Link onClick={() => setSidebarOpen(false)} className={`${getMenuClass('/admin/settings')} flex items-center gap-md`} href="/admin/settings?tab=general_settings">
-              <span className="material-symbols-outlined" data-weight="regular">settings</span>
-              <span className="font-label-md text-label-md font-bold">Pengaturan</span>
-            </Link>
-          </li>
-        )}
-      </ul>
-      <ul className="mt-auto px-sm space-y-sm mb-4">
-        <li>
-          <button 
-            onClick={() => signOut({ callbackUrl: '/login' })}
-            className="flex items-center gap-md px-md py-sm text-tertiary-fixed-dim/70 hover:bg-white/5 hover:text-white rounded-r-lg border-l-4 border-transparent transition-colors w-full text-left cursor-pointer"
+
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Tutup menu navigasi"
+            className="md:hidden min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg text-[#4b5850] dark:text-[#cbd6d0] hover:bg-[#f4f6f8] dark:hover:bg-[#1a2723] hover:text-[#191c1e] dark:hover:text-[#eef2f4] transition-colors cursor-pointer"
           >
-            <span className="material-symbols-outlined">logout</span>
-            <span className="font-label-md text-label-md">Keluar</span>
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
-        </li>
-      </ul>
-    </nav>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-6">
+          <div>
+            <p className="px-3 mb-2 text-[11px] font-semibold tracking-wider text-[#52606d] dark:text-[#94a89e] uppercase">
+              Utama
+            </p>
+            <ul className="space-y-1">
+              <li>
+                <Link
+                  href="/admin"
+                  onClick={() => setSidebarOpen(false)}
+                  className={getMenuClass("/admin", true)}
+                >
+                  <LayoutDashboard className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+                  <span>Ringkasan</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/pendaftar"
+                  onClick={() => setSidebarOpen(false)}
+                  className={getMenuClass("/admin/pendaftar")}
+                >
+                  <UserPlus className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+                  <span>Calon Anggota</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/members"
+                  onClick={() => setSidebarOpen(false)}
+                  className={getMenuClass("/admin/members")}
+                >
+                  <Users className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+                  <span>Anggota Aktif</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="px-3 mb-2 text-[11px] font-semibold tracking-wider text-[#52606d] dark:text-[#94a89e] uppercase">
+              Analitik &amp; Laporan
+            </p>
+            <ul className="space-y-1">
+              <li>
+                <Link
+                  href="/admin/reports"
+                  onClick={() => setSidebarOpen(false)}
+                  className={getMenuClass("/admin/reports")}
+                >
+                  <BarChart3 className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+                  <span>Laporan Data</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {showSettings && (
+            <div>
+              <p className="px-3 mb-2 text-[11px] font-semibold tracking-wider text-[#52606d] dark:text-[#94a89e] uppercase">
+                Sistem
+              </p>
+              <ul className="space-y-1">
+                <li>
+                  <Link
+                    href="/admin/settings?tab=general_settings"
+                    onClick={() => setSidebarOpen(false)}
+                    className={getMenuClass("/admin/settings")}
+                  >
+                    <Settings className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+                    <span>Pengaturan</span>
+                  </Link>
+                </li>
+                {isOwner && (
+                  <li>
+                    <Link
+                      href="/admin/logs"
+                      onClick={() => setSidebarOpen(false)}
+                      className={getMenuClass("/admin/logs")}
+                    >
+                      <ScrollText className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+                      <span>Log Aktivitas</span>
+                    </Link>
+                  </li>
+                )}
+              </ul>
+            </div>
+          )}
+        </nav>
+
+        <div className="px-3 py-4 border-t border-[#f1f5f9] dark:border-[#3c4d46] space-y-1 shrink-0">
+          <Link
+            href="/"
+            onClick={() => setSidebarOpen(false)}
+            className="min-h-[44px] px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-medium text-[#4b5850] dark:text-[#cbd6d0] hover:bg-[#f4f6f8] dark:hover:bg-[#1a2723] hover:text-[#191c1e] dark:hover:text-[#eef2f4] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399]"
+          >
+            <Globe className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+            <span>Portal Publik</span>
+          </Link>
+          <button
+            type="button"
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="min-h-[44px] px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-medium text-[#4b5850] dark:text-[#cbd6d0] hover:bg-[#fef2f2] dark:hover:bg-[#3b1214] hover:text-[#991b1b] dark:hover:text-[#fca5a5] transition-colors w-full text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dc2626] dark:focus-visible:ring-[#f87171]"
+          >
+            <LogOut className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+            <span>Keluar</span>
+          </button>
+        </div>
+      </aside>
     </>
   );
 }

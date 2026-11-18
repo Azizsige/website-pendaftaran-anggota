@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import ExcelJS from "exceljs";
 import { requireAdmin } from "@/lib/auth/guards";
+import { ACTIVITY_ACTIONS, recordActivityLog } from "@/lib/activity-log";
 import { Prisma } from "@prisma/client";
 import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
+  let admin;
   try {
-    await requireAdmin();
-  } catch (e) {
+    admin = await requireAdmin();
+  } catch {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
@@ -34,7 +36,11 @@ export async function GET(request: Request) {
 
     const applicants = await prisma.memberProfile.findMany({
       where: whereClause,
-      include: {
+      select: {
+        id: true,
+        phoneNumber: true,
+        joinDate: true,
+        status: true,
         user: {
           select: { name: true, email: true },
         },
@@ -112,6 +118,13 @@ export async function GET(request: Request) {
 
     // Generate buffer
     const buffer = await workbook.xlsx.writeBuffer();
+
+    await recordActivityLog({
+      actor: admin,
+      action: ACTIVITY_ACTIONS.EXPORT_APPLICANTS,
+      entityType: "Export",
+      details: `Mengekspor ${applicants.length} data calon anggota ke Excel (filter status: ${status}${search ? `, cari: ${search}` : ""})`,
+    });
 
     return new NextResponse(buffer, {
       headers: {

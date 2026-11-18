@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Send } from "lucide-react";
+import { Loader2, Save, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
@@ -37,7 +37,6 @@ export interface FormDrawerProps {
 
 /**
  * Drawer form tunggal: header, area scroll, footer (Batal/Simpan), overlay saat menyimpan.
- * Menggantikan AddAdminDrawer, EditAdminDrawer, dan EditMemberDrawer yang duplikat.
  */
 export function FormDrawer({
   open,
@@ -65,7 +64,7 @@ export function FormDrawer({
       {trigger}
       <DrawerContent
         className={cn(
-          "flex w-[90%] flex-col overflow-hidden border-l border-outline-variant/20 bg-white shadow-2xl md:w-[600px] lg:w-[45%] xl:w-[40%]",
+          "flex w-[92%] flex-col overflow-hidden border-l border-[#e2e8f0] dark:border-[#3c4d46] bg-white dark:bg-[#131d1a] dark:text-[#eef2f4] shadow-2xl md:w-[600px] lg:w-[45%] xl:w-[40%]",
           contentClassName
         )}
       >
@@ -73,26 +72,21 @@ export function FormDrawer({
           <div
             role="status"
             aria-live="polite"
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/60 backdrop-blur-[2px] animate-fade-in"
+            className="animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/80 dark:bg-[#0d1412]/85 backdrop-blur-[2px]"
           >
-            <span
-              className="material-symbols-outlined mb-3 animate-spin text-[40px] text-primary"
-              aria-hidden
-            >
-              progress_activity
-            </span>
-            <h4 className="text-lg font-bold text-on-surface">{overlayTitle}</h4>
-            <p className="mt-1 text-sm text-on-surface-variant">Mohon tunggu sebentar...</p>
+            <Loader2 className="mb-3 h-9 w-9 animate-spin text-[#006c49] dark:text-[#34d399]" aria-hidden />
+            <h4 className="text-base font-bold text-[#0f172a] dark:text-[#eef2f4]">{overlayTitle}</h4>
+            <p className="mt-1 text-sm text-[#475569] dark:text-[#cbd6d0]">Mohon tunggu sebentar...</p>
           </div>
         )}
 
-        <DrawerHeader className="flex shrink-0 flex-row items-center justify-between border-b border-outline-variant/10 p-6">
+        <DrawerHeader className="flex shrink-0 flex-row items-start justify-between gap-4 border-b border-[#f1f5f9] dark:border-[#3c4d46] bg-white dark:bg-[#131d1a] px-6 py-5">
           <div>
-            <DrawerTitle className="text-left text-[20px] font-semibold tracking-tight text-on-surface">
+            <DrawerTitle className="text-left text-lg font-semibold tracking-tight text-[#0f172a] dark:text-[#eef2f4]">
               {title}
             </DrawerTitle>
             {description && (
-              <DrawerDescription className="mt-1 text-left text-on-surface-variant">
+              <DrawerDescription className="mt-1 text-left text-sm text-[#475569] dark:text-[#cbd6d0]">
                 {description}
               </DrawerDescription>
             )}
@@ -102,26 +96,24 @@ export function FormDrawer({
               type="button"
               aria-label="Tutup"
               disabled={isSubmitting}
-              className="-mt-4 flex h-8 w-8 items-center justify-center cursor-pointer rounded-full text-on-surface-variant transition-colors hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-[#475569] dark:text-[#cbd6d0] transition-colors hover:bg-[#f1f5f9] dark:hover:bg-[#1a2723] hover:text-[#0f172a] dark:hover:text-[#eef2f4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <span className="material-symbols-outlined text-[18px] leading-none select-none flex items-center justify-center" aria-hidden>
-                close
-              </span>
+              <X className="h-5 w-5" aria-hidden />
             </button>
           </DrawerClose>
         </DrawerHeader>
 
-        <div className="flex flex-1 flex-col gap-6 overflow-y-auto no-scrollbar p-6">{children}</div>
+        <div className="no-scrollbar flex flex-1 flex-col gap-5 overflow-y-auto p-6">{children}</div>
 
         {!hideFooter && (
-          <DrawerFooter className="flex shrink-0 flex-row justify-end gap-3 border-t border-outline-variant/10 bg-white p-6">
+          <DrawerFooter className="flex shrink-0 flex-row items-center justify-end gap-3 border-t border-[#f1f5f9] dark:border-[#3c4d46] bg-white dark:bg-[#131d1a] px-6 py-4">
             {footer ?? (
               <>
                 <DrawerClose asChild>
                   <button
                     type="button"
                     disabled={isSubmitting}
-                    className="cursor-pointer rounded-lg px-4 py-2 text-label-md text-on-surface-variant transition-colors hover:bg-surface-container-highest disabled:cursor-not-allowed disabled:opacity-50"
+                    className="min-h-[44px] cursor-pointer rounded-lg border border-[#85929f] dark:border-[#5f736b] bg-white dark:bg-[#1a2723] px-4 py-2 text-sm font-semibold text-[#334155] dark:text-[#eef2f4] transition-colors hover:bg-[#f8fafc] dark:hover:bg-[#22322d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {cancelLabel}
                   </button>
@@ -130,17 +122,17 @@ export function FormDrawer({
                   type="button"
                   onClick={() => void onSubmit()}
                   disabled={isSubmitting}
-                  className="flex cursor-pointer items-center gap-1 rounded-lg bg-primary px-6 py-2 text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-lg bg-[#006c49] dark:bg-[#057a55] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#005236] dark:hover:bg-[#046c4e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#131d1a] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isSubmitting ? (
                     <>
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
                       {submittingLabel}
                     </>
                   ) : (
                     <>
+                      <Save className="h-4 w-4" aria-hidden />
                       {submitLabel}
-                      <Send size={18} />
                     </>
                   )}
                 </button>

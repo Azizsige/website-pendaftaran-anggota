@@ -1,11 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
+import dynamic from "next/dynamic";
 import { UploadCloud, IdCard, Camera } from "lucide-react";
 import FileUploadField from "./FileUploadField";
 import { FormData, Errors } from "../types";
-import ImageCropper from "./ImageCropper";
-import KtmCameraCapture from "./KtmCameraCapture";
+
+const ImageCropper = dynamic(() => import("./ImageCropper"), { ssr: false });
+const KtmCameraCapture = dynamic(() => import("./KtmCameraCapture"), {
+  ssr: false,
+});
 
 interface StepDokumenProps {
   formData: FormData;
@@ -52,10 +56,10 @@ export default function StepDokumen({ formData, errors, updateField, firstInputR
 
   return (
     <div className="transition-opacity duration-300 animate-fade-in" id="step-2">
-      <h2 className="font-sans text-[24px] md:text-[32px] md:leading-[40px] font-semibold text-[#191c1e] mb-[16px]">
+      <h2 className="font-sans text-[24px] md:text-[32px] md:leading-[40px] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[16px]">
         Unggah Dokumen Pendukung
       </h2>
-      <p className="font-sans text-[14px] leading-[20px] text-[#3c4a42] mb-[24px]">
+      <p className="font-sans text-[14px] leading-[20px] text-[#3c4a42] dark:text-[#cbd6d0] mb-[24px]">
         Silakan unggah dokumen identitas Anda untuk proses verifikasi.
       </p>
 
@@ -86,7 +90,7 @@ export default function StepDokumen({ formData, errors, updateField, firstInputR
                 <button
                   type="button"
                   onClick={() => setShowCamera(true)}
-                  className="flex items-center gap-2 text-sm font-medium text-[#006c49] bg-[#e6f4ea] px-4 py-2 rounded-md hover:bg-[#cce8d5] transition-colors"
+                  className="flex min-h-[44px] items-center gap-2 text-sm font-medium text-[#006c49] bg-[#e6f4ea] hover:bg-[#cce8d5] dark:text-[#6ee7b7] dark:bg-[#0a3326] dark:hover:bg-[#0c3528] px-4 py-2 rounded-md transition-colors cursor-pointer"
                 >
                   <Camera size={16} /> Buka Kamera Cerdas
                 </button>

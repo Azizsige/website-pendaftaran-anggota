@@ -6,24 +6,36 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { requireSuperAdmin, requireRole } from "@/lib/auth/guards";
 import { safeAction, ok, fail } from "@/lib/action-result";
+import { ACTIVITY_ACTIONS, recordActivityLog } from "@/lib/activity-log";
 import type { MemberStatus } from "@/lib/constants/status";
 import { uploadImage } from "@/lib/storage";
 import { logger } from "@/lib/logger";
 import { memberRegistrationSchema, updateMemberSchema, type UpdateMemberInput } from "./schemas";
 
+function formatMemberTarget(name: string | null | undefined, nim: string): string {
+  return name ? `${name} (NIM ${nim})` : `NIM ${nim}`;
+}
+
 export async function updateMemberStatus(
   id: string,
   newStatus: Extract<MemberStatus, "ACTIVE" | "INACTIVE" | "SUSPENDED">
 ) {
-  await requireSuperAdmin();
+  const admin = await requireSuperAdmin();
 
   return safeAction("updateMemberStatus", async () => {
     const profile = await prisma.memberProfile.findUnique({
       where: { id },
-      select: { userId: true },
+      select: {
+        userId: true,
+        nim: true,
+        status: true,
+        user: { select: { name: true } },
+      },
     });
 
     if (!profile) return fail("Member tidak ditemukan.");
+
+    const targetLabel = formatMemberTarget(profile.user?.name, profile.nim);
 
     await prisma.$transaction(async (tx) => {
       // Update MemberProfile
@@ -50,36 +62,63 @@ export async function updateMemberStatus(
           },
         });
       }
+
+      await recordActivityLog(
+        {
+          actor: admin,
+          action: ACTIVITY_ACTIONS.UPDATE_MEMBER_STATUS,
+          entityType: "MemberProfile",
+          entityId: id,
+          details: `Mengubah status anggota ${targetLabel} dari ${profile.status} menjadi ${newStatus}`,
+        },
+        tx
+      );
     });
 
     revalidatePath("/admin/members");
+    revalidatePath("/admin/logs");
     return ok();
   });
 }
 
 export async function deleteMember(id: string) {
-  await requireSuperAdmin();
+  const admin = await requireSuperAdmin();
 
   return safeAction("deleteMember", async () => {
     const profile = await prisma.memberProfile.findUnique({
       where: { id },
-      select: { userId: true },
+      select: {
+        userId: true,
+        nim: true,
+        user: { select: { name: true } },
+      },
     });
 
     if (!profile) return fail("Member tidak ditemukan.");
+
+    const targetLabel = formatMemberTarget(profile.user?.name, profile.nim);
 
     await prisma.user.delete({
       where: { id: profile.userId },
     });
 
+    await recordActivityLog({
+      actor: admin,
+      action: ACTIVITY_ACTIONS.DELETE_MEMBER,
+      entityType: "MemberProfile",
+      entityId: id,
+      details: `Menghapus permanen data anggota ${targetLabel}`,
+    });
+
     revalidatePath("/admin/members");
+    revalidatePath("/admin/logs");
     return ok();
   });
 }
 
 // Tambahkan member langsung, bypass PENDING
 export async function createMember(formData: Record<string, unknown>) {
-  await requireSuperAdmin();
+  const admin = await requireSuperAdmin();
 
   return safeAction("createMember", async () => {
     // 0. Validasi Input dengan Zod
@@ -152,7 +191,7 @@ export async function createMember(formData: Record<string, unknown>) {
         },
       });
 
-      await tx.memberProfile.create({
+      const createdProfile = await tx.memberProfile.create({
         data: {
           userId: user.id,
           nim: parsed.nim,
@@ -171,9 +210,21 @@ export async function createMember(formData: Record<string, unknown>) {
           photoHash: parsed.pasFotoHash || null,
         },
       });
+
+      await recordActivityLog(
+        {
+          actor: admin,
+          action: ACTIVITY_ACTIONS.CREATE_MEMBER,
+          entityType: "MemberProfile",
+          entityId: createdProfile.id,
+          details: `Menambahkan anggota aktif ${parsed.namaLengkap} (NIM ${parsed.nim})`,
+        },
+        tx
+      );
     });
 
     revalidatePath("/admin/members");
+    revalidatePath("/admin/logs");
     return ok({ generatedPassword: randomPassword });
   });
 }
@@ -182,7 +233,7 @@ export async function updateMember(
   id: string,
   data: UpdateMemberInput
 ) {
-  await requireRole(["OWNER", "SUPER_ADMIN", "COORDINATOR"]);
+  const admin = await requireRole(["OWNER", "SUPER_ADMIN", "COORDINATOR"]);
 
   return safeAction(
     "updateMember",
@@ -191,6 +242,11 @@ export async function updateMember(
 
       const profile = await prisma.memberProfile.findUnique({
         where: { id },
+        select: {
+          id: true,
+          nim: true,
+          user: { select: { name: true } },
+        },
       });
 
       if (!profile) return fail("Member tidak ditemukan.");
@@ -206,7 +262,17 @@ export async function updateMember(
         },
       });
 
+      const targetLabel = formatMemberTarget(profile.user?.name, profile.nim);
+      await recordActivityLog({
+        actor: admin,
+        action: ACTIVITY_ACTIONS.UPDATE_MEMBER,
+        entityType: "MemberProfile",
+        entityId: id,
+        details: `Memperbarui profil anggota ${targetLabel}`,
+      });
+
       revalidatePath("/admin/members");
+      revalidatePath("/admin/logs");
       return ok();
     },
     "Gagal memperbarui data member."

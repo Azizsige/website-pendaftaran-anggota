@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import ApplicantDetailModal from "@/components/admin/modals/ApplicantDetailModal";
+
+import ApplicantDetailModal from "@/features/applicants/components/ApplicantDetailModal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PersonSummary } from "@/components/admin/PersonSummary";
 import type { MemberWithUser } from "../types";
@@ -65,31 +66,31 @@ export function MembersModals({
           }
           title={
             confirmAction === "ACTIVATE"
-              ? "Aktivasi Member?"
+              ? "Aktifkan Anggota?"
               : confirmAction === "INACTIVE"
-              ? "Nonaktifkan Member?"
-              : "Suspend Member?"
+              ? "Nonaktifkan Anggota?"
+              : "Bekukan Anggota?"
           }
           description={
             confirmAction === "ACTIVATE"
-              ? "Konfirmasi pengaktifan status keanggotaan"
+              ? "Konfirmasi pengaktifan kembali status keanggotaan"
               : confirmAction === "INACTIVE"
               ? "Konfirmasi penonaktifan sementara status keanggotaan"
               : "Konfirmasi pembekuan status keanggotaan"
           }
           message={
             confirmAction === "ACTIVATE"
-              ? "Tindakan ini akan mengaktifkan kembali akun member, mengizinkan mereka untuk mengakses sistem."
+              ? "Tindakan ini akan mengaktifkan kembali akun anggota sehingga mereka dapat mengakses portal dan KTA digital."
               : confirmAction === "INACTIVE"
-              ? "Tindakan ini akan menonaktifkan akun member. Mereka tidak akan bisa login sementara waktu, namun datanya tetap aman."
-              : "Tindakan ini akan membekukan sementara akun member, mencegah mereka untuk mengakses sistem."
+              ? "Tindakan ini menonaktifkan akun anggota sementara waktu. Seluruh data anggota tetap tersimpan aman."
+              : "Tindakan ini akan membekukan akun anggota dan membatasi aksesnya hingga status dipulihkan admin."
           }
           confirmLabel={
             confirmAction === "ACTIVATE"
               ? "Ya, Aktifkan"
               : confirmAction === "INACTIVE"
               ? "Ya, Nonaktifkan"
-              : "Ya, Suspend"
+              : "Ya, Bekukan"
           }
           isPending={isPending}
           onConfirm={() => onConfirmAction(selectedConfirmMember.id)}
@@ -112,12 +113,12 @@ export function MembersModals({
           }}
           tone="danger"
           icon="delete_forever"
-          title="Hapus Data Member?"
+          title="Hapus Data Anggota?"
           description="Konfirmasi tindakan destruktif sistem"
           message="Tindakan ini bersifat permanen dan tidak dapat dibatalkan. Semua berkas formulir, dokumen lampiran, dan riwayat verifikasi akan dihapus dari sistem."
           confirmLabel="Ya, Hapus Permanen"
           requireText="HAPUS"
-          acknowledgement="Saya memahami bahwa data member ini akan dihapus secara permanen dan tidak dapat dipulihkan."
+          acknowledgement="Saya memahami bahwa data anggota ini akan dihapus secara permanen dan tidak dapat dipulihkan."
           isPending={isPending}
           onConfirm={() => onConfirmDelete(selectedDeleteMember.id)}
         >

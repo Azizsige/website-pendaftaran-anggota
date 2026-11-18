@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { requireSuperAdmin } from "@/lib/auth/guards";
 import { safeAction, ok, fail } from "@/lib/action-result";
+import { ACTIVITY_ACTIONS, recordActivityLog } from "@/lib/activity-log";
 import { logger } from "@/lib/logger";
 
 import type { Prisma } from "@prisma/client";
@@ -45,6 +46,13 @@ export async function createAdmin(data: { fullName: string; email: string; role:
 
     // SUPER_ADMIN cannot create another SUPER_ADMIN or OWNER, only OWNER can.
     if (user.role === "SUPER_ADMIN" && (data.role === "OWNER" || data.role === "SUPER_ADMIN")) {
+      await recordActivityLog({
+        actor: user,
+        action: ACTIVITY_ACTIONS.UNAUTHORIZED_ACCESS,
+        entityType: "Security",
+        entityId: data.email,
+        details: `Ditolak saat mencoba membuat akun dengan peran ${data.role} menggunakan akun SUPER_ADMIN`,
+      });
       return fail("SUPER_ADMIN cannot create SUPER_ADMIN or OWNER roles.");
     }
 
@@ -52,7 +60,7 @@ export async function createAdmin(data: { fullName: string; email: string; role:
     if (existing) return fail("Email sudah terdaftar.");
 
     const hashedPassword = await bcrypt.hash(data.password || "admin123", 10);
-    await prisma.user.create({
+    const created = await prisma.user.create({
       data: {
         name: data.fullName,
         email: data.email,
@@ -62,7 +70,16 @@ export async function createAdmin(data: { fullName: string; email: string; role:
       },
     });
 
+    await recordActivityLog({
+      actor: user,
+      action: ACTIVITY_ACTIONS.CREATE_ADMIN,
+      entityType: "User",
+      entityId: created?.id ?? null,
+      details: `Menambahkan akun admin ${data.fullName} (${data.email}) dengan peran ${data.role}`,
+    });
+
     revalidatePath("/admin/settings");
+    revalidatePath("/admin/logs");
     return ok();
   });
 }
@@ -79,13 +96,34 @@ export async function updateAdmin(id: string, data: { fullName: string; email: s
     // SUPER_ADMIN can edit themselves, COORDINATOR, and STAFF.
     if (user.role === "SUPER_ADMIN") {
       if (targetAdmin.role === "OWNER") {
+        await recordActivityLog({
+          actor: user,
+          action: ACTIVITY_ACTIONS.UNAUTHORIZED_ACCESS,
+          entityType: "Security",
+          entityId: id,
+          details: `Ditolak saat SUPER_ADMIN mencoba mengedit akun OWNER (${targetAdmin.email ?? id})`,
+        });
         return fail("Cannot edit OWNER.");
       }
       if (targetAdmin.role === "SUPER_ADMIN" && targetAdmin.id !== user.id) {
+        await recordActivityLog({
+          actor: user,
+          action: ACTIVITY_ACTIONS.UNAUTHORIZED_ACCESS,
+          entityType: "Security",
+          entityId: id,
+          details: `Ditolak saat SUPER_ADMIN mencoba mengedit SUPER_ADMIN lain (${targetAdmin.email ?? id})`,
+        });
         return fail("Cannot edit other SUPER_ADMINs.");
       }
       // SUPER_ADMIN cannot promote someone to SUPER_ADMIN or OWNER
       if (data.role === "OWNER" || (data.role === "SUPER_ADMIN" && targetAdmin.role !== "SUPER_ADMIN")) {
+        await recordActivityLog({
+          actor: user,
+          action: ACTIVITY_ACTIONS.UNAUTHORIZED_ACCESS,
+          entityType: "Security",
+          entityId: id,
+          details: `Ditolak saat SUPER_ADMIN mencoba mempromosikan ${targetAdmin.email ?? id} ke peran ${data.role}`,
+        });
         return fail("Cannot assign SUPER_ADMIN or OWNER role.");
       }
     }
@@ -106,7 +144,16 @@ export async function updateAdmin(id: string, data: { fullName: string; email: s
       data: updateData,
     });
 
+    await recordActivityLog({
+      actor: user,
+      action: ACTIVITY_ACTIONS.UPDATE_ADMIN,
+      entityType: "User",
+      entityId: id,
+      details: `Memperbarui akun admin ${data.fullName} (${data.email}), peran ${data.role}, status ${data.status}`,
+    });
+
     revalidatePath("/admin/settings");
+    revalidatePath("/admin/logs");
     return ok();
   });
 }
@@ -123,16 +170,39 @@ export async function deleteAdmin(id: string) {
     }
 
     if (targetAdmin.role === "OWNER") {
+      await recordActivityLog({
+        actor: user,
+        action: ACTIVITY_ACTIONS.UNAUTHORIZED_ACCESS,
+        entityType: "Security",
+        entityId: id,
+        details: `Ditolak saat mencoba menghapus akun OWNER (${targetAdmin.email ?? id})`,
+      });
       return fail("Cannot delete OWNER.");
     }
 
     if (user.role === "SUPER_ADMIN" && targetAdmin.role === "SUPER_ADMIN") {
+      await recordActivityLog({
+        actor: user,
+        action: ACTIVITY_ACTIONS.UNAUTHORIZED_ACCESS,
+        entityType: "Security",
+        entityId: id,
+        details: `Ditolak saat SUPER_ADMIN mencoba menghapus SUPER_ADMIN lain (${targetAdmin.email ?? id})`,
+      });
       return fail("Cannot delete other SUPER_ADMINs.");
     }
 
     await prisma.user.delete({ where: { id } });
 
+    await recordActivityLog({
+      actor: user,
+      action: ACTIVITY_ACTIONS.DELETE_ADMIN,
+      entityType: "User",
+      entityId: id,
+      details: `Menghapus akun admin ${targetAdmin.name ?? targetAdmin.email ?? id} (${targetAdmin.role})`,
+    });
+
     revalidatePath("/admin/settings");
+    revalidatePath("/admin/logs");
     return ok();
   });
 }

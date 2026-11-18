@@ -39,7 +39,7 @@ const DialogContent = React.forwardRef<
       ref={ref}
       className={cn(
         "fixed left-1/2 top-1/2 z-[121] max-h-[90vh] w-[calc(100%-2rem)] max-w-[520px] -translate-x-1/2 -translate-y-1/2",
-        "overflow-y-auto no-scrollbar rounded-2xl border border-outline-variant/20 bg-white shadow-2xl focus:outline-none animate-fade-in",
+        "overflow-y-auto no-scrollbar rounded-2xl border border-outline-variant/20 dark:border-[#3c4d46] bg-white dark:bg-[#131d1a] dark:text-[#eef2f4] shadow-2xl focus:outline-none animate-fade-in",
         className
       )}
       {...props}

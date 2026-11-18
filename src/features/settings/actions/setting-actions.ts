@@ -5,9 +5,40 @@ import { requireSuperAdmin } from "@/lib/auth/guards";
 import { revalidatePath } from "next/cache";
 import { logger } from "@/lib/logger";
 import { toSafeMessage } from "@/lib/action-result";
+import { ACTIVITY_ACTIONS, recordActivityLog } from "@/lib/activity-log";
+import { SETTING_KEYS } from "@/lib/constants/settings";
 import { uploadImage } from "@/lib/storage";
 
 const GENERIC_SETTINGS_ERROR = "Terjadi kesalahan saat memproses pengaturan. Silakan coba lagi.";
+
+export async function getPublicRegistrationConfigData() {
+  try {
+    const [settings, activeCount] = await Promise.all([
+      prisma.systemSetting.findMany({
+        where: {
+          key: {
+            in: [
+              SETTING_KEYS.REG_IS_ACTIVE,
+              SETTING_KEYS.REG_DATE_FROM,
+              SETTING_KEYS.REG_DATE_TO,
+              SETTING_KEYS.REG_MAX_QUOTA,
+              SETTING_KEYS.REG_REQ_KTM,
+              SETTING_KEYS.REG_REQ_FOTO,
+            ],
+          },
+        },
+        select: { key: true, value: true },
+      }),
+      prisma.memberProfile.count({
+        where: { status: { not: "REJECTED" } },
+      }),
+    ]);
+    return { success: true as const, settings, activeCount };
+  } catch (error) {
+    logger.error("getPublicRegistrationConfigData gagal", error);
+    return { success: false as const, settings: [], activeCount: 0 };
+  }
+}
 
 export async function getSystemSettings() {
   try {
@@ -31,20 +62,22 @@ export async function updateSystemSetting(key: string, value: string) {
         data: { value }
       });
 
-      // Catat log perubahan setting
-      await tx.activityLog.create({
-        data: {
-          userId: adminUser.id,
-          action: "UPDATE_SETTING",
+      // Catat log perubahan setting untuk akun non-OWNER
+      await recordActivityLog(
+        {
+          actor: adminUser,
+          action: ACTIVITY_ACTIONS.UPDATE_SETTING,
           entityType: "SystemSetting",
           entityId: updatedSetting.id,
-          details: `Admin changed setting '${key}'`,
-        }
-      });
+          details: `Mengubah pengaturan '${key}'`,
+        },
+        tx
+      );
 
       return updatedSetting;
     });
 
+    revalidatePath("/admin/logs");
     return { success: true, message: "Pengaturan berhasil disimpan.", data: result };
   } catch (error) {
     logger.error("updateSystemSetting gagal", error, { key });
@@ -95,14 +128,18 @@ export async function updateMultipleSettings(settings: {key: string, value: stri
 
       const updatedSettings = await Promise.all(upserts);
 
-      await tx.activityLog.create({
-        data: {
-          userId: adminUser.id,
-          action: "UPDATE_MULTIPLE_SETTINGS",
+      const changedKeys = settings.map((s) => s.key).slice(0, 5).join(", ");
+      const extraCount = settings.length > 5 ? ` (+${settings.length - 5} lainnya)` : "";
+
+      await recordActivityLog(
+        {
+          actor: adminUser,
+          action: ACTIVITY_ACTIONS.UPDATE_MULTIPLE_SETTINGS,
           entityType: "SystemSetting",
-          details: `Admin updated ${settings.length} settings`,
-        }
-      });
+          details: `Memperbarui ${settings.length} pengaturan sistem (${changedKeys}${extraCount})`,
+        },
+        tx
+      );
 
       return updatedSettings;
     }, {
@@ -111,6 +148,7 @@ export async function updateMultipleSettings(settings: {key: string, value: stri
     });
 
     revalidatePath('/'); // Revalidate public landing page
+    revalidatePath('/admin/logs');
     return { success: true, message: "Semua pengaturan berhasil disimpan.", data: result };
   } catch (error) {
     logger.error("updateMultipleSettings gagal", error, { count: settings.length });

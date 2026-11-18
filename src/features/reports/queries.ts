@@ -48,20 +48,57 @@ export async function getReportMembers(
       };
     }
 
-    const totalCount = await prisma.memberProfile.count({
-      where: whereClause,
-    });
+    const [totalCount, allMatching, memberRows] = await Promise.all([
+      prisma.memberProfile.count({
+        where: whereClause,
+      }),
+      prisma.memberProfile.groupBy({
+        by: ['status'],
+        where: {
+          ...(faculty !== "all_faculty" && whereClause.faculty ? { faculty: whereClause.faculty } : {}),
+          ...(whereClause.joinDate ? { joinDate: whereClause.joinDate } : {})
+        },
+        _count: {
+          _all: true
+        }
+      }),
+      prisma.memberProfile.findMany({
+        where: whereClause,
+        select: {
+          id: true,
+          userId: true,
+          nim: true,
+          phoneNumber: true,
+          faculty: true,
+          major: true,
+          joinDate: true,
+          status: true,
+          adminNotes: true,
+          createdAt: true,
+          updatedAt: true,
+          user: {
+            select: { name: true, email: true, status: true },
+          },
+        },
+        orderBy: { updatedAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+    ]);
 
-    const allMatching = await prisma.memberProfile.groupBy({
-      by: ['status'],
-      where: {
-        ...(faculty !== "all_faculty" && whereClause.faculty ? { faculty: whereClause.faculty } : {}),
-        ...(whereClause.joinDate ? { joinDate: whereClause.joinDate } : {})
-      },
-      _count: {
-        _all: true
-      }
-    });
+    const members = memberRows.map((m) => ({
+      ...m,
+      placeOfBirth: null,
+      dateOfBirth: null,
+      gender: null,
+      address: null,
+      batchYear: null,
+      photoUrl: null,
+      ktmImageUrl: null,
+      documentUrl: null,
+      ktmHash: null,
+      photoHash: null,
+    }));
 
     let approvedCount = 0;
     let pendingCount = 0;
@@ -73,18 +110,6 @@ export async function getReportMembers(
       if (item.status === 'ACTIVE' || item.status === 'APPROVED') approvedCount += item._count._all;
       if (item.status === 'PENDING') pendingCount += item._count._all;
       if (item.status === 'REJECTED' || item.status === 'SUSPENDED') rejectedCount += item._count._all;
-    });
-
-    const members = await prisma.memberProfile.findMany({
-      where: whereClause,
-      include: {
-        user: {
-          select: { name: true, email: true, status: true },
-        },
-      },
-      orderBy: { updatedAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
     });
 
     return {

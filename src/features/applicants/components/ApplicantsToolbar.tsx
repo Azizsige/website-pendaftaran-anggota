@@ -1,6 +1,8 @@
 "use client";
 
 import React from "react";
+import { Download } from "lucide-react";
+
 import { TableToolbar } from "@/components/ui/table-toolbar";
 
 type Props = {
@@ -20,25 +22,28 @@ export default function ApplicantsToolbar({
 }: Props) {
   return (
     <TableToolbar
+      title="Daftar Calon Anggota"
+      description="Cari berdasarkan NIM, ID registrasi, nama lengkap, atau email pendaftar."
       searchValue={searchTerm}
       onSearchChange={setSearchTerm}
-      searchPlaceholder="Cari ID, Nama, atau Kontak..."
+      searchPlaceholder="Cari NIM, Nama, atau Email..."
       filter={{
         value: statusFilter,
         options: [
           { label: "Semua Status", value: "all" },
-          { label: "Menunggu", value: "pending" },
+          { label: "Menunggu Verifikasi", value: "pending" },
           { label: "Ditolak", value: "rejected" },
         ],
         onChange: handleStatusChange,
       }}
       actions={
         <button
+          type="button"
           onClick={handleExport}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-surface text-on-surface-variant border border-outline-variant/30 rounded hover:bg-surface-container-highest transition-colors font-label-md text-label-md uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
+          className="flex min-h-[44px] cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#85929f] bg-white px-4 py-2 text-sm font-medium text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:border-[#5f736b] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:hover:bg-[#22322d] dark:focus-visible:ring-[#34d399]"
         >
-          <span className="material-symbols-outlined text-[18px]">download</span>
-          <span className="hidden sm:inline">Ekspor Data</span>
+          <Download className="h-4 w-4 text-[#475569] dark:text-[#94a89e]" aria-hidden />
+          <span>Ekspor Data</span>
         </button>
       }
     />

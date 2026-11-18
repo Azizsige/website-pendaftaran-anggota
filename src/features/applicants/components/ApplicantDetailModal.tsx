@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { CheckCircle2, Loader2, User, X, XCircle } from "lucide-react";
+
 import type { Applicant } from "../types";
 import { formatId } from "../utils";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -67,50 +69,37 @@ export default function ApplicantDetailModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-5xl w-[calc(100%-2rem)] max-h-[92vh] p-0 flex flex-col overflow-hidden bg-[#f8fafc] rounded-2xl shadow-2xl border border-slate-200">
-          {/* Loading Overlay */}
+        <DialogContent className="flex max-h-[92vh] w-[calc(100%-2rem)] max-w-5xl flex-col overflow-hidden rounded-2xl border border-[#e2e8f0] bg-[#f8fafc] p-0 shadow-2xl dark:border-[#3c4d46] dark:bg-[#0d1412]">
           {isPending && (
             <div
               role="status"
               aria-live="polite"
-              className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/80 backdrop-blur-[2px] animate-fade-in"
+              className="animate-fade-in absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/85 backdrop-blur-[2px] dark:bg-[#0d1412]/85"
             >
-              <span
-                className="material-symbols-outlined text-[#006c49] text-[40px] animate-spin mb-3"
-                aria-hidden
-              >
-                progress_activity
-              </span>
-              <h4 className="font-headline-md font-bold text-slate-900 text-lg">
-                Sedang Memproses
-              </h4>
-              <p className="text-sm text-slate-600 mt-1">
-                Mohon tunggu sebentar...
-              </p>
+              <Loader2 className="mb-3 h-9 w-9 animate-spin text-[#006c49] dark:text-[#34d399]" aria-hidden />
+              <h4 className="text-base font-bold text-[#0f172a] dark:text-[#eef2f4]">Sedang Memproses</h4>
+              <p className="mt-1 text-sm text-[#475569] dark:text-[#cbd6d0]">Mohon tunggu sebentar...</p>
             </div>
           )}
 
-          {/* Header */}
-          <div className="px-6 py-5 border-b border-slate-200 bg-white flex items-center justify-between shrink-0">
+          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[#e2e8f0] bg-white px-6 py-5 dark:border-[#3c4d46] dark:bg-[#131d1a]">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#006c49] border border-emerald-100 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[24px]" aria-hidden>
-                  person
-                </span>
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#006c49]/15 bg-[#e6f4ee] text-[#005236] dark:border-[#34d399]/35 dark:bg-[#0a3326] dark:text-[#6ee7b7]">
+                <User className="h-5 w-5" aria-hidden />
               </div>
               <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <DialogTitle className="font-headline-md text-lg font-bold text-slate-900 tracking-tight">
-                    {titleMode === "pendaftar" ? "Detail Pendaftar" : "Detail Member"} -{" "}
-                    {applicant.user.name || "N/A"}
+                <div className="flex flex-wrap items-center gap-2">
+                  <DialogTitle className="text-lg font-bold tracking-tight text-[#0f172a] dark:text-[#eef2f4]">
+                    {titleMode === "pendaftar" ? "Detail Calon Anggota" : "Detail Anggota"}:{" "}
+                    {applicant.user.name || "Tanpa Nama"}
                   </DialogTitle>
-                  <span className="font-code-sm text-xs px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold border border-slate-200">
+                  <span className="rounded-md border border-[#e2e8f0] bg-[#f8fafc] px-2.5 py-0.5 font-mono text-xs font-semibold text-[#334155] dark:border-[#3c4d46] dark:bg-[#1a2723] dark:text-[#cbd6d0]">
                     {formatId(applicant.id)}
                   </span>
                   <StatusBadge status={applicant.status} />
                 </div>
-                <DialogDescription className="font-body-sm text-xs text-slate-500 mt-0.5">
-                  Diajukan pada {formatDateTime(applicant.joinDate)} WIB • Formulir Registrasi Online
+                <DialogDescription className="mt-0.5 text-xs text-[#64748b] dark:text-[#94a89e]">
+                  Diajukan pada {formatDateTime(applicant.joinDate)} WIB | Formulir Registrasi Online
                 </DialogDescription>
               </div>
             </div>
@@ -118,23 +107,20 @@ export default function ApplicantDetailModal({
               <button
                 type="button"
                 aria-label="Tutup Modal Detail"
-                className="flex h-9 w-9 items-center justify-center text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#006c49] shrink-0"
+                className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-[#475569] transition-colors hover:bg-[#f1f5f9] hover:text-[#0f172a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:text-[#cbd6d0] dark:hover:bg-[#1a2723] dark:hover:text-[#eef2f4] dark:focus-visible:ring-[#34d399]"
               >
-                <span className="material-symbols-outlined text-[20px] leading-none select-none flex items-center justify-center" aria-hidden>
-                  close
-                </span>
+                <X className="h-5 w-5" aria-hidden />
               </button>
             </DialogClose>
           </div>
 
-          {/* Body Content */}
-          <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6 bg-[#f8fafc] text-left">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-5 space-y-5">
+          <div className="no-scrollbar flex-1 space-y-6 overflow-y-auto bg-[#f8fafc] p-6 text-left dark:bg-[#0d1412]">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+              <div className="space-y-5 lg:col-span-5">
                 <ApplicantInfoCard applicant={applicant} />
               </div>
 
-              <div className="lg:col-span-7 space-y-5">
+              <div className="space-y-5 lg:col-span-7">
                 <ApplicantDocumentsCard
                   applicant={applicant}
                   onPreviewImage={setPreviewImageUrl}
@@ -156,36 +142,31 @@ export default function ApplicantDetailModal({
             </div>
           </div>
 
-          {/* Footer Actions */}
-          <div className="px-6 py-4 border-t border-slate-200 bg-white flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+          <div className="flex shrink-0 flex-col items-center justify-between gap-3 border-t border-[#e2e8f0] bg-white px-6 py-4 sm:flex-row dark:border-[#3c4d46] dark:bg-[#131d1a]">
             <div className="flex-1" />
-            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+            <div className="flex w-full items-center justify-end gap-3 sm:w-auto">
               {applicant.status === "PENDING" &&
                 titleMode === "pendaftar" &&
                 userRole !== "STAFF" && (
                   <>
                     <button
                       type="button"
-                      className="flex-1 sm:flex-none px-4 py-2.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg font-label-md text-xs font-semibold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-500"
+                      className="flex min-h-[44px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-[#fecaca] bg-[#fef2f2] px-4 py-2 text-sm font-semibold text-[#991b1b] transition-colors hover:bg-[#fee2e2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dc2626] sm:flex-none dark:border-[#f87171]/40 dark:bg-[#3b1214] dark:text-[#fca5a5] dark:hover:bg-[#531a1d] dark:focus-visible:ring-[#f87171]"
                       onClick={handleReject}
                       disabled={isPending}
                     >
-                      <span className="material-symbols-outlined text-[16px]" aria-hidden>
-                        cancel
-                      </span>
+                      <XCircle className="h-4 w-4" aria-hidden />
                       <span>Tolak</span>
                     </button>
                     <button
                       type="button"
-                      className="flex-1 sm:flex-none px-6 py-2.5 bg-[#006c49] hover:bg-[#005236] text-white rounded-lg font-label-md text-xs font-semibold uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#006c49]"
+                      className="flex min-h-[44px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#006c49] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#005236] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] focus-visible:ring-offset-2 sm:flex-none dark:bg-[#057a55] dark:hover:bg-[#046c4e] dark:focus-visible:ring-[#34d399] dark:focus-visible:ring-offset-[#131d1a]"
                       onClick={() => {
                         if (onApprove) onApprove(applicant.id);
                       }}
                       disabled={isPending}
                     >
-                      <span className="material-symbols-outlined text-[18px]" aria-hidden>
-                        check_circle
-                      </span>
+                      <CheckCircle2 className="h-4 w-4" aria-hidden />
                       <span>Setujui</span>
                     </button>
                   </>
@@ -193,7 +174,7 @@ export default function ApplicantDetailModal({
               {(applicant.status !== "PENDING" || titleMode === "member") && (
                 <button
                   type="button"
-                  className="flex-1 sm:flex-none px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-label-md text-xs font-semibold uppercase tracking-wider border border-slate-200 shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  className="flex min-h-[44px] flex-1 cursor-pointer items-center justify-center rounded-lg border border-[#85929f] bg-white px-5 py-2 text-sm font-semibold text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] sm:flex-none dark:border-[#5f736b] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:hover:bg-[#22322d] dark:focus-visible:ring-[#34d399]"
                   onClick={onClose}
                 >
                   Tutup
@@ -204,11 +185,7 @@ export default function ApplicantDetailModal({
         </DialogContent>
       </Dialog>
 
-      {/* Image Lightbox */}
-      <ImageLightbox
-        imageUrl={previewImageUrl}
-        onClose={() => setPreviewImageUrl(null)}
-      />
+      <ImageLightbox imageUrl={previewImageUrl} onClose={() => setPreviewImageUrl(null)} />
     </>
   );
 }

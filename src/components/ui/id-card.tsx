@@ -98,7 +98,7 @@ export function IdCardFront({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B] animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#F59E0B]" />
               <span className="text-[9px] font-bold tracking-widest uppercase text-amber-300 font-mono">OFFICIAL ID CARD</span>
             </div>
             <h2 className="text-lg font-black tracking-tight text-white leading-tight truncate">
@@ -395,10 +395,10 @@ export function IdCard({
           <div className="flex items-center justify-between w-[247px] mb-1 px-1">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#F59E0B]" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Sisi Depan</span>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-[#cbd6d0]">Sisi Depan</span>
             </div>
             {config.showMemberId !== false && (
-              <span className="text-[9px] font-mono text-slate-500">ID: {config.memberPrefix || "BEM-2026-"}0001</span>
+              <span className="text-[9px] font-mono text-slate-500 dark:text-[#94a89e]">ID: {config.memberPrefix || "BEM-2026-"}0001</span>
             )}
           </div>
           <div className="relative w-[247px] h-[393px]">
@@ -412,8 +412,8 @@ export function IdCard({
         <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between w-[247px] mb-1 px-1">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#0b1e3f]" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700">Sisi Belakang</span>
+              <span className="w-2 h-2 rounded-full bg-[#0b1e3f] dark:bg-[#93c5fd]" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-[#cbd6d0]">Sisi Belakang</span>
             </div>
           </div>
           <div className="relative w-[247px] h-[393px]">

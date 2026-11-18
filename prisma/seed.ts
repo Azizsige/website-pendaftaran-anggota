@@ -8,14 +8,21 @@ async function main() {
 
   // 1. Data Akun Admin (Owner & Super Admin)
   const adminPassword = await bcrypt.hash('admin123', 10);
+  const ownerEmail = (process.env.OWNER_EMAIL?.trim() || 'owner@system.local').toLowerCase();
+  const ownerRawPassword = process.env.OWNER_PASSWORD?.trim() || 'admin123';
+  const ownerPassword = await bcrypt.hash(ownerRawPassword, 10);
 
   const owner = await prisma.user.upsert({
-    where: { email: 'owner@system.local' },
-    update: {},
+    where: { email: ownerEmail },
+    update: {
+      password: ownerPassword,
+      role: 'OWNER',
+      status: 'ACTIVE',
+    },
     create: {
-      email: 'owner@system.local',
+      email: ownerEmail,
       name: 'System Owner',
-      password: adminPassword,
+      password: ownerPassword,
       role: 'OWNER',
       status: 'ACTIVE',
     },

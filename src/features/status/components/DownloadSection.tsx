@@ -2,9 +2,9 @@
 
 import { useRef } from "react";
 import Image from "next/image";
+import { Download, ImagePlus, Pencil, Upload } from "lucide-react";
 import { useCekStatusStore } from "@/store/useCekStatusStore";
 import { updateMemberPhoto } from "@/actions/status-actions";
-import { toPng } from 'html-to-image';
 import { logger } from "@/lib/logger";
 
 export const DownloadSection = () => {
@@ -83,6 +83,7 @@ export const DownloadSection = () => {
     
     setIsDownloading(true);
     try {
+      const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(element, { 
         pixelRatio: 2,
         cacheBust: true,
@@ -111,17 +112,17 @@ export const DownloadSection = () => {
   }
 
   return (
-    <div className="mt-8 pt-6 border-t border-[#bbcabf]/30">
-      <h4 className="font-semibold text-[#191c1e] mb-3">Kartu Tanda Anggota Anda</h4>
+    <div className="mt-8 pt-6 border-t border-[#bbcabf]/30 dark:border-[#3c4d46]">
+      <h4 className="font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-3">Kartu Tanda Anggota Anda</h4>
       
       {(!statusData.photoUrl || statusData.photoUrl === "null" || statusData.photoUrl === "") ? (
-        <div className="bg-amber-50 border border-amber-200 w-full p-5 rounded-xl flex flex-col items-center gap-3 text-center">
-          <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
-            <span className="material-symbols-outlined text-[24px]">add_a_photo</span>
+        <div className="bg-amber-50 border border-amber-200 dark:bg-[#3b2506]/70 dark:border-[#f59e0b]/40 w-full p-5 rounded-xl flex flex-col items-center gap-3 text-center">
+          <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-[#3b2506] flex items-center justify-center text-amber-600 dark:text-[#fcd34d]">
+            <ImagePlus className="h-6 w-6" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-[14px] text-amber-900 font-semibold">Foto Profil Belum Tersedia</p>
-            <p className="text-[13px] text-amber-700 mt-1 max-w-[320px]">
+            <p className="text-[14px] text-amber-900 dark:text-[#fcd34d] font-semibold">Foto Profil Belum Tersedia</p>
+            <p className="text-[13px] text-amber-800 dark:text-[#fde68a] mt-1 max-w-[320px]">
               Anda <strong>wajib</strong> mengunggah foto profil terlebih dahulu sebelum dapat mengunduh ID Card. Foto akan disesuaikan otomatis ke rasio 3:4.
             </p>
           </div>
@@ -135,24 +136,24 @@ export const DownloadSection = () => {
           <button 
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploadingPhoto}
-            className="mt-2 bg-amber-600 text-white hover:bg-amber-700 transition-colors font-semibold py-2 px-5 rounded-lg flex items-center gap-2 text-sm shadow-sm disabled:opacity-50"
+            className="mt-2 min-h-[44px] cursor-pointer bg-amber-600 text-white hover:bg-amber-700 transition-colors font-semibold py-2 px-5 rounded-lg flex items-center gap-2 text-sm shadow-sm disabled:opacity-50"
           >
             {isUploadingPhoto ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             ) : (
-              <span className="material-symbols-outlined text-[18px]">upload</span>
+              <Upload className="h-4 w-4" aria-hidden="true" />
             )}
             {isUploadingPhoto ? "Mengunggah..." : "Unggah Foto Profil"}
           </button>
         </div>
       ) : (
-        <div className="bg-[#d0e1fb]/30 border border-[#b7c8e1] w-full p-5 rounded-xl flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
-          <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-[#006c49] shadow-sm shrink-0 overflow-hidden border border-slate-200">
+        <div className="bg-[#d0e1fb]/30 border border-[#b7c8e1] dark:bg-[#132544]/70 dark:border-[#60a5fa]/35 w-full p-5 rounded-xl flex flex-col md:flex-row items-center gap-4 text-center md:text-left">
+          <div className="w-12 h-12 rounded-full bg-white dark:bg-[#1a2723] flex items-center justify-center text-[#006c49] dark:text-[#34d399] shadow-sm shrink-0 overflow-hidden border border-slate-200 dark:border-[#3c4d46]">
             <Image src={statusData.photoUrl} alt="Foto Profil" width={48} height={48} className="w-full h-full object-cover" unoptimized />
           </div>
           <div className="flex-grow">
-            <p className="text-[14px] text-[#191c1e] font-semibold">ID Card Siap Diunduh</p>
-            <p className="text-[13px] text-[#3c4a42]">Pastikan foto Anda sudah sesuai sebelum mengunduh.</p>
+            <p className="text-[14px] text-[#191c1e] dark:text-[#eef2f4] font-semibold">ID Card Siap Diunduh</p>
+            <p className="text-[13px] text-[#3c4a42] dark:text-[#cbd6d0]">Pastikan foto Anda sudah sesuai sebelum mengunduh.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
             <input 
@@ -165,25 +166,25 @@ export const DownloadSection = () => {
             <button 
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingPhoto || isDownloading}
-              className="bg-white border border-[#bbcabf] text-[#3c4a42] hover:bg-slate-50 transition-colors font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 text-xs disabled:opacity-50 cursor-pointer"
+              className="min-h-[44px] bg-white border border-[#bbcabf] text-[#3c4a42] hover:bg-slate-50 dark:bg-[#1a2723] dark:border-[#5f736b] dark:text-[#eef2f4] dark:hover:bg-[#22322d] transition-colors font-semibold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 text-xs disabled:opacity-50 cursor-pointer"
               title="Ganti Foto"
             >
               {isUploadingPhoto ? (
                 <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : (
-                <span className="material-symbols-outlined text-[16px]">edit</span>
+                <Pencil className="h-4 w-4" aria-hidden="true" />
               )}
               Ganti
             </button>
             <button 
               onClick={handleDownload}
               disabled={isDownloading || isUploadingPhoto}
-              className="bg-white border border-[#006c49] text-[#006c49] hover:bg-[#006c49] hover:text-white transition-colors font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="min-h-[44px] bg-white border border-[#006c49] text-[#006c49] hover:bg-[#006c49] hover:text-white dark:bg-[#057a55] dark:border-[#057a55] dark:text-white dark:hover:bg-[#046c4e] transition-colors font-semibold py-2 px-4 rounded-lg flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isDownloading ? (
                 <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
               ) : (
-                <span className="material-symbols-outlined text-[18px]">download</span>
+                <Download className="h-4 w-4" aria-hidden="true" />
               )}
               {isDownloading ? "Memproses..." : "Unduh ID Card"}
             </button>

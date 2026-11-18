@@ -1,10 +1,13 @@
-import React, { useRef } from 'react';
-import Image from 'next/image';
-import { useIdCardSettingStore } from '@/store/useIdCardSettingStore';
-import { Upload, X } from 'lucide-react';
+import React, { useRef } from "react";
+import Image from "next/image";
+import { Upload, X } from "lucide-react";
+
+import { useIdCardSettingStore } from "@/store/useIdCardSettingStore";
+import { TextField } from "@/components/ui/form-field";
 
 export const IdCardSignatureSection = () => {
-  const { formData, signaturePreview, handleSignatureUpload, handleChange } = useIdCardSettingStore();
+  const { formData, signaturePreview, handleSignatureUpload, handleChange } =
+    useIdCardSettingStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -13,72 +16,90 @@ export const IdCardSignatureSection = () => {
   };
 
   const removeSignature = () => {
-    handleChange('kta_signature_url', '');
+    handleChange("kta_signature_url", "");
     useIdCardSettingStore.setState({ signaturePreview: null });
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-base font-semibold text-on-surface">Tanda Tangan Pengesah</h3>
-      <p className="text-sm text-on-surface-variant">Upload gambar tanda tangan (disarankan format PNG dengan background transparan) dan masukkan nama penanda tangan.</p>
+      <div>
+        <h3 className="text-base font-semibold text-[#0f172a] dark:text-[#eef2f4]">
+          Tanda Tangan Pengesah
+        </h3>
+        <p className="mt-0.5 text-sm text-[#475569] dark:text-[#cbd6d0]">
+          Unggah gambar tanda tangan PNG berlatar transparan beserta nama pejabat penanda tangan.
+        </p>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full mt-2">
-        {/* Upload Tanda Tangan */}
-        <div className="flex flex-col gap-2 min-w-0">
-          <label className="text-sm font-semibold text-on-surface">Gambar Tanda Tangan</label>
+      <div className="mt-1 grid w-full grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <label
+            htmlFor="kta-signature-upload"
+            className="text-[13px] font-semibold text-[#0f172a] dark:text-[#eef2f4]"
+          >
+            Gambar Tanda Tangan
+          </label>
           <div className="flex items-start gap-4">
-            <div 
-              className={`w-[160px] h-[80px] rounded-lg border-2 border-dashed flex items-center justify-center relative overflow-hidden transition-colors ${signaturePreview ? 'border-primary bg-primary/5' : 'border-outline-variant/40 bg-surface-container-low hover:border-primary/50'}`}
+            <div
+              className={`relative flex h-24 w-44 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-colors ${
+                signaturePreview
+                  ? "border-[#006c49] bg-white dark:border-[#34d399]"
+                  : "border-[#85929f] bg-[#f8fafc] hover:border-[#006c49] dark:border-[#5f736b] dark:bg-[#1a2723] dark:hover:border-[#34d399]"
+              }`}
             >
               {signaturePreview ? (
                 <>
-                  <Image src={signaturePreview} alt="Signature Preview" width={160} height={80} className="w-full h-full object-contain p-2" unoptimized />
+                  <Image
+                    src={signaturePreview}
+                    alt="Pratinjau Tanda Tangan"
+                    width={176}
+                    height={96}
+                    className="h-full w-full object-contain p-2"
+                    unoptimized
+                  />
                   <button
+                    type="button"
                     onClick={removeSignature}
-                    className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-sm"
+                    aria-label="Hapus tanda tangan"
                     title="Hapus tanda tangan"
+                    className="absolute right-1.5 top-1.5 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-[#dc2626] text-white shadow-sm transition-colors hover:bg-[#b91c1c]"
                   >
-                    <X size={14} />
+                    <X className="h-3.5 w-3.5" aria-hidden />
                   </button>
                 </>
               ) : (
-                <div className="flex flex-col items-center gap-1 text-on-surface-variant/60 pointer-events-none">
-                  <Upload size={20} />
-                  <span className="text-[10px] font-medium text-center px-2">Upload TTD (PNG)</span>
+                <div className="pointer-events-none flex flex-col items-center gap-1 px-2 text-center text-[#475569] dark:text-[#cbd6d0]">
+                  <Upload className="h-5 w-5" aria-hidden />
+                  <span className="text-[11px] font-medium">Unggah TTD (PNG)</span>
                 </div>
               )}
-              
+
               {!signaturePreview && (
-                <input 
+                <input
+                  id="kta-signature-upload"
                   ref={fileInputRef}
-                  type="file" 
-                  accept="image/png, image/jpeg" 
+                  type="file"
+                  accept="image/png, image/jpeg"
                   onChange={onFileChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                 />
               )}
             </div>
           </div>
-          <p className="text-[11px] text-on-surface-variant/70 mt-1">
-            Gunakan gambar PNG transparan agar menyatu dengan background KTA. Maksimal 2MB.
+          <p className="text-xs text-[#64748b] dark:text-[#94a89e]">
+            Disarankan PNG transparan agar menyatu dengan latar kartu. Maksimal 2 MB.
           </p>
         </div>
 
-        {/* Nama Tanda Tangan */}
-        <div className="flex flex-col gap-2 min-w-0">
-          <label className="text-sm font-semibold text-on-surface">Nama Penanda Tangan</label>
-          <input 
-            type="text" 
-            value={formData.kta_signature_name}
-            onChange={(e) => handleChange('kta_signature_name', e.target.value)}
-            className="w-full px-4 py-2.5 bg-surface-container-low border border-outline-variant/30 rounded-lg text-sm text-on-surface focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all outline-none placeholder:text-on-surface-variant/50"
-            placeholder="Contoh: M. Hafiz Al-Fath"
-          />
-          <p className="text-[11px] text-on-surface-variant/70 mt-1">
-            Nama lengkap yang akan ditampilkan di bawah tanda tangan (contoh: Ketua BEM).
-          </p>
-        </div>
+        <TextField
+          id="kta-signature-name"
+          label="Nama Penanda Tangan"
+          value={formData.kta_signature_name}
+          onChange={(e) => handleChange("kta_signature_name", e.target.value)}
+          placeholder="Contoh: M. Hafiz Al-Fath"
+          hint="Nama lengkap pejabat yang dicetak di bawah tanda tangan (mis. Ketua Umum)."
+        />
       </div>
     </div>
   );

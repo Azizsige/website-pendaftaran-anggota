@@ -8,35 +8,40 @@ type BadgeConfig = { label: string; className: string; dot: string };
 const STATUS_CONFIG: Record<string, BadgeConfig> = {
   [MEMBER_STATUS.PENDING]: {
     label: "Menunggu",
-    className: "bg-[#fff8e1] text-[#f57f17] border-[#f57f17]/20",
-    dot: "bg-[#f57f17]",
+    className: "bg-[#fef3c7] dark:bg-[#3b2506] text-[#92400e] dark:text-[#fcd34d] border-[#f59e0b]/30 dark:border-[#f59e0b]/45",
+    dot: "bg-[#d97706] dark:bg-[#fbbf24]",
   },
   [MEMBER_STATUS.ACTIVE]: {
     label: "Aktif",
-    className: "bg-primary/10 text-primary border-primary/20",
-    dot: "bg-primary",
+    className: "bg-[#e6f4ee] dark:bg-[#0a3326] text-[#005236] dark:text-[#6ee7b7] border-[#006c49]/20 dark:border-[#34d399]/35",
+    dot: "bg-[#006c49] dark:bg-[#34d399]",
+  },
+  APPROVED: {
+    label: "Disetujui",
+    className: "bg-[#e6f4ee] dark:bg-[#0a3326] text-[#005236] dark:text-[#6ee7b7] border-[#006c49]/20 dark:border-[#34d399]/35",
+    dot: "bg-[#006c49] dark:bg-[#34d399]",
   },
   [MEMBER_STATUS.INACTIVE]: {
     label: "Tidak Aktif",
-    className: "bg-surface-container-high text-on-surface-variant border-outline-variant/30",
-    dot: "bg-on-surface-variant",
+    className: "bg-[#f1f5f9] dark:bg-[#1e2d28] text-[#475569] dark:text-[#cbd6d0] border-[#cbd5e1] dark:border-[#5f736b]",
+    dot: "bg-[#64748b] dark:bg-[#94a89e]",
   },
   [MEMBER_STATUS.SUSPENDED]: {
     label: "Dibekukan",
-    className: "bg-error/10 text-error border-error/20",
-    dot: "bg-error",
+    className: "bg-[#fef2f2] dark:bg-[#3b1214] text-[#991b1b] dark:text-[#fca5a5] border-[#ef4444]/25 dark:border-[#f87171]/35",
+    dot: "bg-[#dc2626] dark:bg-[#f87171]",
   },
   [MEMBER_STATUS.REJECTED]: {
     label: "Ditolak",
-    className: "bg-error/10 text-error border-error/20",
-    dot: "bg-error",
+    className: "bg-[#fef2f2] dark:bg-[#3b1214] text-[#991b1b] dark:text-[#fca5a5] border-[#ef4444]/25 dark:border-[#f87171]/35",
+    dot: "bg-[#dc2626] dark:bg-[#f87171]",
   },
 };
 
 const FALLBACK: BadgeConfig = {
   label: "",
-  className: "bg-surface-container-highest text-on-surface-variant border-transparent",
-  dot: "bg-outline",
+  className: "bg-[#f1f5f9] dark:bg-[#1e2d28] text-[#475569] dark:text-[#cbd6d0] border-[#cbd5e1] dark:border-[#5f736b]",
+  dot: "bg-[#64748b] dark:bg-[#94a89e]",
 };
 
 export function getStatusLabel(status: string): string {
@@ -56,7 +61,7 @@ export function StatusBadge({ status, showDot = true, className }: StatusBadgePr
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold",
         config.className,
         className
       )}

@@ -1,15 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from "react";
 import { toast } from "sonner";
+
 import { updateMember } from "../actions";
-import { FAKULTAS_LIST, ANGKATAN_LIST, inputClasses } from "@/features/registration";
+import { FAKULTAS_LIST, ANGKATAN_LIST } from "@/features/registration";
 import { FormDrawer } from "@/components/ui/form-drawer";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { FormField, fieldClass } from "@/components/ui/form-field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatDate } from "@/lib/format";
 import { logger } from "@/lib/logger";
-
 import type { MemberWithUser } from "../types";
 
 interface EditMemberDrawerProps {
@@ -19,36 +25,39 @@ interface EditMemberDrawerProps {
   onSuccess?: () => void;
 }
 
-export const EditMemberDrawer = ({ open, onOpenChange, member, onSuccess }: EditMemberDrawerProps) => {
-  const [formData, setFormData] = useState({
-    noTelepon: "",
-    fakultas: "",
-    jurusan: "",
-    angkatan: "",
-    alamat: "",
-  });
+const EMPTY_FORM = {
+  noTelepon: "",
+  fakultas: "",
+  jurusan: "",
+  angkatan: "",
+  alamat: "",
+};
+
+export const EditMemberDrawer = ({
+  open,
+  onOpenChange,
+  member,
+  onSuccess,
+}: EditMemberDrawerProps) => {
+  const [formData, setFormData] = useState(EMPTY_FORM);
+  const [prevSyncKey, setPrevSyncKey] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (open && member) {
-      setFormData({
-        noTelepon: member.phoneNumber || "",
-        fakultas: member.faculty || "",
-        jurusan: member.major || "",
-        angkatan: member.batchYear || "",
-        alamat: member.address || "",
-      });
-    } else if (!open) {
-      // Reset form when drawer closes
-      setFormData({
-        noTelepon: "",
-        fakultas: "",
-        jurusan: "",
-        angkatan: "",
-        alamat: "",
-      });
-    }
-  }, [open, member]);
+  const syncKey = open && member ? member.id : null;
+  if (prevSyncKey !== syncKey) {
+    setPrevSyncKey(syncKey);
+    setFormData(
+      open && member
+        ? {
+            noTelepon: member.phoneNumber || "",
+            fakultas: member.faculty || "",
+            jurusan: member.major || "",
+            angkatan: member.batchYear || "",
+            alamat: member.address || "",
+          }
+        : EMPTY_FORM
+    );
+  }
 
   const handleSubmit = async () => {
     if (!member) return;
@@ -63,14 +72,14 @@ export const EditMemberDrawer = ({ open, onOpenChange, member, onSuccess }: Edit
       });
 
       if (res.success) {
-        toast.success("Member berhasil diperbarui!");
+        toast.success("Data anggota berhasil diperbarui.");
         onOpenChange(false);
         if (onSuccess) onSuccess();
       } else {
-        toast.error(res.error || "Gagal memperbarui member.");
+        toast.error(res.error || "Gagal memperbarui data anggota.");
       }
     } catch (error) {
-      logger.error("Gagal memperbarui member:", error);
+      logger.error("Gagal memperbarui anggota:", error);
       toast.error("Terjadi kesalahan sistem.");
     } finally {
       setIsSubmitting(false);
@@ -87,76 +96,111 @@ export const EditMemberDrawer = ({ open, onOpenChange, member, onSuccess }: Edit
     <FormDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title="Edit Member"
-      description={`Update contact and location details for ${member.user?.name || "member"}.`}
+      title="Edit Data Anggota"
+      description={`Perbarui informasi kontak, domisili, dan data akademik untuk ${
+        member.user?.name || "anggota"
+      }.`}
       onSubmit={handleSubmit}
       isSubmitting={isSubmitting}
-      submitLabel="Save Changes"
-      submittingLabel="Saving..."
+      submitLabel="Simpan Perubahan"
+      submittingLabel="Menyimpan..."
       overlayTitle="Menyimpan Data"
     >
       <div className="space-y-4">
-        <h3 className="font-sans text-[16px] font-semibold text-[#191c1e] border-b pb-2">Locked Information</h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-70">
-          <div>
-            <label className="block font-sans text-[12px] font-semibold text-[#191c1e] mb-1">Full Name</label>
-            <input type="text" readOnly value={member.user?.name || "-"} className={inputClasses(false) + " bg-gray-50"} />
-          </div>
-          <div>
-            <label className="block font-sans text-[12px] font-semibold text-[#191c1e] mb-1">NIM</label>
-            <input type="text" readOnly value={member.nim || member.id} className={inputClasses(false) + " bg-gray-50"} />
-          </div>
-          <div>
-            <label className="block font-sans text-[12px] font-semibold text-[#191c1e] mb-1">Email</label>
-            <input type="email" readOnly value={member.user?.email || "-"} className={inputClasses(false) + " bg-gray-50"} />
-          </div>
-          <div>
-            <label className="block font-sans text-[12px] font-semibold text-[#191c1e] mb-1">Date of Birth</label>
-            <input type="text" readOnly value={formatDate(member.dateOfBirth)} className={inputClasses(false) + " bg-gray-50"} />
-          </div>
+        <h3 className="border-b border-[#e2e8f0] pb-2 text-sm font-semibold uppercase tracking-wide text-[#52606d] dark:border-[#3c4d46] dark:text-[#94a89e]">
+          Informasi Terkunci
+        </h3>
+
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FormField label="Nama Lengkap" htmlFor="edit-member-name">
+            <input
+              id="edit-member-name"
+              type="text"
+              readOnly
+              value={member.user?.name || "-"}
+              className={fieldClass(
+                false,
+                "cursor-default border-[#e2e8f0] bg-[#f8fafc] text-[#475569] dark:border-[#3c4d46] dark:bg-[#1a2723] dark:text-[#94a89e]"
+              )}
+            />
+          </FormField>
+          <FormField label="NIM" htmlFor="edit-member-nim">
+            <input
+              id="edit-member-nim"
+              type="text"
+              readOnly
+              value={member.nim || member.id}
+              className={fieldClass(
+                false,
+                "cursor-default border-[#e2e8f0] bg-[#f8fafc] font-mono text-[#475569] dark:border-[#3c4d46] dark:bg-[#1a2723] dark:text-[#94a89e]"
+              )}
+            />
+          </FormField>
+          <FormField label="Email" htmlFor="edit-member-email">
+            <input
+              id="edit-member-email"
+              type="email"
+              readOnly
+              value={member.user?.email || "-"}
+              className={fieldClass(
+                false,
+                "cursor-default border-[#e2e8f0] bg-[#f8fafc] text-[#475569] dark:border-[#3c4d46] dark:bg-[#1a2723] dark:text-[#94a89e]"
+              )}
+            />
+          </FormField>
+          <FormField label="Tanggal Lahir" htmlFor="edit-member-dob">
+            <input
+              id="edit-member-dob"
+              type="text"
+              readOnly
+              value={formatDate(member.dateOfBirth)}
+              className={fieldClass(
+                false,
+                "cursor-default border-[#e2e8f0] bg-[#f8fafc] text-[#475569] dark:border-[#3c4d46] dark:bg-[#1a2723] dark:text-[#94a89e]"
+              )}
+            />
+          </FormField>
         </div>
       </div>
 
       <div className="space-y-4">
-        <h3 className="font-sans text-[16px] font-semibold text-[#191c1e] border-b pb-2">Editable Information</h3>
+        <h3 className="border-b border-[#e2e8f0] pb-2 text-sm font-semibold uppercase tracking-wide text-[#52606d] dark:border-[#3c4d46] dark:text-[#94a89e]">
+          Informasi yang Dapat Diperbarui
+        </h3>
 
-        <div>
-          <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-            Phone Number
-          </label>
+        <FormField label="Nomor Telepon / WhatsApp" htmlFor="edit-member-phone">
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#3c4a42] text-[14px] font-sans">+62</span>
+            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-[#475569] dark:text-[#94a89e]">
+              +62
+            </span>
             <input
+              id="edit-member-phone"
               type="tel"
               placeholder="812-3456-7890"
               maxLength={15}
               value={formData.noTelepon}
               onChange={(e) => {
-                let val = e.target.value.replace(/\D/g, '').substring(0, 13);
+                const val = e.target.value.replace(/\D/g, "").substring(0, 13);
                 let formatted = val;
                 if (val.length > 3 && val.length <= 7) formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
                 else if (val.length > 7) formatted = `${val.slice(0, 3)}-${val.slice(3, 7)}-${val.slice(7)}`;
                 updateField("noTelepon", formatted);
               }}
-              className={inputClasses(false) + " pl-[44px]"}
+              className={fieldClass(false, "pl-12 tabular-nums")}
             />
           </div>
-        </div>
+        </FormField>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-              Fakultas
-            </label>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FormField label="Fakultas" htmlFor="edit-member-faculty">
             <Select
               value={formData.fakultas}
               onValueChange={(val) => updateField("fakultas", val)}
             >
-              <SelectTrigger className={cn("w-full h-auto py-[10px] px-[16px] rounded-[10px] border bg-[#ffffff] hover:border-[#6c7a71] text-[#191c1e]", "border-[#bbcabf]")}>
+              <SelectTrigger id="edit-member-faculty">
                 <SelectValue placeholder="Pilih Fakultas" />
               </SelectTrigger>
-              <SelectContent className="text-[#191c1e]">
+              <SelectContent>
                 {FAKULTAS_LIST.map((fak) => (
                   <SelectItem key={fak} value={fak}>
                     {fak}
@@ -164,33 +208,29 @@ export const EditMemberDrawer = ({ open, onOpenChange, member, onSuccess }: Edit
                 ))}
               </SelectContent>
             </Select>
-          </div>
-          <div>
-            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-              Jurusan
-            </label>
+          </FormField>
+
+          <FormField label="Program Studi / Jurusan" htmlFor="edit-member-major">
             <input
+              id="edit-member-major"
               type="text"
-              placeholder="Nama Jurusan"
+              placeholder="Nama program studi"
               value={formData.jurusan}
               onChange={(e) => updateField("jurusan", e.target.value)}
-              className={inputClasses(false)}
+              className={fieldClass(false)}
             />
-          </div>
+          </FormField>
         </div>
 
-        <div>
-          <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-            Angkatan
-          </label>
+        <FormField label="Angkatan" htmlFor="edit-member-batch">
           <Select
             value={formData.angkatan}
             onValueChange={(val) => updateField("angkatan", val)}
           >
-            <SelectTrigger className={cn("w-full h-auto py-[10px] px-[16px] rounded-[10px] border bg-[#ffffff] hover:border-[#6c7a71] text-[#191c1e]", "border-[#bbcabf]")}>
+            <SelectTrigger id="edit-member-batch">
               <SelectValue placeholder="Pilih Angkatan" />
             </SelectTrigger>
-            <SelectContent className="text-[#191c1e]">
+            <SelectContent>
               {ANGKATAN_LIST.map((angkatan) => (
                 <SelectItem key={angkatan} value={angkatan}>
                   {angkatan}
@@ -198,20 +238,18 @@ export const EditMemberDrawer = ({ open, onOpenChange, member, onSuccess }: Edit
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </FormField>
 
-        <div>
-          <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-            Residential Address
-          </label>
+        <FormField label="Alamat Domisili" htmlFor="edit-member-address">
           <textarea
+            id="edit-member-address"
             rows={3}
-            placeholder="Enter your full address here..."
+            placeholder="Masukkan alamat domisili lengkap..."
             value={formData.alamat}
             onChange={(e) => updateField("alamat", e.target.value)}
-            className={inputClasses(false) + " resize-none"}
-          ></textarea>
-        </div>
+            className={fieldClass(false, "min-h-[96px] resize-y")}
+          />
+        </FormField>
       </div>
     </FormDrawer>
   );

@@ -31,10 +31,10 @@ function SummaryField({
 }) {
   return (
     <div className={className}>
-      <p className="font-sans text-[14px] leading-[20px] text-[#3c4a42]">
+      <p className="font-sans text-[14px] leading-[20px] text-[#3c4a42] dark:text-[#94a89e]">
         {label}
       </p>
-      <p className="font-sans text-[16px] leading-[24px] text-[#191c1e] font-medium">
+      <p className="font-sans text-[16px] leading-[24px] text-[#191c1e] dark:text-[#eef2f4] font-medium">
         {value || "-"}
       </p>
     </div>
@@ -49,9 +49,9 @@ function SectionHeader({
   title: string;
 }) {
   return (
-    <div className="flex items-center gap-[8px] border-b border-[#bbcabf]/20 pb-[8px]">
-      <Icon size={20} className="text-[#006c49]" />
-      <h3 className="font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e]">
+    <div className="flex items-center gap-[8px] border-b border-[#bbcabf]/20 dark:border-[#3c4d46] pb-[8px]">
+      <Icon size={20} className="text-[#006c49] dark:text-[#34d399]" />
+      <h3 className="font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4]">
         {title}
       </h3>
     </div>
@@ -70,14 +70,14 @@ function DocumentItem({
   status?: ValidationStatusType;
 }) {
   return (
-    <div className="flex items-center justify-between bg-white border border-[#bbcabf]/20 p-[8px] rounded-[4px]">
+    <div className="flex items-center justify-between bg-white dark:bg-[#131d1a] border border-[#bbcabf]/20 dark:border-[#3c4d46] p-[8px] rounded-[4px]">
       <div className="flex items-center gap-[8px]">
-        <Icon size={20} className="text-[#565e74]" />
+        <Icon size={20} className="text-[#565e74] dark:text-[#94a89e]" />
         <div>
-          <p className="font-sans text-[14px] leading-[20px] text-[#191c1e] font-medium">
+          <p className="font-sans text-[14px] leading-[20px] text-[#191c1e] dark:text-[#eef2f4] font-medium">
             {label}
           </p>
-          <p className="font-sans text-[12px] leading-[16px] text-[#3c4a42]">
+          <p className="font-sans text-[12px] leading-[16px] text-[#3c4a42] dark:text-[#94a89e]">
             File terpilih: {fileName || "Belum diunggah"}
           </p>
         </div>
@@ -85,13 +85,13 @@ function DocumentItem({
       {fileName && (
         <div className="flex items-center justify-center w-6 h-6">
           {status === "VALIDATING" && (
-            <Loader2 size={20} className="text-blue-500 animate-spin" />
+            <Loader2 size={20} className="animate-spin text-blue-500 dark:text-blue-400" />
           )}
           {status === "FAILED" && (
-            <AlertTriangle size={20} className="text-red-500" />
+            <AlertTriangle size={20} className="text-red-500 dark:text-red-400" />
           )}
           {(status === "SUCCESS" || status === "BYPASSED") && (
-            <CheckCircle size={20} className="text-[#006c49]" />
+            <CheckCircle size={20} className="text-[#006c49] dark:text-[#34d399]" />
           )}
         </div>
       )}
@@ -113,7 +113,7 @@ export function ConfirmationSummary({
   return (
     <>
       {/* Summary Section: Informasi Pribadi */}
-      <section className="bg-[#f7f9fb] rounded-[8px] border border-[#bbcabf]/20 p-[16px] flex flex-col gap-[16px] mb-[24px]">
+      <section className="bg-[#f7f9fb] dark:bg-[#1a2723] rounded-[8px] border border-[#bbcabf]/20 dark:border-[#3c4d46] p-[16px] flex flex-col gap-[16px] mb-[24px]">
         <SectionHeader icon={User} title="Informasi Pribadi" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-[12px] gap-x-[16px]">
           <SummaryField label="Nama Lengkap" value={formData.namaLengkap} />
@@ -140,7 +140,7 @@ export function ConfirmationSummary({
       {(reqKtm || reqFoto) && (
         <section
           id="ktp-validation-item"
-          className="bg-[#f7f9fb] rounded-[8px] border border-[#bbcabf]/20 p-[16px] flex flex-col gap-[16px] mb-[24px]"
+          className="bg-[#f7f9fb] dark:bg-[#1a2723] rounded-[8px] border border-[#bbcabf]/20 dark:border-[#3c4d46] p-[16px] flex flex-col gap-[16px] mb-[24px]"
         >
           <SectionHeader icon={FileText} title="Dokumen Pendukung" />
           <div className="flex flex-col gap-[8px]">
@@ -165,13 +165,13 @@ export function ConfirmationSummary({
           {/* Validation Status Indicator */}
           <div id="ktm-loading-section" className="mt-2">
             {validationStatus === "VALIDATING" && (
-              <div className="flex items-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-md text-sm border border-blue-200">
+              <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-[#132544] text-blue-700 dark:text-[#93c5fd] rounded-md text-sm border border-blue-200 dark:border-[#3b82f6]/40">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Sistem sedang memverifikasi foto dokumen Anda...
               </div>
             )}
             {validationStatus === "FAILED" && (
-              <div className="flex flex-col gap-2 p-3 bg-red-50 text-red-700 rounded-md text-sm border border-red-200">
+              <div className="flex flex-col gap-2 p-3 bg-red-50 dark:bg-[#3b1214] text-red-700 dark:text-[#fca5a5] rounded-md text-sm border border-red-200 dark:border-[#f87171]/40">
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
                   <span>
@@ -184,7 +184,7 @@ export function ConfirmationSummary({
                   </span>
                 </div>
                 <div className="mt-2 pl-7">
-                  <p className="text-xs font-medium text-red-600">
+                  <p className="text-xs font-medium text-red-600 dark:text-[#fecaca]">
                     Silakan kembali ke langkah sebelumnya untuk mengunggah ulang
                     foto KTM yang lebih jelas.
                   </p>
@@ -192,7 +192,7 @@ export function ConfirmationSummary({
               </div>
             )}
             {validationStatus === "BYPASSED" && (
-              <div className="flex items-center gap-2 p-3 bg-orange-50 text-orange-700 rounded-md text-sm border border-orange-200">
+              <div className="flex items-center gap-2 p-3 bg-orange-50 dark:bg-[#3b2506] text-orange-700 dark:text-[#fcd34d] rounded-md text-sm border border-orange-200 dark:border-[#f59e0b]/40">
                 <AlertTriangle className="w-4 h-4" />
                 Validasi otomatis diabaikan oleh Admin. Pastikan data sudah
                 diverifikasi manual.
@@ -200,7 +200,7 @@ export function ConfirmationSummary({
             )}
             {validationStatus === "SUCCESS" &&
               (formData.fotoKTM || formData.pasFoto) && (
-                <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-md text-sm border border-green-200">
+                <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-[#0a3326] text-green-700 dark:text-[#6ee7b7] rounded-md text-sm border border-green-200 dark:border-[#34d399]/40">
                   <CheckCircle className="w-4 h-4" />
                   Foto dokumen berhasil diverifikasi.
                 </div>

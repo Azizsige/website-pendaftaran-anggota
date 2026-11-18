@@ -22,18 +22,18 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
 
   return (
     <div className="transition-opacity duration-300 animate-fade-in">
-      <h2 className="font-sans text-[24px] md:text-[32px] md:leading-[40px] font-semibold text-[#191c1e] mb-[16px]">
+      <h2 className="font-sans text-[24px] md:text-[32px] md:leading-[40px] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[16px]">
         Personal Information
       </h2>
-      <p className="font-sans text-[14px] leading-[20px] text-[#3c4a42] mb-[24px]">
+      <p className="font-sans text-[14px] leading-[20px] text-[#3c4a42] dark:text-[#cbd6d0] mb-[24px]">
         Please fill out your personal details accurately to proceed with the registration.
       </p>
 
       <form className="space-y-[24px]">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-[24px]">
           <div>
-            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-              Full Name <span className="text-[#ba1a1a]">*</span>
+            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[4px]">
+              Full Name <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
             <input
               ref={firstInputRef}
@@ -43,11 +43,11 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
               onChange={(e) => updateField("namaLengkap", e.target.value)}
               className={inputClasses(!!errors.namaLengkap)}
             />
-            {errors.namaLengkap && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.namaLengkap}</p>}
+            {errors.namaLengkap && <p className="text-[14px] text-[#ba1a1a] dark:text-[#fca5a5] mt-[4px]">{errors.namaLengkap}</p>}
           </div>
           <div>
-            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-              NIM (Nomor Induk Mahasiswa) <span className="text-[#ba1a1a]">*</span>
+            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[4px]">
+              NIM (Nomor Induk Mahasiswa) <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
             <input
               type="text"
@@ -57,11 +57,11 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
               onChange={(e) => updateField("nim", e.target.value.replace(/\D/g, ""))}
               className={inputClasses(!!errors.nim)}
             />
-            {errors.nim && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.nim}</p>}
+            {errors.nim && <p className="text-[14px] text-[#ba1a1a] dark:text-[#fca5a5] mt-[4px]">{errors.nim}</p>}
           </div>
           <div>
-            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-              Email Address <span className="text-[#ba1a1a]">*</span>
+            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[4px]">
+              Email Address <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
             <input
               type="email"
@@ -70,14 +70,14 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
               onChange={(e) => updateField("email", e.target.value)}
               className={inputClasses(!!errors.email)}
             />
-            {errors.email && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.email}</p>}
+            {errors.email && <p className="text-[14px] text-[#ba1a1a] dark:text-[#fca5a5] mt-[4px]">{errors.email}</p>}
           </div>
           <div>
-            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-              Phone Number <span className="text-[#ba1a1a]">*</span>
+            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[4px]">
+              Phone Number <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#3c4a42] text-[14px] font-sans">+62</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#3c4a42] dark:text-[#94a89e] text-[14px] font-sans">+62</span>
               <input
                 type="tel"
                 placeholder="812-3456-7890"
@@ -93,11 +93,11 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
                 className={inputClasses(!!errors.noTelepon) + " pl-[44px]"}
               />
             </div>
-            {errors.noTelepon && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.noTelepon}</p>}
+            {errors.noTelepon && <p className="text-[14px] text-[#ba1a1a] dark:text-[#fca5a5] mt-[4px]">{errors.noTelepon}</p>}
           </div>
           <div>
-            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-              Place of Birth <span className="text-[#ba1a1a]">*</span>
+            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[4px]">
+              Place of Birth <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
             <input
               type="text"
@@ -106,27 +106,27 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
               onChange={(e) => updateField("tempatLahir", e.target.value)}
               className={inputClasses(!!errors.tempatLahir)}
             />
-            {errors.tempatLahir && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.tempatLahir}</p>}
+            {errors.tempatLahir && <p className="text-[14px] text-[#ba1a1a] dark:text-[#fca5a5] mt-[4px]">{errors.tempatLahir}</p>}
           </div>
           <div>
-            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-              Date of Birth <span className="text-[#ba1a1a]">*</span>
+            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[4px]">
+              Date of Birth <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal h-auto py-[10px] px-[16px] rounded-[10px] border text-[#191c1e]",
+                    "w-full min-h-[44px] justify-start text-left font-normal h-auto py-[10px] px-[16px] rounded-[10px] border text-[#191c1e] dark:text-[#eef2f4]",
                     !formData.tanggalLahir && "text-muted-foreground",
-                    errors.tanggalLahir ? "border-[#ba1a1a] bg-[#ffdad6]/20" : "border-[#bbcabf] bg-[#ffffff] hover:border-[#6c7a71]"
+                    errors.tanggalLahir ? "border-[#ba1a1a] bg-[#ffdad6]/20 dark:border-[#f87171] dark:bg-[#3b1214]/40" : "border-[#bbcabf] bg-[#ffffff] hover:border-[#6c7a71] dark:border-[#5f736b] dark:bg-[#1a2723] dark:hover:border-[#94a89e]"
                   )}
                 >
                   <CalendarIcon className="mr-[8px] h-4 w-4" />
                   {formData.tanggalLahir ? formatDate(formData.tanggalLahir) : <span>Select date</span>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 text-[#191c1e]" align="start">
+              <PopoverContent className="w-auto p-0 text-[#191c1e] dark:text-[#eef2f4]" align="start">
                 <Calendar
                   mode="single"
                   captionLayout="dropdown"
@@ -144,45 +144,45 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
                     }
                   }}
                   classNames={{
-                    day_selected: "bg-[#006c49] text-white hover:bg-[#006c49] hover:text-white focus:bg-[#006c49] focus:text-white",
-                    day_today: "bg-[#bbcabf]/30 text-[#191c1e]",
+                    day_selected: "bg-[#006c49] dark:bg-[#057a55] text-white hover:bg-[#006c49] hover:text-white focus:bg-[#006c49] focus:text-white",
+                    day_today: "bg-[#bbcabf]/30 text-[#191c1e] dark:bg-[#22322d] dark:text-[#6ee7b7]",
                   }}
                   initialFocus
                 />
               </PopoverContent>
             </Popover>
-            {errors.tanggalLahir && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.tanggalLahir}</p>}
+            {errors.tanggalLahir && <p className="text-[14px] text-[#ba1a1a] dark:text-[#fca5a5] mt-[4px]">{errors.tanggalLahir}</p>}
           </div>
           <div>
-            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-              Gender <span className="text-[#ba1a1a]">*</span>
+            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[4px]">
+              Gender <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
             <Select
               value={formData.jenisKelamin}
               onValueChange={(val) => updateField("jenisKelamin", val)}
             >
-              <SelectTrigger className={cn("w-full h-auto py-[10px] px-[16px] rounded-[10px] border bg-[#ffffff] hover:border-[#6c7a71] text-[#191c1e]", errors.jenisKelamin ? "border-[#ba1a1a] bg-[#ffdad6]/20" : "border-[#bbcabf]")}>
+              <SelectTrigger className={cn("w-full min-h-[44px] h-auto py-[10px] px-[16px] rounded-[10px] border bg-[#ffffff] hover:border-[#6c7a71] text-[#191c1e] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:hover:border-[#94a89e]", errors.jenisKelamin ? "border-[#ba1a1a] bg-[#ffdad6]/20 dark:border-[#f87171] dark:bg-[#3b1214]/40" : "border-[#bbcabf] dark:border-[#5f736b]")}>
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
-              <SelectContent className="text-[#191c1e]">
+              <SelectContent>
                 <SelectItem value="Laki-laki">Laki-laki</SelectItem>
                 <SelectItem value="Perempuan">Perempuan</SelectItem>
               </SelectContent>
             </Select>
-            {errors.jenisKelamin && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.jenisKelamin}</p>}
+            {errors.jenisKelamin && <p className="text-[14px] text-[#ba1a1a] dark:text-[#fca5a5] mt-[4px]">{errors.jenisKelamin}</p>}
           </div>
           <div>
-            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-              Fakultas <span className="text-[#ba1a1a]">*</span>
+            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[4px]">
+              Fakultas <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
             <Select
               value={formData.fakultas}
               onValueChange={(val) => updateField("fakultas", val)}
             >
-              <SelectTrigger className={cn("w-full h-auto py-[10px] px-[16px] rounded-[10px] border bg-[#ffffff] hover:border-[#6c7a71] text-[#191c1e]", errors.fakultas ? "border-[#ba1a1a] bg-[#ffdad6]/20" : "border-[#bbcabf]")}>
+              <SelectTrigger className={cn("w-full min-h-[44px] h-auto py-[10px] px-[16px] rounded-[10px] border bg-[#ffffff] hover:border-[#6c7a71] text-[#191c1e] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:hover:border-[#94a89e]", errors.fakultas ? "border-[#ba1a1a] bg-[#ffdad6]/20 dark:border-[#f87171] dark:bg-[#3b1214]/40" : "border-[#bbcabf] dark:border-[#5f736b]")}>
                 <SelectValue placeholder="Pilih Fakultas" />
               </SelectTrigger>
-              <SelectContent className="text-[#191c1e]">
+              <SelectContent>
                 {FAKULTAS_LIST.map((fak) => (
                   <SelectItem key={fak} value={fak}>
                     {fak}
@@ -190,11 +190,11 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
                 ))}
               </SelectContent>
             </Select>
-            {errors.fakultas && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.fakultas}</p>}
+            {errors.fakultas && <p className="text-[14px] text-[#ba1a1a] dark:text-[#fca5a5] mt-[4px]">{errors.fakultas}</p>}
           </div>
           <div>
-            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-              Program Studi / Jurusan <span className="text-[#ba1a1a]">*</span>
+            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[4px]">
+              Program Studi / Jurusan <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
             <input
               type="text"
@@ -203,20 +203,20 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
               onChange={(e) => updateField("jurusan", e.target.value)}
               className={inputClasses(!!errors.jurusan)}
             />
-            {errors.jurusan && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.jurusan}</p>}
+            {errors.jurusan && <p className="text-[14px] text-[#ba1a1a] dark:text-[#fca5a5] mt-[4px]">{errors.jurusan}</p>}
           </div>
           <div>
-            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-              Tahun Angkatan <span className="text-[#ba1a1a]">*</span>
+            <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[4px]">
+              Tahun Angkatan <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
             <Select
               value={formData.angkatan}
               onValueChange={(val) => updateField("angkatan", val)}
             >
-              <SelectTrigger className={cn("w-full h-auto py-[10px] px-[16px] rounded-[10px] border bg-[#ffffff] hover:border-[#6c7a71] text-[#191c1e]", errors.angkatan ? "border-[#ba1a1a] bg-[#ffdad6]/20" : "border-[#bbcabf]")}>
+              <SelectTrigger className={cn("w-full min-h-[44px] h-auto py-[10px] px-[16px] rounded-[10px] border bg-[#ffffff] hover:border-[#6c7a71] text-[#191c1e] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:hover:border-[#94a89e]", errors.angkatan ? "border-[#ba1a1a] bg-[#ffdad6]/20 dark:border-[#f87171] dark:bg-[#3b1214]/40" : "border-[#bbcabf] dark:border-[#5f736b]")}>
                 <SelectValue placeholder="Pilih Angkatan" />
               </SelectTrigger>
-              <SelectContent className="text-[#191c1e]">
+              <SelectContent>
                 {ANGKATAN_LIST.map((year) => (
                   <SelectItem key={year} value={year}>
                     {year}
@@ -224,13 +224,13 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
                 ))}
               </SelectContent>
             </Select>
-            {errors.angkatan && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.angkatan}</p>}
+            {errors.angkatan && <p className="text-[14px] text-[#ba1a1a] dark:text-[#fca5a5] mt-[4px]">{errors.angkatan}</p>}
           </div>
         </div>
 
         <div>
-          <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] mb-[4px]">
-            Residential Address <span className="text-[#ba1a1a]">*</span>
+          <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[4px]">
+            Residential Address <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
           </label>
           <textarea
             rows={3}
@@ -239,7 +239,7 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
             onChange={(e) => updateField("alamat", e.target.value)}
             className={inputClasses(!!errors.alamat) + " resize-none"}
           ></textarea>
-          {errors.alamat && <p className="text-[14px] text-[#ba1a1a] mt-[4px]">{errors.alamat}</p>}
+          {errors.alamat && <p className="text-[14px] text-[#ba1a1a] dark:text-[#fca5a5] mt-[4px]">{errors.alamat}</p>}
         </div>
       </form>
     </div>

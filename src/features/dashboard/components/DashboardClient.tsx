@@ -1,261 +1,420 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
-import { DateRange } from "react-day-picker";
-import RegistrationChart from "./RegistrationChart";
+import { RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
+import type { DateRange } from "react-day-picker";
+import { formatDate, formatNumber } from "@/lib/format";
+import { useTheme } from "@/components/providers/ThemeProvider";
+import { getDashboardData, type DashboardData } from "../actions";
 import DashboardFilter from "./DashboardFilter";
 import ChartFilter from "./ChartFilter";
 import NewMemberButton from "./NewMemberButton";
-import { getDashboardData, type DashboardData } from "../actions";
-import { logger } from "@/lib/logger";
+
+const RegistrationChart = dynamic(() => import("./RegistrationChart"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[280px] sm:h-[300px] w-full animate-pulse rounded-lg bg-[#f1f5f9] dark:bg-[#1a2723]" />
+  ),
+});
+import {
+  AreaSparklineMiniChart,
+  ColumnBarsMiniChart,
+  DualSparklineMiniChart,
+  TrackBarsMiniChart,
+} from "./MiniKpiCharts";
+import StatusCompositionCard from "./StatusCompositionCard";
+import AcademicInsightsRow from "./AcademicInsightsRow";
+import RecentApplicantsCard from "./RecentApplicantsCard";
 
 interface DashboardClientProps {
   initialData: DashboardData;
-  initialFrom?: string;
-  initialTo?: string;
   initialChartRange?: string;
+  adminName: string;
 }
 
-import { useSession } from "next-auth/react";
+function renderDeltaPill(current: number, previous: number) {
+  const diff = current - previous;
+  if (previous === 0 && current === 0) {
+    return (
+      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#f1f5f9] dark:bg-[#1e2d28] text-[#475569] dark:text-[#cbd6d0] shrink-0">
+        Belum ada data
+      </span>
+    );
+  }
+  if (previous === 0 && current > 0) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#e6f4ee] dark:bg-[#0a3326] text-[#005236] dark:text-[#6ee7b7] shrink-0">
+        <TrendingUp className="w-3.5 h-3.5" aria-hidden="true" />
+        <span>+{formatNumber(current)} baru</span>
+      </span>
+    );
+  }
+  const pct = Math.round((diff / previous) * 100);
+  if (diff > 0) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#e6f4ee] dark:bg-[#0a3326] text-[#005236] dark:text-[#6ee7b7] shrink-0">
+        <TrendingUp className="w-3.5 h-3.5" aria-hidden="true" />
+        <span>+{pct}%</span>
+      </span>
+    );
+  }
+  if (diff < 0) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#fef2f2] dark:bg-[#3b1214] text-[#991b1b] dark:text-[#fca5a5] shrink-0">
+        <TrendingDown className="w-3.5 h-3.5" aria-hidden="true" />
+        <span>{pct}%</span>
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#f1f5f9] dark:bg-[#1e2d28] text-[#475569] dark:text-[#cbd6d0] shrink-0">
+      Stabil (0%)
+    </span>
+  );
+}
 
 export default function DashboardClient({
   initialData,
-  initialFrom,
-  initialTo,
-  initialChartRange,
+  initialChartRange = "6_months",
+  adminName,
 }: DashboardClientProps) {
-  const { data: session, status } = useSession();
-  const userRole = session?.user?.role;
-
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+  const [prevInitialData, setPrevInitialData] =
+    useState<DashboardData>(initialData);
   const [data, setData] = useState<DashboardData>(initialData);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => ({
+    from: new Date(initialData.appliedRange.fromIso),
+    to: new Date(initialData.appliedRange.toIso),
+  }));
+  const [chartRange, setChartRange] = useState<string>(initialChartRange);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  
-  // Track if we're on the very first render to prevent double-fetching on mount
-  const [isInitialMount, setIsInitialMount] = useState(true);
 
-  const [date, setDate] = useState<DateRange | undefined>(() => {
-    if (initialFrom) {
-      return {
-        from: new Date(initialFrom),
-        to: initialTo ? new Date(initialTo) : undefined,
-      };
+  if (initialData !== prevInitialData) {
+    setPrevInitialData(initialData);
+    setData(initialData);
+  }
+
+  const syncUrlParams = (
+    nextRange: DateRange | undefined,
+    nextChartRange: string
+  ) => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams();
+    if (nextRange?.from) params.set("from", nextRange.from.toISOString());
+    if (nextRange?.to) params.set("to", nextRange.to.toISOString());
+    if (nextChartRange !== "6_months") {
+      params.set("chart_range", nextChartRange);
     }
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return {
-      from: today,
-      to: today,
-    };
-  });
+    const query = params.toString();
+    const target = query ? `/admin?${query}` : "/admin";
+    window.history.replaceState(null, "", target);
+  };
 
-  const [chartRange, setChartRange] = useState(initialChartRange || "6_months");
-
-  // Fetch new data only when filters change after initial server render
-  useEffect(() => {
-    if (isInitialMount) {
-      setIsInitialMount(false);
-      return;
-    }
-
-    const fromStr = date?.from?.toISOString();
-    const toStr = date?.to?.toISOString();
-
+  const loadDashboard = (
+    nextRange: DateRange | undefined,
+    nextChartRange: string
+  ) => {
+    syncUrlParams(nextRange, nextChartRange);
     startTransition(async () => {
       try {
-        const newData = await getDashboardData({
-          from: fromStr,
-          to: toStr,
-          chartRange,
+        setFetchError(null);
+        const fresh = await getDashboardData({
+          from: nextRange?.from ? nextRange.from.toISOString() : undefined,
+          to: nextRange?.to ? nextRange.to.toISOString() : undefined,
+          chartRange: nextChartRange,
         });
-        setData(newData);
-      } catch (error) {
-        logger.error("Failed to fetch dashboard data:", error);
+        setData(fresh);
+      } catch (err) {
+        setFetchError(
+          err instanceof Error
+            ? err.message
+            : "Terjadi kesalahan saat menyegarkan data statistik."
+        );
       }
     });
-  }, [date?.from, date?.to, chartRange, isInitialMount]);
+  };
 
-  const { stats, recentApplicants, chart } = data;
+  const handleDateChange = (nextDate: DateRange | undefined) => {
+    setDateRange(nextDate);
+    if (!nextDate) {
+      const now = new Date();
+      const fallbackTo = new Date(now);
+      const fallbackFrom = new Date(now);
+      fallbackFrom.setDate(fallbackFrom.getDate() - 29);
+      const defaultRange = { from: fallbackFrom, to: fallbackTo };
+      setDateRange(defaultRange);
+      loadDashboard(defaultRange, chartRange);
+      return;
+    }
+    loadDashboard(nextDate, chartRange);
+  };
+
+  const handleChartRangeChange = (nextChartRange: string) => {
+    setChartRange(nextChartRange);
+    loadDashboard(dateRange, nextChartRange);
+  };
+
+  const handleResetFilter = () => {
+    const now = new Date();
+    const fallbackTo = new Date(now);
+    const fallbackFrom = new Date(now);
+    fallbackFrom.setDate(fallbackFrom.getDate() - 29);
+    const defaultRange = { from: fallbackFrom, to: fallbackTo };
+    setDateRange(defaultRange);
+    loadDashboard(defaultRange, chartRange);
+  };
+
+  const handleRetry = () => {
+    loadDashboard(dateRange, chartRange);
+  };
+
+  const { stats, miniTrends, chart, statusBreakdown } = data;
+  const activePeriodLabel =
+    dateRange?.from && dateRange?.to
+      ? `${formatDate(dateRange.from, "d MMM yyyy")} - ${formatDate(dateRange.to, "d MMM yyyy")}`
+      : dateRange?.from
+        ? formatDate(dateRange.from, "d MMM yyyy")
+        : "30 hari terakhir";
 
   return (
-    <div className="flex-1 p-md md:p-lg max-w-container-max mx-auto w-full flex flex-col gap-lg animate-fade-in-up relative">
-      {/* Loading Overlay (Removed) */}
-
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-md">
-        <div>
-          <h2 className="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">Overview</h2>
-          <p className="font-body-md text-body-md text-on-surface-variant mt-1">Monitor key metrics and recent activity.</p>
-        </div>
-        <div className="flex gap-sm">
-          <DashboardFilter date={date} onDateChange={setDate} />
-          {status === "loading" ? (
-            <div className="h-[42px] w-[140px] bg-surface-variant/50 animate-pulse rounded-lg shadow-sm"></div>
-          ) : (userRole === "OWNER" || userRole === "SUPER_ADMIN") && (
-            <NewMemberButton />
-          )}
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
-        {/* Stat Card 1 */}
-        <div className="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/20 shadow-sm flex flex-col">
-          <div className="flex justify-between items-start mb-sm">
-            <span className="font-label-md text-label-md text-on-surface-variant">Anggota Baru</span>
-            <div className="p-1.5 bg-primary-container/20 text-primary rounded-lg">
-              <span className="material-symbols-outlined text-[20px]">groups</span>
-            </div>
-          </div>
-          <div className="font-headline-xl text-headline-xl text-on-surface">
-            {isPending ? <div className="h-10 w-20 bg-surface-variant/50 animate-pulse rounded mt-1"></div> : stats.totalAnggota.toLocaleString()}
-          </div>
-          <div className="mt-auto pt-sm flex items-center gap-xs text-primary font-label-md text-label-md">
-            <span className="material-symbols-outlined text-[16px]">trending_up</span>
-            <span>Update</span>
-            <span className="text-on-surface-variant font-body-sm text-body-sm font-normal ml-1">real-time</span>
-          </div>
+    <div className="max-w-[1440px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      {/* Greeting & Controls Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="min-w-0 flex-1 max-w-2xl">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#191c1e] dark:text-[#eef2f4] tracking-tight">
+            Halo, {adminName}
+          </h1>
+          <p className="text-sm text-[#52606d] dark:text-[#cbd6d0] mt-1">
+            Ringkasan statistik pendaftaran, antrean verifikasi, dan sebaran
+            anggota untuk periode {activePeriodLabel}.
+          </p>
         </div>
 
-        {/* Stat Card 2 */}
-        <div className="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/20 shadow-sm flex flex-col">
-          <div className="flex justify-between items-start mb-sm">
-            <span className="font-label-md text-label-md text-on-surface-variant">Pending</span>
-            <div className="p-1.5 bg-secondary-container/50 text-secondary rounded-lg">
-              <span className="material-symbols-outlined text-[20px]">pending_actions</span>
-            </div>
-          </div>
-          <div className="font-headline-xl text-headline-xl text-on-surface">
-            {isPending ? <div className="h-10 w-20 bg-surface-variant/50 animate-pulse rounded mt-1"></div> : stats.pending.toLocaleString()}
-          </div>
-          <div className="mt-auto pt-sm flex items-center gap-xs text-secondary font-label-md text-label-md">
-            <span className="material-symbols-outlined text-[16px]">schedule</span>
-            <span>Needs Review</span>
-          </div>
-        </div>
-
-        {/* Stat Card 3 */}
-        <div className="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/20 shadow-sm flex flex-col">
-          <div className="flex justify-between items-start mb-sm">
-            <span className="font-label-md text-label-md text-on-surface-variant">Approved</span>
-            <div className="p-1.5 bg-primary-container/20 text-primary rounded-lg">
-              <span className="material-symbols-outlined text-[20px]">check_circle</span>
-            </div>
-          </div>
-          <div className="font-headline-xl text-headline-xl text-on-surface">
-            {isPending ? <div className="h-10 w-20 bg-surface-variant/50 animate-pulse rounded mt-1"></div> : stats.approvedInRange.toLocaleString()}
-          </div>
-          <div className="mt-auto pt-sm flex items-center gap-xs text-primary font-label-md text-label-md">
-            <span className="material-symbols-outlined text-[16px]">event</span>
-            <span>In Period</span>
-          </div>
-        </div>
-
-        {/* Stat Card 4 */}
-        <div className="bg-surface-container-lowest p-md rounded-xl border border-outline-variant/20 shadow-sm flex flex-col">
-          <div className="flex justify-between items-start mb-sm">
-            <span className="font-label-md text-label-md text-on-surface-variant">Rejected</span>
-            <div className="p-1.5 bg-error-container/50 text-error rounded-lg">
-              <span className="material-symbols-outlined text-[20px]">cancel</span>
-            </div>
-          </div>
-          <div className="font-headline-xl text-headline-xl text-on-surface">
-            {isPending ? <div className="h-10 w-20 bg-surface-variant/50 animate-pulse rounded mt-1"></div> : stats.rejected.toLocaleString()}
-          </div>
-          <div className="mt-auto pt-sm flex items-center gap-xs text-error font-label-md text-label-md">
-            <span className="material-symbols-outlined text-[16px]">info</span>
-            <span>In Period</span>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 shrink-0">
+          <DashboardFilter date={dateRange} onDateChange={handleDateChange} />
+          <NewMemberButton />
         </div>
       </div>
 
-      {/* Chart Section */}
-      <div className="w-full gap-md">
-        {/* Chart Area */}
-        <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm p-md flex flex-col w-full">
-          <div className="flex justify-between items-center mb-md">
-            <h3 className="font-headline-md text-headline-md text-on-surface">Registration Trends</h3>
-            <ChartFilter value={chartRange} onChange={setChartRange} />
+      {/* Explicit Error Alert Banner */}
+      {fetchError && (
+        <div
+          role="alert"
+          className="rounded-xl border border-[#fecaca] dark:border-[#f87171]/40 bg-[#fef2f2] dark:bg-[#3b1214] px-4 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+        >
+          <div>
+            <p className="text-sm font-semibold text-[#991b1b] dark:text-[#fca5a5]">
+              Gagal memperbarui ringkasan admin
+            </p>
+            <p className="text-xs text-[#991b1b]/90 dark:text-[#fecaca] mt-0.5">{fetchError}</p>
           </div>
+          <button
+            type="button"
+            onClick={handleRetry}
+            className="min-h-[44px] px-4 py-2 rounded-lg bg-[#991b1b] hover:bg-[#7f1d1d] dark:bg-[#dc2626] dark:hover:bg-[#b91c1c] text-white text-sm font-semibold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer shrink-0"
+          >
+            <RefreshCw className="w-4 h-4" aria-hidden="true" />
+            <span>Muat Ulang</span>
+          </button>
+        </div>
+      )}
+
+      {/* 4 KPI Cards Row */}
+      <div
+        className={`grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 transition-opacity duration-150 ${
+          isPending ? "opacity-70" : "opacity-100"
+        }`}
+      >
+        {/* Card 1: Total Anggota Aktif (Track Bars) */}
+        <article className="bg-white dark:bg-[#131d1a] rounded-xl border border-[#e2e8f0] dark:border-[#3c4d46] p-5 flex flex-col justify-between gap-3">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#52606d] dark:text-[#94a89e]">
+                Anggota Aktif
+              </p>
+              <p className="text-2xl sm:text-[28px] font-bold text-[#191c1e] dark:text-[#eef2f4] tabular-nums mt-1.5 leading-tight">
+                {formatNumber(stats.totalActiveMembers)}
+              </p>
+            </div>
+            {stats.approvedInRange > 0 ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-[#e6f4ee] dark:bg-[#0a3326] text-[#005236] dark:text-[#6ee7b7] shrink-0">
+                +{formatNumber(stats.approvedInRange)} periode ini
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#f1f5f9] dark:bg-[#1e2d28] text-[#475569] dark:text-[#cbd6d0] shrink-0">
+                Total terdaftar
+              </span>
+            )}
+          </div>
+          <TrackBarsMiniChart
+            values={miniTrends.approved}
+            labels={miniTrends.labels}
+            ariaLabel="Tren persetujuan anggota 7 hari terakhir"
+            accentColor={isDark ? "#34d399" : "#006c49"}
+            trackColor={isDark ? "#1e332b" : "#e6f4ee"}
+          />
+          <p className="text-[11px] text-[#52606d] dark:text-[#94a89e]">
+            Persetujuan harian 7 hari terakhir
+          </p>
+        </article>
+
+        {/* Card 2: Antrean Verifikasi (Dual Sparkline) */}
+        <article className="bg-white dark:bg-[#131d1a] rounded-xl border border-[#e2e8f0] dark:border-[#3c4d46] p-5 flex flex-col justify-between gap-3">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#52606d] dark:text-[#94a89e]">
+                Antrean Verifikasi
+              </p>
+              <p className="text-2xl sm:text-[28px] font-bold text-[#191c1e] dark:text-[#eef2f4] tabular-nums mt-1.5 leading-tight">
+                {formatNumber(stats.pendingQueue)}
+              </p>
+            </div>
+            {stats.pendingQueue > 0 ? (
+              <Link
+                href="/admin/pendaftar?status=PENDING"
+                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#fef3c7] dark:bg-[#3b2506] text-[#92400e] dark:text-[#fcd34d] hover:bg-[#fde68a] dark:hover:bg-[#4e3108] transition-colors shrink-0"
+              >
+                {formatNumber(stats.pendingInRange)} baru
+              </Link>
+            ) : (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-[#e6f4ee] dark:bg-[#0a3326] text-[#005236] dark:text-[#6ee7b7] shrink-0">
+                Antrean bersih
+              </span>
+            )}
+          </div>
+          <DualSparklineMiniChart
+            primaryValues={miniTrends.submitted}
+            secondaryValues={miniTrends.pending}
+            ariaLabel="Perbandingan pendaftar masuk dan berkas menunggu 7 hari terakhir"
+          />
+          <p className="text-[11px] text-[#52606d] dark:text-[#94a89e]">
+            Masuk (hijau) vs menunggu (kuning) 7 hari
+          </p>
+        </article>
+
+        {/* Card 3: Disetujui di Periode Ini (Column Bars) */}
+        <article className="bg-white dark:bg-[#131d1a] rounded-xl border border-[#e2e8f0] dark:border-[#3c4d46] p-5 flex flex-col justify-between gap-3">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#52606d] dark:text-[#94a89e]">
+                Disetujui (Periode)
+              </p>
+              <p className="text-2xl sm:text-[28px] font-bold text-[#191c1e] dark:text-[#eef2f4] tabular-nums mt-1.5 leading-tight">
+                {formatNumber(stats.approvedInRange)}
+              </p>
+            </div>
+            {renderDeltaPill(stats.approvedInRange, stats.prevApprovedInRange)}
+          </div>
+          <ColumnBarsMiniChart
+            values={miniTrends.approved}
+            labels={miniTrends.labels}
+            ariaLabel="Kolom jumlah anggota disetujui 7 hari terakhir"
+          />
+          <p className="text-[11px] text-[#52606d] dark:text-[#94a89e]">
+            Dibanding rentang waktu sebelumnya
+          </p>
+        </article>
+
+        {/* Card 4: Total Pendaftar Masuk di Periode Ini (Area Sparkline) */}
+        <article className="bg-white dark:bg-[#131d1a] rounded-xl border border-[#e2e8f0] dark:border-[#3c4d46] p-5 flex flex-col justify-between gap-3">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-[#52606d] dark:text-[#94a89e]">
+                Pendaftar Masuk
+              </p>
+              <p className="text-2xl sm:text-[28px] font-bold text-[#191c1e] dark:text-[#eef2f4] tabular-nums mt-1.5 leading-tight">
+                {formatNumber(stats.totalInRange)}
+              </p>
+            </div>
+            {renderDeltaPill(stats.totalInRange, stats.prevTotalInRange)}
+          </div>
+          <AreaSparklineMiniChart
+            values={miniTrends.submitted}
+            ariaLabel="Kurva tren pendaftar masuk 7 hari terakhir"
+          />
+          <p className="text-[11px] text-[#52606d] dark:text-[#94a89e]">
+            Pengajuan formulir 7 hari terakhir
+          </p>
+        </article>
+      </div>
+
+      {/* Main Chart (8 Cols) & Status Composition Donut (4 Cols) */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-stretch">
+        <section className="xl:col-span-8 bg-white dark:bg-[#131d1a] rounded-xl border border-[#e2e8f0] dark:border-[#3c4d46] p-5 sm:p-6 flex flex-col justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+            <div>
+              <h2 className="text-base font-bold text-[#191c1e] dark:text-[#eef2f4]">
+                Tren Pendaftaran Masuk
+              </h2>
+              <p className="text-xs text-[#52606d] dark:text-[#94a89e] mt-0.5">
+                Tercatat {formatNumber(chart.totalInSeries)} pengajuan anggota
+                pada rentang grafik yang dipilih
+              </p>
+            </div>
+            <ChartFilter value={chartRange} onChange={handleChartRangeChange} />
+          </div>
+
           <RegistrationChart labels={chart.labels} data={chart.data} />
+        </section>
+
+        <div className="xl:col-span-4">
+          <StatusCompositionCard
+            approved={statusBreakdown.approved}
+            pending={statusBreakdown.pending}
+            rejected={statusBreakdown.rejected}
+            total={statusBreakdown.total}
+            pendingQueue={stats.pendingQueue}
+          />
         </div>
       </div>
 
-      {/* Recent Activity Table */}
-      <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/20 shadow-sm overflow-hidden flex flex-col">
-        <div className="p-md border-b border-outline-variant/20 flex justify-between items-center bg-surface-bright">
-          <h3 className="font-headline-md text-headline-md text-on-surface">Recent Applicants</h3>
-          <Link href="/admin/pendaftar" className="text-primary font-label-md text-label-md hover:underline flex items-center gap-xs">
-            View All <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+      {/* Fakultas, Kalender/Kuota, & Distribusi Angkatan */}
+      <AcademicInsightsRow
+        facultyBreakdown={data.facultyBreakdown}
+        batchBreakdown={data.batchBreakdown}
+        registrationMeta={data.registrationMeta}
+      />
+
+      {/* Tabel Pendaftar Terbaru */}
+      <RecentApplicantsCard
+        applicants={data.recentApplicants}
+        isLoading={isPending}
+        errorMessage={fetchError}
+        onRetry={handleRetry}
+        onResetFilter={handleResetFilter}
+      />
+
+      {/* Strip Footer Internal Admin */}
+      <footer className="pt-2 pb-4 border-t border-[#e2e8f0] dark:border-[#3c4d46] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-[#52606d] dark:text-[#94a89e]">
+        <p>
+          Panel Panitia Pendaftaran Anggota - Data statistik dibaca langsung
+          dari sistem.
+        </p>
+        <div className="flex flex-wrap items-center gap-4">
+          <Link
+            href="/admin/pendaftar"
+            className="hover:text-[#006c49] dark:hover:text-[#34d399] font-medium py-1"
+          >
+            Calon Anggota
+          </Link>
+          <Link
+            href="/admin/members"
+            className="hover:text-[#006c49] dark:hover:text-[#34d399] font-medium py-1"
+          >
+            Anggota Aktif
+          </Link>
+          <Link
+            href="/admin/reports"
+            className="hover:text-[#006c49] dark:hover:text-[#34d399] font-medium py-1"
+          >
+            Laporan Data
           </Link>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-container-low border-b border-outline-variant/20">
-                <th className="p-sm px-md font-label-md text-label-md text-on-surface-variant font-semibold">Applicant</th>
-                <th className="p-sm px-md font-label-md text-label-md text-on-surface-variant font-semibold">Date Applied</th>
-                <th className="p-sm px-md font-label-md text-label-md text-on-surface-variant font-semibold">Plan Type</th>
-                <th className="p-sm px-md font-label-md text-label-md text-on-surface-variant font-semibold">Status</th>
-                <th className="p-sm px-md font-label-md text-label-md text-on-surface-variant font-semibold text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="font-body-sm text-body-sm text-on-surface">
-              {isPending && recentApplicants.length === 0 ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <tr key={i} className="border-b border-outline-variant/10">
-                    <td className="p-sm px-md py-3 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-surface-variant/50 animate-pulse"></div>
-                      <div className="flex flex-col gap-1">
-                        <div className="h-4 w-24 bg-surface-variant/50 animate-pulse rounded"></div>
-                        <div className="h-3 w-32 bg-surface-variant/40 animate-pulse rounded"></div>
-                      </div>
-                    </td>
-                    <td className="p-sm px-md"><div className="h-4 w-20 bg-surface-variant/50 animate-pulse rounded"></div></td>
-                    <td className="p-sm px-md"><div className="h-4 w-16 bg-surface-variant/50 animate-pulse rounded"></div></td>
-                    <td className="p-sm px-md"><div className="h-5 w-16 bg-surface-variant/50 animate-pulse rounded-full"></div></td>
-                    <td className="p-sm px-md text-right"><div className="h-6 w-12 ml-auto bg-surface-variant/50 animate-pulse rounded"></div></td>
-                  </tr>
-                ))
-              ) : recentApplicants.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="p-md text-center text-on-surface-variant">No recent applicants.</td>
-                </tr>
-              ) : (
-                recentApplicants.map((applicant) => (
-                  <tr key={applicant.id} className="border-b border-outline-variant/10 hover:bg-surface-container-lowest/50 transition-colors group">
-                    <td className="p-sm px-md py-3 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold">
-                        {applicant.user?.name ? applicant.user.name.substring(0, 2).toUpperCase() : "NA"}
-                      </div>
-                      <div>
-                        <div className="font-medium">{applicant.user?.name || "Unknown"}</div>
-                        <div className="text-on-surface-variant text-xs">{applicant.user?.email || "-"}</div>
-                      </div>
-                    </td>
-                    <td className="p-sm px-md">{new Date(applicant.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
-                    <td className="p-sm px-md">Member</td>
-                    <td className="p-sm px-md">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border
-                        ${applicant.status === "PENDING" ? "bg-secondary-container/50 text-on-secondary-container border-secondary-container" : 
-                          applicant.status === "ACTIVE" ? "bg-primary-container/20 text-primary border-primary/20" : 
-                          "bg-error-container/50 text-error border-error/20"}
-                      `}>
-                        {applicant.status.charAt(0) + applicant.status.slice(1).toLowerCase()}
-                      </span>
-                    </td>
-                    <td className="p-sm px-md text-right">
-                      <Link href={`/admin/pendaftar`} className="text-primary bg-primary/5 hover:bg-primary-container/20 px-2 py-1 rounded transition-colors focus:opacity-100 cursor-pointer inline-block">
-                        {applicant.status === "PENDING" ? "Review" : "View"}
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      </footer>
     </div>
   );
 }
