@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { getSystemSettings } from "@/actions/setting-actions";
 import { IdCard } from "@/components/ui/id-card";
 import { SETTING_KEYS } from "@/lib/constants/settings";
@@ -24,6 +25,7 @@ export interface PublicIdCardProps {
   printMode?: boolean;
   viewSide?: "both" | "front" | "back";
   className?: string;
+  minLoadingMs?: number;
 }
 
 export const PublicIdCard = ({
@@ -34,6 +36,7 @@ export const PublicIdCard = ({
   printMode = false,
   viewSide = "both",
   className = "",
+  minLoadingMs = 0,
 }: PublicIdCardProps) => {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [generalData, setGeneralData] = useState<Record<string, string>>({});
@@ -43,7 +46,12 @@ export const PublicIdCard = ({
     let active = true;
     const fetchSettings = async () => {
       try {
-        const res = await getSystemSettings();
+        const [res] = await Promise.all([
+          getSystemSettings(),
+          minLoadingMs > 0
+            ? new Promise((resolve) => window.setTimeout(resolve, minLoadingMs))
+            : Promise.resolve(),
+        ]);
         if (active && res.success && res.data) {
           const newFormData: Record<string, string> = {};
           const newGeneralData: Record<string, string> = {};
@@ -80,15 +88,30 @@ export const PublicIdCard = ({
     return () => {
       active = false;
     };
-  }, []);
+  }, [minLoadingMs]);
 
   if (loading) {
     return (
-      <div className="p-8 text-center">
-        <div className="w-8 h-8 border-4 border-[#006c49] dark:border-[#34d399] border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="mt-4 text-sm text-[#3c4a42] dark:text-[#cbd6d0]">
-          Memuat ID Card...
-        </p>
+      <div
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+        className="w-full min-h-[340px] px-4 py-12 flex flex-col items-center justify-center text-center gap-3.5"
+      >
+        <div className="w-13 h-13 rounded-full bg-[#e6f4ee] border border-[#006c49]/25 dark:bg-[#0f7a58]/15 dark:border-[#34d399]/35 flex items-center justify-center">
+          <Loader2
+            className="w-6 h-6 text-[#006c49] dark:text-[#34d399] spinner-essential"
+            aria-hidden="true"
+          />
+        </div>
+        <div className="space-y-1 max-w-xs">
+          <p className="text-[14px] font-bold text-[#191c1e] dark:text-[#e9f1ee]">
+            Menyiapkan pratinjau KTA...
+          </p>
+          <p className="text-[12.5px] leading-relaxed text-[#3c4a42] dark:text-[#9fb3ac]">
+            Memuat tampilan sisi depan dan belakang beserta QR verifikasi resmi.
+          </p>
+        </div>
       </div>
     );
   }

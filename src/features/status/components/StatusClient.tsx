@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useCekStatusStore } from "../store";
 import { PublicIdCard } from "./PublicIdCard";
 import { SearchForm } from "./SearchForm";
@@ -8,13 +8,32 @@ import { StatusResult } from "./StatusResult";
 import { LoadingOverlay } from "./LoadingOverlay";
 
 export function StatusClient() {
-  const { statusData, setStatusData } = useCekStatusStore();
+  const { statusData, isLoading, setStatusData } = useCekStatusStore();
+  const searchCardRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     return () => {
       useCekStatusStore.getState().setStatusData(null);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isLoading || statusData || !searchCardRef.current) return;
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const scrollTimer = window.setTimeout(() => {
+      searchCardRef.current?.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "center",
+      });
+    }, 60);
+
+    return () => window.clearTimeout(scrollTimer);
+  }, [isLoading, statusData]);
 
   const handleCekDataLain = () => {
     const { reset } = useCekStatusStore.getState();
@@ -35,7 +54,10 @@ export function StatusClient() {
     <div className="min-h-[calc(100dvh-68px)] bg-[#f7f9fb] dark:bg-[#0c1311] text-[#191c1e] dark:text-[#e9f1ee] flex flex-col font-sans">
       <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6">
         {!statusData ? (
-          <section className="w-full max-w-[540px] bg-white dark:bg-[#121c19] rounded-[16px] shadow-sm border border-[#5c6b62]/25 dark:border-[#2a3b36] p-6 sm:p-7">
+          <section
+            ref={searchCardRef}
+            className="scroll-mt-20 w-full max-w-[540px] bg-white dark:bg-[#121c19] rounded-[16px] shadow-sm border border-[#5c6b62]/25 dark:border-[#2a3b36] p-6 sm:p-7"
+          >
             <div className="text-center mb-6">
               <h1 className="font-display text-[20px] sm:text-[22px] font-bold text-[#191c1e] dark:text-[#e9f1ee] tracking-tight">
                 Cek status pendaftaran

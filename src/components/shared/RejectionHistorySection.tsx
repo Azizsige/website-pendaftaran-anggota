@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { ChevronDown, Clock, History } from "lucide-react";
 
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 import { formatDateTime } from "@/lib/format";
 import type { PublicRejectionHistoryItem } from "@/lib/rejection-history";
 
@@ -151,34 +152,35 @@ export function RejectionHistorySection({
 
       {isOpen && (
         <div className={compact ? "mt-2.5 flex flex-col gap-2" : "flex flex-col gap-2.5 min-h-0"}>
-          <ol
-            className={`list-none m-0 p-0 grid gap-2.5 overflow-y-auto pr-0.5 ${
-              compact ? "max-h-[210px]" : "max-h-[280px]"
-            }`}
+          <CustomScrollArea
+            className={compact ? "max-h-[210px]" : "max-h-[280px]"}
+            contentClassName="pr-1"
           >
-            {visibleItems.map((item, index) => (
-              <li
-                key={item.id}
-                className={`px-3 py-2.5 rounded-[10px] bg-[#f7f9fb] dark:bg-[#1a2824] border grid gap-1 ${
-                  index === 0
-                    ? "border-[#ba1a1a]/45 dark:border-[#f87171]/40"
-                    : "border-[#5c6b62]/20 dark:border-[#2a3b36]"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <time className="text-[12px] text-[#4b5850] dark:text-[#9fb3ac] tabular-nums">
-                    {formatDateTime(item.rejectedAt)} WIB
-                  </time>
-                  <span className="text-[11.5px] font-bold text-[#991b1b] bg-[#fef2f2] border border-[#ba1a1a]/30 dark:text-[#f87171] dark:bg-[#f87171]/10 dark:border-[#f87171]/40 px-2 py-0.5 rounded-full whitespace-nowrap">
-                    Penolakan #{items.length - index}
-                  </span>
-                </div>
-                <p className="text-[13.5px] font-semibold text-[#191c1e] dark:text-[#e9f1ee] leading-snug break-words">
-                  {item.reason}
-                </p>
-              </li>
-            ))}
-          </ol>
+            <ol className="list-none m-0 p-0 grid gap-2.5">
+              {visibleItems.map((item, index) => (
+                <li
+                  key={item.id}
+                  className={`px-3 py-2.5 rounded-[10px] bg-[#f7f9fb] dark:bg-[#1a2824] border grid gap-1 ${
+                    index === 0
+                      ? "border-[#ba1a1a]/45 dark:border-[#f87171]/40"
+                      : "border-[#5c6b62]/20 dark:border-[#2a3b36]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <time className="text-[12px] text-[#4b5850] dark:text-[#9fb3ac] tabular-nums">
+                      {formatDateTime(item.rejectedAt)} WIB
+                    </time>
+                    <span className="text-[11.5px] font-bold text-[#991b1b] bg-[#fef2f2] border border-[#ba1a1a]/30 dark:text-[#f87171] dark:bg-[#f87171]/10 dark:border-[#f87171]/40 px-2 py-0.5 rounded-full whitespace-nowrap">
+                      Penolakan #{items.length - index}
+                    </span>
+                  </div>
+                  <p className="text-[13.5px] font-semibold text-[#191c1e] dark:text-[#e9f1ee] leading-snug break-words">
+                    {item.reason}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </CustomScrollArea>
 
           {hasMore && (
             <button

@@ -3,6 +3,7 @@ import Image from "next/image";
 import QRCode from "qrcode";
 import { addMonths } from "date-fns";
 import { formatDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 export interface IdCardData {
   name?: string | null;
@@ -692,7 +693,7 @@ export function IdCard({
 
   if (scaled) {
     return (
-      <div className={`flex flex-wrap gap-6 justify-center lg:justify-start ${className}`}>
+      <div className={cn("flex flex-wrap gap-6 justify-center lg:justify-start", className)}>
         <style>{styles}</style>
         {showFront && (
           <div className="flex flex-col gap-2">
@@ -758,7 +759,7 @@ export function IdCard({
   }
 
   return (
-    <div className={`flex flex-col md:flex-row gap-6 justify-center bg-transparent p-0 ${className}`}>
+    <div className={cn("flex flex-col md:flex-row gap-6 justify-center bg-transparent p-0", className)}>
       <style>{styles}</style>
       {showFront && (
         <IdCardFront

@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Download, Eye, ImagePlus, Loader2, Pencil, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { useCekStatusStore } from "@/store/useCekStatusStore";
 import { updateMemberPhoto } from "@/actions/status-actions";
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 import { PublicIdCard } from "./PublicIdCard";
 import { logger } from "@/lib/logger";
 
@@ -27,13 +29,18 @@ export const DownloadSection = () => {
 
   useEffect(() => {
     if (!showPreview) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setShowPreview(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [showPreview]);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -316,79 +323,86 @@ export const DownloadSection = () => {
         </>
       )}
 
-      {/* Accessible Modal Dialog for Full Front & Back KTA Preview */}
-      {showPreview && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Pratinjau Kartu Tanda Anggota"
-          className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-[2px] flex items-center justify-center p-4"
-          onClick={() => setShowPreview(false)}
-        >
+      {/* Portal Modal Dialog for Full Front & Back KTA Preview */}
+      {showPreview &&
+        typeof document !== "undefined" &&
+        createPortal(
           <div
-            className="w-full max-w-2xl max-h-[90dvh] overflow-y-auto rounded-[16px] border border-[#5c6b62]/30 dark:border-[#2a3b36] bg-white dark:bg-[#121c19] p-5 sm:p-6 shadow-2xl flex flex-col gap-4"
-            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Pratinjau Kartu Tanda Anggota"
+            className="fixed inset-0 z-[100] bg-black/75 backdrop-blur-[2px] flex items-center justify-center p-4 sm:p-6"
+            onClick={() => setShowPreview(false)}
           >
-            <div className="flex items-center justify-between gap-3 border-b border-[#5c6b62]/20 dark:border-[#2a3b36] pb-3">
-              <div>
-                <h3 className="text-[16px] font-bold text-[#191c1e] dark:text-[#e9f1ee]">
-                  Pratinjau KTA (Depan &amp; Belakang)
-                </h3>
-                <p className="text-[12.5px] text-[#3c4a42] dark:text-[#9fb3ac]">
-                  Ukuran cetak CR80 (54 &times; 85,6 mm) siap cetak dan lanyard.
-                </p>
+            <div
+              className="w-full max-w-[660px] max-h-[88dvh] rounded-[16px] border border-[#5c6b62]/30 dark:border-[#2a3b36] bg-white dark:bg-[#121c19] shadow-2xl flex flex-col overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="shrink-0 flex items-center justify-between gap-3 border-b border-[#5c6b62]/20 dark:border-[#2a3b36] px-5 sm:px-6 py-4">
+                <div className="min-w-0">
+                  <h3 className="text-[16px] font-bold text-[#191c1e] dark:text-[#e9f1ee] leading-snug">
+                    Pratinjau KTA (Depan &amp; Belakang)
+                  </h3>
+                  <p className="text-[12.5px] text-[#3c4a42] dark:text-[#9fb3ac] mt-0.5">
+                    Ukuran cetak CR80 (54 &times; 85,6 mm) siap cetak dan lanyard.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(false)}
+                  aria-label="Tutup pratinjau KTA"
+                  className="min-h-[44px] min-w-[44px] shrink-0 cursor-pointer rounded-[10px] border border-[#5c6b62]/35 dark:border-[#2a3b36] flex items-center justify-center text-[#3c4a42] hover:text-[#191c1e] hover:bg-[#f2f4f6] dark:text-[#9fb3ac] dark:hover:text-[#e9f1ee] dark:hover:bg-[#1a2824] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399] transition-colors"
+                >
+                  <X className="h-5 w-5" aria-hidden="true" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowPreview(false)}
-                aria-label="Tutup pratinjau KTA"
-                className="min-h-[44px] min-w-[44px] cursor-pointer rounded-[10px] border border-[#5c6b62]/35 dark:border-[#2a3b36] flex items-center justify-center text-[#3c4a42] hover:text-[#191c1e] hover:bg-[#f2f4f6] dark:text-[#9fb3ac] dark:hover:text-[#e9f1ee] dark:hover:bg-[#1a2824] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399] transition-colors"
-              >
-                <X className="h-5 w-5" aria-hidden="true" />
-              </button>
-            </div>
 
-            <div className="flex justify-center">
-              <div
-                role="group"
-                aria-label="Pilih sisi kartu pratinjau"
-                className="inline-flex rounded-[10px] border border-[#5c6b62]/30 dark:border-[#2a3b36] bg-[#f7f9fb] dark:bg-[#1a2824] p-1 gap-1"
+              <CustomScrollArea
+                className="flex-1 min-h-0 overscroll-contain"
+                contentClassName="px-5 sm:px-6 py-5 flex flex-col items-center gap-5"
               >
-                {(
-                  [
-                    { id: "both", label: "Keduanya" },
-                    { id: "front", label: "Sisi Depan" },
-                    { id: "back", label: "Sisi Belakang" },
-                  ] as const
-                ).map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setPreviewSide(tab.id)}
-                    aria-pressed={previewSide === tab.id}
-                    className={`min-h-[36px] cursor-pointer rounded-[8px] px-3 py-1 text-xs font-bold transition-colors ${
-                      previewSide === tab.id
-                        ? "bg-[#006c49] text-white dark:bg-[#0f7a58]"
-                        : "text-[#3c4a42] hover:bg-white dark:text-[#9fb3ac] dark:hover:bg-[#121c19]"
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+                <div
+                  role="group"
+                  aria-label="Pilih sisi kartu pratinjau"
+                  className="inline-flex rounded-[10px] border border-[#5c6b62]/30 dark:border-[#2a3b36] bg-[#f7f9fb] dark:bg-[#1a2824] p-1 gap-1 shrink-0"
+                >
+                  {(
+                    [
+                      { id: "both", label: "Keduanya" },
+                      { id: "front", label: "Sisi Depan" },
+                      { id: "back", label: "Sisi Belakang" },
+                    ] as const
+                  ).map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setPreviewSide(tab.id)}
+                      aria-pressed={previewSide === tab.id}
+                      className={`min-h-[36px] cursor-pointer rounded-[8px] px-3.5 py-1 text-xs font-bold transition-colors ${
+                        previewSide === tab.id
+                          ? "bg-[#006c49] text-white dark:bg-[#0f7a58]"
+                          : "text-[#3c4a42] hover:bg-white dark:text-[#9fb3ac] dark:hover:bg-[#121c19]"
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
 
-            <PublicIdCard
-              userData={statusData}
-              scaled
-              viewSide={previewSide}
-              frontId="id-card-preview-front"
-              backId="id-card-preview-back"
-              className="justify-center lg:justify-center"
-            />
-          </div>
-        </div>
-      )}
+                <PublicIdCard
+                  userData={statusData}
+                  scaled
+                  minLoadingMs={600}
+                  viewSide={previewSide}
+                  frontId="id-card-preview-front"
+                  backId="id-card-preview-back"
+                  className="w-full justify-center lg:justify-center"
+                />
+              </CustomScrollArea>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };
