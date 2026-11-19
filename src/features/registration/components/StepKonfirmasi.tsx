@@ -45,56 +45,56 @@ export default function StepKonfirmasi({
   const isAgreementDisabled =
     validationStatus !== "SUCCESS" && validationStatus !== "BYPASSED";
 
-  const agreementAndTurnstile = (
-    <div className="bg-[#f7f9fb] dark:bg-[#1a2723] rounded-xl border border-[#5c6b62]/25 dark:border-[#3c4d46] p-3.5 sm:p-4 flex flex-col gap-3">
-      <div className="flex items-start gap-2.5">
-        <div className="pt-0.5">
-          <input
-            type="checkbox"
-            id="agreement"
-            disabled={isAgreementDisabled}
-            checked={formData.persetujuan}
-            onChange={(e) => updateField("persetujuan", e.target.checked)}
-            className="w-5 h-5 rounded border-[#5c6b62] dark:border-[#768f84] text-[#006c49] dark:text-[#057a55] accent-[#006c49] dark:accent-[#10b981] focus:ring-[#006c49] dark:focus:ring-[#34d399] focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-[#131d1a] transition-colors cursor-pointer bg-white dark:bg-[#1a2723] disabled:opacity-50 disabled:cursor-not-allowed"
-          />
-        </div>
-        <label
-          htmlFor="agreement"
-          className={`font-sans text-[13px] leading-[19px] select-none ${
-            isAgreementDisabled
-              ? "text-[#4b5850]/70 dark:text-[#a8bab0]/60 cursor-not-allowed"
-              : "text-[#191c1e] dark:text-[#eef2f4] cursor-pointer"
-          }`}
-        >
-          Saya menyatakan bahwa seluruh data yang saya masukkan adalah benar dan
-          dapat dipertanggungjawabkan.
-        </label>
-      </div>
-      {errors.persetujuan && (
-        <p className="text-[12px] text-[#ba1a1a] dark:text-[#fca5a5]">
-          {errors.persetujuan}
-        </p>
-      )}
-
-      {!isInline && (
-        <>
-          <div className="w-full flex justify-center overflow-x-auto pt-1">
-            <Turnstile
-              key={resolvedTheme}
-              siteKey={
-                process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
-                "1x00000000000000000000AA"
-              }
-              options={{ theme: resolvedTheme, size: "flexible" }}
-              onSuccess={(token) => updateField("turnstileToken", token)}
+  const verificationAndAgreementBar = (
+    <div className="bg-[#f7f9fb] dark:bg-[#1a2824]/70 rounded-xl border border-[#5c6b62]/25 dark:border-[#2a3b36] px-4 py-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3.5">
+      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+        <div className="flex items-start gap-2.5">
+          <div className="pt-0.5 shrink-0">
+            <input
+              type="checkbox"
+              id="agreement"
+              disabled={isAgreementDisabled}
+              checked={formData.persetujuan}
+              onChange={(e) => updateField("persetujuan", e.target.checked)}
+              className="w-5 h-5 rounded border-[#5c6b62] dark:border-[#6c847b] text-[#006c49] dark:text-[#0f7a58] accent-[#006c49] dark:accent-[#34d399] focus:ring-[#006c49] dark:focus:ring-[#34d399] focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-[#121c19] transition-colors cursor-pointer bg-white dark:bg-[#1a2824] disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
+          <label
+            htmlFor="agreement"
+            className={`font-sans text-[13px] leading-[19px] select-none ${
+              isAgreementDisabled
+                ? "text-[#4b5850]/70 dark:text-[#9fb3ac]/60 cursor-not-allowed"
+                : "text-[#191c1e] dark:text-[#e9f1ee] cursor-pointer"
+            }`}
+          >
+            Saya menyatakan bahwa seluruh data yang saya masukkan adalah benar
+            dan dapat dipertanggungjawabkan.
+          </label>
+        </div>
+        {errors.persetujuan && (
+          <p className="text-[12px] text-[#ba1a1a] dark:text-[#fca5a5] pl-7">
+            {errors.persetujuan}
+          </p>
+        )}
+      </div>
+
+      {!isInline && (
+        <div className="shrink-0 flex flex-col items-start md:items-end gap-1 overflow-x-auto">
+          <Turnstile
+            key={resolvedTheme}
+            siteKey={
+              process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
+              "1x00000000000000000000AA"
+            }
+            options={{ theme: resolvedTheme }}
+            onSuccess={(token) => updateField("turnstileToken", token)}
+          />
           {errors.turnstileToken && (
-            <p className="text-[12px] text-[#ba1a1a] dark:text-[#fca5a5] text-center">
+            <p className="text-[12px] text-[#ba1a1a] dark:text-[#fca5a5]">
               {errors.turnstileToken}
             </p>
           )}
-        </>
+        </div>
       )}
     </div>
   );
@@ -103,11 +103,11 @@ export default function StepKonfirmasi({
     <div className="transition-opacity duration-300 animate-fade-in">
       {!hideHeader && (
         <div className="text-center mb-4">
-          <h2 className="font-sans text-xl md:text-2xl font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-1">
-            Konfirmasi Pendaftaran
+          <h2 className="font-sans text-xl md:text-2xl font-semibold text-[#191c1e] dark:text-[#e9f1ee] mb-1">
+            Konfirmasi pendaftaran
           </h2>
-          <p className="font-sans text-[13px] leading-[19px] text-[#3c4a42] dark:text-[#cbd6d0]">
-            Silakan periksa kembali data Anda sebelum mengirimkan pendaftaran.
+          <p className="font-sans text-[13px] leading-[19px] text-[#3c4a42] dark:text-[#9fb3ac]">
+            Periksa kembali kesesuaian data dan selesaikan verifikasi sebelum mengirim.
           </p>
         </div>
       )}
@@ -119,7 +119,7 @@ export default function StepKonfirmasi({
         validationStatus={validationStatus}
         validationError={validationError}
         isInline={isInline}
-        rightPanelFooter={agreementAndTurnstile}
+        bottomBar={verificationAndAgreementBar}
       />
     </div>
   );

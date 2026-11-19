@@ -1,4 +1,7 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import {
   User,
   FileText,
@@ -19,7 +22,7 @@ interface ConfirmationSummaryProps {
   validationStatus: ValidationStatusType;
   validationError: string;
   isInline?: boolean;
-  rightPanelFooter?: React.ReactNode;
+  bottomBar?: React.ReactNode;
 }
 
 function SummaryField({
@@ -35,11 +38,11 @@ function SummaryField({
 }) {
   return (
     <div className={className}>
-      <p className="font-sans text-[12px] leading-[16px] text-[#4b5850] dark:text-[#a8bab0]">
+      <p className="font-sans text-[12px] leading-[16px] text-[#4b5850] dark:text-[#9fb3ac]">
         {label}
       </p>
       <p
-        className={`text-[13px] sm:text-[14px] leading-[20px] text-[#191c1e] dark:text-[#eef2f4] font-semibold break-words ${
+        className={`text-[13px] sm:text-[14px] leading-[20px] text-[#191c1e] dark:text-[#e9f1ee] font-semibold break-words ${
           mono ? "font-mono" : "font-sans"
         }`}
       >
@@ -57,11 +60,11 @@ function SectionHeader({
   title: string;
 }) {
   return (
-    <div className="flex items-center gap-2 border-b border-[#5c6b62]/20 dark:border-[#3c4d46] pb-2">
-      <Icon size={18} className="text-[#006c49] dark:text-[#34d399] shrink-0" aria-hidden="true" />
-      <h3 className="font-sans text-[13px] leading-[18px] tracking-[0.02em] font-semibold text-[#191c1e] dark:text-[#eef2f4]">
+    <div className="flex items-center gap-2 border-b border-[#5c6b62]/20 dark:border-[#2a3b36] pb-2.5">
+      <Icon size={17} className="text-[#006c49] dark:text-[#34d399] shrink-0" aria-hidden="true" />
+      <h2 className="font-sans text-[13px] leading-[18px] font-bold text-[#006c49] dark:text-[#34d399]">
         {title}
-      </h3>
+      </h2>
     </div>
   );
 }
@@ -69,28 +72,58 @@ function SectionHeader({
 function DocumentItem({
   icon: Icon,
   label,
-  fileName,
+  file,
   status = "IDLE",
 }: {
   icon: React.ElementType;
   label: string;
-  fileName?: string;
+  file?: File | null;
   status?: ValidationStatusType;
 }) {
+  const [thumbUrl, setThumbUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!file) {
+      const clearTimer = window.setTimeout(() => setThumbUrl(null), 0);
+      return () => window.clearTimeout(clearTimer);
+    }
+    const url = URL.createObjectURL(file);
+    const setTimer = window.setTimeout(() => setThumbUrl(url), 0);
+    return () => {
+      window.clearTimeout(setTimer);
+      URL.revokeObjectURL(url);
+    };
+  }, [file]);
+
   return (
-    <div className="flex items-center justify-between gap-2 bg-white dark:bg-[#131d1a] border border-[#5c6b62]/25 dark:border-[#3c4d46] px-2.5 py-2 rounded-lg">
-      <div className="flex items-center gap-2 min-w-0">
-        <Icon size={18} className="text-[#3c4a42] dark:text-[#a8bab0] shrink-0" aria-hidden="true" />
+    <div className="flex items-center justify-between gap-3 bg-white dark:bg-[#121c19] border border-[#5c6b62]/25 dark:border-[#2a3b36] p-2.5 rounded-[10px]">
+      <div className="flex items-center gap-3 min-w-0">
+        {thumbUrl ? (
+          <Image
+            src={thumbUrl}
+            alt={`Pratinjau ${label}`}
+            width={44}
+            height={44}
+            unoptimized
+            className="w-11 h-11 rounded-lg object-cover border border-[#5c6b62]/25 dark:border-[#3b524b] shrink-0"
+          />
+        ) : (
+          <div className="w-11 h-11 rounded-lg bg-[#f2f4f6] dark:bg-[#1a2824] border border-[#5c6b62]/20 dark:border-[#2a3b36] flex items-center justify-center shrink-0">
+            <Icon size={18} className="text-[#3c4a42] dark:text-[#9fb3ac]" aria-hidden="true" />
+          </div>
+        )}
         <div className="min-w-0">
-          <p className="font-sans text-[13px] leading-[18px] text-[#191c1e] dark:text-[#eef2f4] font-semibold">
+          <p className="font-sans text-[13px] leading-[18px] text-[#191c1e] dark:text-[#e9f1ee] font-semibold">
             {label}
           </p>
-          <p className="font-sans text-[11px] leading-[15px] text-[#4b5850] dark:text-[#a8bab0] truncate">
-            {fileName || "Belum diunggah"}
+          <p className="font-sans text-[12px] leading-[16px] text-[#4b5850] dark:text-[#9fb3ac] truncate">
+            {file
+              ? `${file.name} (${(file.size / 1024).toFixed(0)} KB)`
+              : "Belum diunggah"}
           </p>
         </div>
       </div>
-      {fileName && (
+      {file && (
         <div className="flex items-center justify-center w-6 h-6 shrink-0">
           {status === "VALIDATING" && (
             <Loader2
@@ -118,15 +151,16 @@ export function ConfirmationSummary({
   validationStatus,
   validationError,
   isInline = false,
-  rightPanelFooter,
+  bottomBar,
 }: ConfirmationSummaryProps) {
   const birthDisplay = `${formData.tempatLahir || "-"}, ${formatDate(
     formData.tanggalLahir
   )}`;
+  const hasDocuments = reqKtm || reqFoto;
 
   const personalSection = (
-    <section className="bg-[#f7f9fb] dark:bg-[#1a2723] rounded-xl border border-[#5c6b62]/25 dark:border-[#3c4d46] p-3.5 sm:p-4 flex flex-col gap-3">
-      <SectionHeader icon={User} title="Informasi Pribadi & Akademik" />
+    <section className="h-full bg-[#f7f9fb] dark:bg-[#1a2824]/70 rounded-xl border border-[#5c6b62]/25 dark:border-[#2a3b36] p-4 flex flex-col gap-3">
+      <SectionHeader icon={User} title="Informasi pribadi & akademik" />
       <div
         className={
           isInline
@@ -134,13 +168,13 @@ export function ConfirmationSummary({
             : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2.5 gap-x-4"
         }
       >
-        <SummaryField label="Nama Lengkap" value={formData.namaLengkap} />
+        <SummaryField label="Nama lengkap" value={formData.namaLengkap} />
         <SummaryField label="NIM" value={formData.nim} mono />
-        <SummaryField label="Jenis Kelamin" value={formData.jenisKelamin} />
-        <SummaryField label="Tempat, Tanggal Lahir" value={birthDisplay} />
-        <SummaryField label="Alamat Email" value={formData.email} />
+        <SummaryField label="Jenis kelamin" value={formData.jenisKelamin} />
+        <SummaryField label="Tempat, tanggal lahir" value={birthDisplay} />
+        <SummaryField label="Email" value={formData.email} />
         <SummaryField
-          label="Nomor Telepon"
+          label="Nomor telepon"
           value={
             formatIndonesianPhoneInput(formData.noTelepon, {
               ensureLeadingZero: true,
@@ -149,10 +183,10 @@ export function ConfirmationSummary({
           mono
         />
         <SummaryField label="Fakultas" value={formData.fakultas} />
-        <SummaryField label="Program Studi / Jurusan" value={formData.jurusan} />
-        <SummaryField label="Tahun Angkatan" value={formData.angkatan} mono />
+        <SummaryField label="Program studi" value={formData.jurusan} />
+        <SummaryField label="Tahun angkatan" value={formData.angkatan} mono />
         <SummaryField
-          label="Alamat Domisili Lengkap"
+          label="Alamat domisili lengkap"
           value={formData.alamat}
           className={isInline ? "sm:col-span-2" : "sm:col-span-2 md:col-span-3"}
         />
@@ -160,18 +194,18 @@ export function ConfirmationSummary({
     </section>
   );
 
-  const documentSection = (reqKtm || reqFoto) ? (
+  const documentSection = hasDocuments ? (
     <section
       id="ktp-validation-item"
-      className="bg-[#f7f9fb] dark:bg-[#1a2723] rounded-xl border border-[#5c6b62]/25 dark:border-[#3c4d46] p-3.5 sm:p-4 flex flex-col gap-2.5"
+      className="h-full bg-[#f7f9fb] dark:bg-[#1a2824]/70 rounded-xl border border-[#5c6b62]/25 dark:border-[#2a3b36] p-4 flex flex-col gap-3"
     >
-      <SectionHeader icon={FileText} title="Dokumen Pendukung" />
-      <div className="grid grid-cols-1 gap-2">
+      <SectionHeader icon={FileText} title="Dokumen pendukung" />
+      <div className="flex flex-col gap-2.5">
         {reqFoto && (
           <DocumentItem
             icon={ImageIcon}
             label="Pas Foto"
-            fileName={formData.pasFoto?.name}
+            file={formData.pasFoto}
             status={formData.pasFoto ? "SUCCESS" : "IDLE"}
           />
         )}
@@ -179,13 +213,13 @@ export function ConfirmationSummary({
           <DocumentItem
             icon={CreditCard}
             label="Foto KTM"
-            fileName={formData.fotoKTM?.name}
+            file={formData.fotoKTM}
             status={validationStatus}
           />
         )}
       </div>
 
-      <div id="ktm-loading-section" className="scroll-mt-24">
+      <div id="ktm-loading-section" className="mt-auto pt-1 scroll-mt-24">
         {validationStatus === "VALIDATING" && (
           <div className="flex items-center gap-2 p-2.5 bg-[#eff6ff] dark:bg-[#132544] text-[#1e40af] dark:text-[#93c5fd] rounded-lg text-xs font-medium border border-[#1d4ed8]/30 dark:border-[#3b82f6]/40">
             <Loader2 className="w-4 h-4 spinner-essential shrink-0" aria-hidden="true" />
@@ -198,9 +232,7 @@ export function ConfirmationSummary({
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" aria-hidden="true" />
               <span>
                 <strong>Validasi Foto Gagal:</strong> {validationError}{" "}
-                <em>
-                  Pastikan foto hanya menampilkan KTM yang terbaca jelas.
-                </em>
+                <em>Pastikan foto hanya menampilkan KTM yang terbaca jelas.</em>
               </span>
             </div>
             <p className="pl-6 text-[11px] font-medium text-[#991b1b] dark:text-[#fecaca]">
@@ -232,18 +264,20 @@ export function ConfirmationSummary({
       <div className="flex flex-col gap-4 mb-4">
         {personalSection}
         {documentSection}
-        {rightPanelFooter}
+        {bottomBar}
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-      <div className="lg:col-span-7">{personalSection}</div>
-      <div className="lg:col-span-5 flex flex-col gap-3">
-        {documentSection}
-        {rightPanelFooter}
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+        <div className={hasDocuments ? "lg:col-span-7" : "lg:col-span-12"}>
+          {personalSection}
+        </div>
+        {hasDocuments && <div className="lg:col-span-5">{documentSection}</div>}
       </div>
+      {bottomBar}
     </div>
   );
 }

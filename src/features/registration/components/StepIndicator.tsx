@@ -10,14 +10,14 @@ interface StepIndicatorProps {
 
 export default function StepIndicator({ currentStep, hasStep2 = true }: StepIndicatorProps) {
   const steps = [
-    { num: 1, displayNum: 1, label: "Data Diri" },
+    { num: 1, displayNum: 1, label: "Data diri" },
     ...(hasStep2 ? [{ num: 2, displayNum: 2, label: "Dokumen" }] : []),
     { num: 3, displayNum: hasStep2 ? 3 : 2, label: "Konfirmasi" },
   ];
 
   return (
-    <nav aria-label="Tahapan pendaftaran" className="w-full">
-      <ol className="flex items-center justify-between gap-2 sm:gap-3">
+    <nav aria-label="Tahapan pendaftaran">
+      <ol className="flex items-center gap-2 sm:gap-2.5 text-[13px]">
         {steps.map((step, index) => {
           const isCompleted = currentStep > step.num;
           const isActive = currentStep === step.num;
@@ -27,26 +27,28 @@ export default function StepIndicator({ currentStep, hasStep2 = true }: StepIndi
             <React.Fragment key={step.num}>
               <li
                 aria-current={isActive ? "step" : undefined}
-                className="flex items-center gap-2 shrink-0"
+                className="flex items-center gap-2 whitespace-nowrap shrink-0"
               >
                 {isCompleted ? (
-                  <div className="w-7 h-7 rounded-full bg-[#006c49] dark:bg-[#057a55] text-white flex items-center justify-center shrink-0">
-                    <Check size={15} aria-hidden="true" />
-                  </div>
+                  <span className="w-6 h-6 rounded-full bg-[#006c49] dark:bg-[#0f7a58] text-white flex items-center justify-center shrink-0">
+                    <Check size={13} aria-hidden="true" />
+                  </span>
                 ) : isActive ? (
-                  <div className="w-7 h-7 rounded-full bg-[#e6f4ee] dark:bg-[#0a3326] border-2 border-[#006c49] dark:border-[#34d399] text-[#005236] dark:text-[#6ee7b7] font-mono text-xs font-bold flex items-center justify-center shrink-0">
+                  <span className="w-6 h-6 rounded-full border-[1.5px] border-[#006c49] dark:border-[#34d399] bg-[#e6f4ee] dark:bg-[#0f7a58]/15 text-[#005236] dark:text-[#34d399] font-sans text-[12px] font-bold flex items-center justify-center shrink-0">
                     {step.displayNum}
-                  </div>
+                  </span>
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-[#f2f4f6] dark:bg-[#1a2723] border border-[#5c6b62] dark:border-[#768f84] text-[#3c4a42] dark:text-[#a8bab0] font-mono text-xs font-semibold flex items-center justify-center shrink-0">
+                  <span className="w-6 h-6 rounded-full border-[1.5px] border-[#5c6b62] dark:border-[#3b524b] text-[#4b5850] dark:text-[#9fb3ac] font-sans text-[12px] font-bold flex items-center justify-center shrink-0">
                     {step.displayNum}
-                  </div>
+                  </span>
                 )}
                 <span
-                  className={`font-sans text-xs sm:text-[13px] leading-tight font-semibold ${
-                    isCompleted || isActive
-                      ? "text-[#005236] dark:text-[#6ee7b7]"
-                      : "text-[#3c4a42] dark:text-[#cbd6d0]"
+                  className={`font-sans text-[13px] leading-none ${
+                    isActive
+                      ? "font-semibold text-[#005236] dark:text-[#34d399]"
+                      : isCompleted
+                      ? "hidden sm:inline font-semibold text-[#005236] dark:text-[#34d399]"
+                      : "hidden sm:inline font-medium text-[#4b5850] dark:text-[#9fb3ac]"
                   }`}
                 >
                   {step.label}
@@ -56,14 +58,12 @@ export default function StepIndicator({ currentStep, hasStep2 = true }: StepIndi
               {!isLast && (
                 <li
                   aria-hidden="true"
-                  className="flex-1 h-[2px] min-w-[16px] sm:min-w-[28px] rounded-full bg-[#d5dcd8] dark:bg-[#3c4d46] overflow-hidden"
-                >
-                  <div
-                    className={`h-full bg-[#006c49] dark:bg-[#34d399] transition-all duration-300 ${
-                      isCompleted ? "w-full" : "w-0"
-                    }`}
-                  />
-                </li>
+                  className={`w-4 sm:w-5 h-px shrink-0 transition-colors ${
+                    isCompleted
+                      ? "bg-[#006c49] dark:bg-[#34d399]"
+                      : "bg-[#5c6b62]/40 dark:bg-[#3b524b]"
+                  }`}
+                />
               )}
             </React.Fragment>
           );

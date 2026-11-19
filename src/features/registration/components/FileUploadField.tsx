@@ -81,13 +81,13 @@ export default function FileUploadField({
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between gap-2 mb-1.5">
-        <span className="block font-sans text-[13px] leading-[18px] font-semibold text-[#191c1e] dark:text-[#eef2f4]">
-          {label} <span className="text-[#ba1a1a] dark:text-[#fca5a5]">*</span>
+        <span className="block font-sans text-[13px] leading-[18px] font-semibold text-[#191c1e] dark:text-[#e9f1ee]">
+          {label} <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
         </span>
       </div>
 
       {file && preview ? (
-        <div className="relative rounded-xl overflow-hidden border border-[#5c6b62] dark:border-[#768f84] bg-[#ffffff] dark:bg-[#1a2723]">
+        <div className="relative rounded-xl overflow-hidden border border-[#5c6b62] dark:border-[#6c847b] bg-[#ffffff] dark:bg-[#1a2824]">
           <Image
             src={preview}
             alt={`Pratinjau ${label}`}
@@ -108,12 +108,12 @@ export default function FileUploadField({
               <X size={18} aria-hidden="true" />
             </button>
           </div>
-          <div className="px-3 py-2.5 flex items-center gap-2 border-t border-[#5c6b62]/20 dark:border-[#3c4d46]">
+          <div className="px-3 py-2.5 flex items-center gap-2 border-t border-[#5c6b62]/20 dark:border-[#2a3b36]">
             <FileImage size={16} className="text-[#006c49] dark:text-[#34d399] shrink-0" aria-hidden="true" />
-            <span className="text-[13px] text-[#3c4a42] dark:text-[#eef2f4] truncate font-medium">
+            <span className="text-[13px] text-[#3c4a42] dark:text-[#e9f1ee] truncate font-medium">
               {file.name}
             </span>
-            <span className="text-[12px] text-[#4b5850] dark:text-[#a8bab0] ml-auto shrink-0 font-mono">
+            <span className="text-[12px] text-[#4b5850] dark:text-[#9fb3ac] ml-auto shrink-0 font-mono">
               {(file.size / 1024).toFixed(0)} KB
             </span>
           </div>
@@ -141,16 +141,16 @@ export default function FileUploadField({
             ? "border-[#006c49] dark:border-[#34d399] bg-[#e6f4ee] dark:bg-[#22322d]"
             : error
               ? "border-[#ba1a1a] dark:border-[#f87171] bg-[#ffdad6]/20 dark:bg-[#3b1214]/40"
-              : "border-[#5c6b62] dark:border-[#768f84] bg-[#f7f9fb] dark:bg-[#1a2723] hover:bg-[#eef2f0] dark:hover:bg-[#22322d]"
+              : "border-[#5c6b62] dark:border-[#6c847b] bg-[#f7f9fb] dark:bg-[#1a2824] hover:bg-[#eef2f0] dark:hover:bg-[#22322d]"
             }`}
         >
-          <div className="w-11 h-11 rounded-full bg-[#e6f4ee] dark:bg-[#0a3326] flex items-center justify-center mb-2.5">
+          <div className="w-11 h-11 rounded-full bg-[#e6f4ee] dark:bg-[#0f7a58]/20 flex items-center justify-center mb-2.5">
             <Icon size={22} className="text-[#006c49] dark:text-[#34d399]" aria-hidden="true" />
           </div>
-          <span className="font-sans text-[14px] leading-[20px] font-semibold text-[#191c1e] dark:text-[#eef2f4]">
+          <span className="font-sans text-[14px] leading-[20px] font-semibold text-[#191c1e] dark:text-[#e9f1ee]">
             Klik atau seret file ke sini
           </span>
-          <span className="font-sans text-[12px] text-[#4b5850] dark:text-[#a8bab0] mt-1">
+          <span className="font-sans text-[12px] text-[#4b5850] dark:text-[#9fb3ac] mt-1">
             Format: JPG, PNG (Maks. 2MB)
           </span>
         </div>
