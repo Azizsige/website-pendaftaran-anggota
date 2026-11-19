@@ -4,6 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { getClientIp } from "@/lib/request";
+import { computeKtaVerificationCode } from "@/lib/kta-verification";
+import { getRejectionHistoryForProfile } from "@/lib/rejection-history";
+import {
+  expireElapsedSuspensions,
+  getSuspendedUntilForProfile,
+} from "@/lib/status-history";
 import { uploadImage } from "@/lib/storage";
 import { logger } from "@/lib/logger";
 
@@ -32,7 +38,7 @@ export async function checkRegistrationStatus(nim: string, email: string, turnst
     }
 
     // Cari member berdasarkan NIM
-    const profile = await prisma.memberProfile.findUnique({
+    let profile = await prisma.memberProfile.findUnique({
       where: { nim },
       include: {
         user: true
@@ -47,6 +53,29 @@ export async function checkRegistrationStatus(nim: string, email: string, turnst
     if (profile.user.email !== email) {
       return { success: false, message: "Data tidak ditemukan. Pastikan NIM dan Email sudah benar." };
     }
+
+    if (profile.status === "SUSPENDED") {
+      const reactivatedCount = await expireElapsedSuspensions([profile.id]);
+      if (reactivatedCount > 0) {
+        const refreshed = await prisma.memberProfile.findUnique({
+          where: { nim },
+          include: { user: true },
+        });
+        if (refreshed) profile = refreshed;
+      }
+    }
+
+    const [rawRejectionHistories, suspendedUntil] = await Promise.all([
+      getRejectionHistoryForProfile(profile.id),
+      profile.status === "SUSPENDED"
+        ? getSuspendedUntilForProfile(profile.id)
+        : Promise.resolve(null),
+    ]);
+    const rejectionHistories = rawRejectionHistories.map((item) => ({
+      id: item.id,
+      reason: item.reason,
+      rejectedAt: item.rejectedAt,
+    }));
 
     return {
       success: true,
@@ -69,6 +98,9 @@ export async function checkRegistrationStatus(nim: string, email: string, turnst
         address: profile.address,
         batchYear: profile.batchYear,
         updatedAt: profile.updatedAt,
+        suspendedUntil,
+        verificationCode: computeKtaVerificationCode(profile.nim, profile.userId),
+        rejectionHistories,
       }
     };
 
@@ -90,13 +122,34 @@ export async function updateMemberPhoto(nim: string, email: string, base64Image:
       return { success: false, message: "Terlalu banyak percobaan. Silakan coba lagi nanti." };
     }
 
-    const profile = await prisma.memberProfile.findUnique({
+    let profile = await prisma.memberProfile.findUnique({
       where: { nim },
       include: { user: true }
     });
 
     if (!profile || profile.user.email !== email) {
       return { success: false, message: "Autentikasi gagal." };
+    }
+
+    if (profile.status === "SUSPENDED") {
+      const reactivatedCount = await expireElapsedSuspensions([profile.id]);
+      if (reactivatedCount > 0) {
+        const refreshed = await prisma.memberProfile.findUnique({
+          where: { nim },
+          include: { user: true },
+        });
+        if (refreshed) profile = refreshed;
+      }
+    }
+
+    if (
+      (profile.status !== "ACTIVE" && profile.status !== "APPROVED") ||
+      profile.user.status !== "ACTIVE"
+    ) {
+      return {
+        success: false,
+        message: "Fitur ganti foto tidak tersedia karena akun Anda sedang dibekukan atau tidak aktif.",
+      };
     }
 
     // Upload gambar ke object storage (Cloudinary). Validasi format & ukuran dilakukan di dalam.

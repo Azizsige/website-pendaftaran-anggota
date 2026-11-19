@@ -1,10 +1,14 @@
 import { z } from "zod";
+import { normalizeIndonesianPhone } from "@/lib/format";
 
 export const memberRegistrationSchema = z.object({
   namaLengkap: z.string().min(1, "Nama lengkap wajib diisi"),
   nim: z.string().min(1, "NIM wajib diisi"),
   email: z.string().email("Format email tidak valid"),
-  noTelepon: z.string().min(9, "Format no. telepon tidak valid"),
+  noTelepon: z
+    .string()
+    .refine((val) => val.replace(/\D/g, "").length >= 9, "Format no. telepon tidak valid")
+    .transform((val) => normalizeIndonesianPhone(val)),
   tempatLahir: z.string().min(1, "Tempat lahir wajib diisi"),
   tanggalLahir: z.string().min(1, "Tanggal lahir wajib diisi"),
   jenisKelamin: z.string().min(1, "Jenis kelamin wajib dipilih"),
@@ -23,7 +27,10 @@ export const memberRegistrationSchema = z.object({
 });
 
 export const updateMemberSchema = z.object({
-  phoneNumber: z.string().min(9, "Nomor telepon minimal 9 digit"),
+  phoneNumber: z
+    .string()
+    .refine((val) => val.replace(/\D/g, "").length >= 9, "Nomor telepon minimal 9 digit")
+    .transform((val) => normalizeIndonesianPhone(val)),
   address: z.string().min(3, "Alamat wajib diisi"),
   faculty: z.string().min(1, "Fakultas wajib diisi"),
   major: z.string().min(1, "Jurusan wajib diisi"),

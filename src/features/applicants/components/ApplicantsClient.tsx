@@ -11,6 +11,7 @@ import ApplicantDetailModal from "./ApplicantDetailModal";
 import ApplicantRejectModal from "./ApplicantRejectModal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PersonSummary } from "@/components/admin/PersonSummary";
+import { SuspendReasonDialog } from "@/components/admin/SuspendReasonDialog";
 import ApplicantsToolbar from "./ApplicantsToolbar";
 import ApplicantsTable from "./ApplicantsTable";
 import { Pagination } from "@/components/ui/pagination";
@@ -130,9 +131,13 @@ export default function ApplicantsClient({
     });
   };
 
-  const confirmSuspend = async (id: string) => {
+  const confirmSuspend = async (
+    id: string,
+    reason: string,
+    suspendedUntil: string | null
+  ) => {
     startTransition(async () => {
-      const res = await updateApplicantStatus(id, "SUSPENDED");
+      const res = await updateApplicantStatus(id, "SUSPENDED", reason, suspendedUntil);
       if (!res.success) toast.error("Gagal membekukan pendaftar: " + res.error);
       else {
         toast.success("Status pendaftar berhasil dibekukan");
@@ -223,31 +228,22 @@ export default function ApplicantsClient({
       )}
 
       {suspendingApplicant && (
-        <ConfirmDialog
+        <SuspendReasonDialog
+          key={suspendingApplicant.id}
           open={true}
-          onOpenChange={(open) => {
-            if (!open) setSuspendingApplicant(null);
+          onClose={() => setSuspendingApplicant(null)}
+          person={{
+            id: suspendingApplicant.id,
+            name: suspendingApplicant.user?.name,
+            email: suspendingApplicant.user?.email,
+            phoneNumber: suspendingApplicant.phoneNumber,
+            status: suspendingApplicant.status,
           }}
-          tone="warning"
-          icon="block"
           title="Bekukan Pendaftar?"
-          description="Status calon anggota akan diubah menjadi Dibekukan"
-          message="Pendaftar yang dibekukan tidak dapat mengakses kartu anggota hingga diaktifkan kembali oleh admin."
-          confirmLabel="Ya, Bekukan"
-          cancelLabel="Batal"
+          description="Berikan alasan pembekuan dan durasi pembatasan bila perlu"
           isPending={isPending}
-          pendingTitle="Membekukan Data"
-          pendingMessage="Mohon tunggu sebentar..."
-          onConfirm={() => confirmSuspend(suspendingApplicant.id)}
-        >
-          <PersonSummary
-            id={suspendingApplicant.id}
-            name={suspendingApplicant.user?.name}
-            email={suspendingApplicant.user?.email}
-            phone={suspendingApplicant.phoneNumber}
-            status={suspendingApplicant.status}
-          />
-        </ConfirmDialog>
+          onConfirm={confirmSuspend}
+        />
       )}
 
       {deletingApplicant && (

@@ -42,11 +42,10 @@ export const IdCardSignatureSection = () => {
           </label>
           <div className="flex items-start gap-4">
             <div
-              className={`relative flex h-24 w-44 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-colors ${
-                signaturePreview
+              className={`relative flex h-24 w-44 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-colors ${signaturePreview
                   ? "border-[#006c49] bg-white dark:border-[#34d399]"
                   : "border-[#85929f] bg-[#f8fafc] hover:border-[#006c49] dark:border-[#5f736b] dark:bg-[#1a2723] dark:hover:border-[#34d399]"
-              }`}
+                }`}
             >
               {signaturePreview ? (
                 <>
@@ -92,14 +91,25 @@ export const IdCardSignatureSection = () => {
           </p>
         </div>
 
-        <TextField
-          id="kta-signature-name"
-          label="Nama Penanda Tangan"
-          value={formData.kta_signature_name}
-          onChange={(e) => handleChange("kta_signature_name", e.target.value)}
-          placeholder="Contoh: M. Hafiz Al-Fath"
-          hint="Nama lengkap pejabat yang dicetak di bawah tanda tangan (mis. Ketua Umum)."
-        />
+        <div className="flex flex-col gap-4">
+          <TextField
+            id="kta-signature-name"
+            label="Nama Penanda Tangan"
+            value={formData.kta_signature_name}
+            onChange={(e) => handleChange("kta_signature_name", e.target.value)}
+            placeholder="Contoh: M. Hafiz Al-Fath"
+            hint="Nama lengkap pejabat yang dicetak di bawah tanda tangan."
+          />
+
+          <TextField
+            id="kta-signature-title"
+            label="Jabatan / NIM Pengesah (Opsional)"
+            value={formData.kta_signature_title}
+            onChange={(e) => handleChange("kta_signature_title", e.target.value)}
+            placeholder="Contoh: Ketua Umum · NIM 2024098112"
+            hint="Ditampilkan di bawah nama pengesah pada sisi depan kartu."
+          />
+        </div>
       </div>
     </div>
   );

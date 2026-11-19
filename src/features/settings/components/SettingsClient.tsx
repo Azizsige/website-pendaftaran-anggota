@@ -68,7 +68,7 @@ function SettingsContent() {
         <div className="flex w-full flex-col gap-6">
           <SettingsNavigation activeTab={activeTab} onTabChange={handleTabChange} />
 
-          <div className="flex w-full min-w-0 flex-1 flex-col gap-6 overflow-hidden">
+          <div className="flex w-full min-w-0 flex-1 flex-col gap-6 overflow-x-clip">
             {activeTab === "general_settings" && <GeneralSettingsTab />}
             {activeTab === "registration" && <RegistrationSettingsTab />}
             {activeTab === "admin_management" && <AdminManagementTab />}

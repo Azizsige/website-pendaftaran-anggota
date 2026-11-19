@@ -6,8 +6,15 @@ import { normalizeNextAuthUrlEnv } from "@/lib/env";
 
 export async function proxy(req: NextRequest) {
   normalizeNextAuthUrlEnv();
-  const secureCookie = req.nextUrl.protocol === "https:" || Boolean(process.env.VERCEL);
-  const rawToken = await getToken({ req, secureCookie });
+  const forwardedProto = req.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const secureCookie =
+    forwardedProto === "https" ||
+    req.nextUrl.protocol === "https:" ||
+    Boolean(process.env.NEXTAUTH_URL?.startsWith("https://")) ||
+    Boolean(process.env.VERCEL);
+  const secret =
+    process.env.NEXTAUTH_SECRET?.trim() || process.env.AUTH_SECRET?.trim();
+  const rawToken = await getToken({ req, secureCookie, secret });
   const nowSeconds = Math.floor(Date.now() / 1000);
   const isExpired =
     typeof rawToken?.sessionExp === "number" && nowSeconds > rawToken.sessionExp;

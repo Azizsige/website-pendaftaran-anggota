@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatIndonesianPhoneInput } from "@/lib/format";
 import { logger } from "@/lib/logger";
 import type { MemberWithUser } from "../types";
 
@@ -49,7 +49,9 @@ export const EditMemberDrawer = ({
     setFormData(
       open && member
         ? {
-            noTelepon: member.phoneNumber || "",
+            noTelepon: member.phoneNumber
+              ? formatIndonesianPhoneInput(member.phoneNumber, { ensureLeadingZero: true })
+              : "",
             fakultas: member.faculty || "",
             jurusan: member.major || "",
             angkatan: member.batchYear || "",
@@ -169,26 +171,25 @@ export const EditMemberDrawer = ({
         </h3>
 
         <FormField label="Nomor Telepon / WhatsApp" htmlFor="edit-member-phone">
-          <div className="relative">
-            <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-medium text-[#475569] dark:text-[#94a89e]">
-              +62
-            </span>
-            <input
-              id="edit-member-phone"
-              type="tel"
-              placeholder="812-3456-7890"
-              maxLength={15}
-              value={formData.noTelepon}
-              onChange={(e) => {
-                const val = e.target.value.replace(/\D/g, "").substring(0, 13);
-                let formatted = val;
-                if (val.length > 3 && val.length <= 7) formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
-                else if (val.length > 7) formatted = `${val.slice(0, 3)}-${val.slice(3, 7)}-${val.slice(7)}`;
-                updateField("noTelepon", formatted);
-              }}
-              className={fieldClass(false, "pl-12 tabular-nums")}
-            />
-          </div>
+          <input
+            id="edit-member-phone"
+            type="tel"
+            placeholder="0812-3456-7890"
+            maxLength={16}
+            value={formData.noTelepon}
+            onChange={(e) => {
+              updateField("noTelepon", formatIndonesianPhoneInput(e.target.value));
+            }}
+            onBlur={(e) => {
+              const normalized = formatIndonesianPhoneInput(e.target.value, {
+                ensureLeadingZero: true,
+              });
+              if (normalized !== formData.noTelepon) {
+                updateField("noTelepon", normalized);
+              }
+            }}
+            className={fieldClass(false, "tabular-nums")}
+          />
         </FormField>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

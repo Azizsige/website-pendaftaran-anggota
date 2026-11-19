@@ -9,6 +9,7 @@ import { IdCardIdentitySection } from "./IdCardIdentitySection";
 import { IdCardFieldsSection } from "./IdCardFieldsSection";
 import { IdCardTermsSection } from "./IdCardTermsSection";
 import { IdCardSignatureSection } from "./IdCardSignatureSection";
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 import { IdCardPreview } from "./IdCardPreview";
 
 export const IdCardSettingsTab = () => {
@@ -17,7 +18,9 @@ export const IdCardSettingsTab = () => {
 
   useEffect(() => {
     loadSettings();
-    loadGeneralSettings();
+    if (useGeneralSettingStore.getState().isLoading) {
+      loadGeneralSettings();
+    }
   }, [loadSettings, loadGeneralSettings]);
 
   if (isLoading) {
@@ -40,7 +43,7 @@ export const IdCardSettingsTab = () => {
 
   return (
     <div
-      className={`relative flex flex-col gap-6 overflow-hidden rounded-xl border border-[#e2e8f0] bg-white p-6 sm:p-8 dark:border-[#3c4d46] dark:bg-[#131d1a] ${
+      className={`relative flex flex-col gap-6 overflow-x-clip rounded-xl border border-[#e2e8f0] bg-white p-6 sm:p-8 dark:border-[#3c4d46] dark:bg-[#131d1a] ${
         isSaving ? "pointer-events-none" : ""
       }`}
     >
@@ -79,7 +82,9 @@ export const IdCardSettingsTab = () => {
 
         <div className="shrink-0 xl:w-[340px] 2xl:w-[400px]">
           <div className="sticky top-6">
-            <IdCardPreview />
+            <CustomScrollArea className="xl:max-h-[calc(100dvh-3rem)]" contentClassName="xl:pr-2">
+              <IdCardPreview />
+            </CustomScrollArea>
           </div>
         </div>
       </div>

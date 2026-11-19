@@ -3,6 +3,7 @@
 import React from "react";
 import { IdCard, ShieldCheck, SlidersHorizontal, UserCheck } from "lucide-react";
 
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 import { cn } from "@/lib/utils";
 
 interface SettingsNavigationProps {
@@ -23,7 +24,11 @@ export const SettingsNavigation = ({
 }: SettingsNavigationProps) => {
   return (
     <nav aria-label="Kategori pengaturan" className="relative z-20 w-full">
-      <div className="custom-scrollbar flex flex-row gap-2 overflow-x-auto rounded-xl border border-[#e2e8f0] bg-white p-2 dark:border-[#3c4d46] dark:bg-[#131d1a]">
+      <CustomScrollArea
+        axis="x"
+        className="rounded-xl border border-[#e2e8f0] bg-white dark:border-[#3c4d46] dark:bg-[#131d1a]"
+        contentClassName="flex flex-row gap-2 p-2"
+      >
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -45,7 +50,7 @@ export const SettingsNavigation = ({
             </button>
           );
         })}
-      </div>
+      </CustomScrollArea>
     </nav>
   );
 };

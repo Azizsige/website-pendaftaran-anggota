@@ -82,7 +82,10 @@ export function useMembers({ initialMembers, search }: UseMembersProps) {
     );
   };
 
-  const handleConfirmAction = async (id: string) => {
+  const handleConfirmAction = async (
+    id: string,
+    options?: { reason?: string; suspendedUntil?: string | null }
+  ) => {
     if (!confirmAction) return;
     startTransition(async () => {
       try {
@@ -92,7 +95,7 @@ export function useMembers({ initialMembers, search }: UseMembersProps) {
             : confirmAction === "INACTIVE"
             ? "INACTIVE"
             : "SUSPENDED";
-        const res = await updateMemberStatus(id, statusToSet);
+        const res = await updateMemberStatus(id, statusToSet, options);
         if (res.success) {
           toast.success("Status member berhasil diupdate!");
           setSelectedConfirmMember(null);

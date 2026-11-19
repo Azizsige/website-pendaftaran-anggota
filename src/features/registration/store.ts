@@ -12,11 +12,14 @@ import {
 } from "./service";
 import { validateStep1Form } from "./schemas";
 
+export type SubmissionPhase = "idle" | "checking" | "submitting" | "redirecting";
+
 interface RegistrationState {
   currentStep: number;
   formData: RegistrationFormData;
   errors: Errors;
   isSubmitting: boolean;
+  submissionPhase: SubmissionPhase;
   isValidating: boolean;
   isImageValid: boolean;
   isReapplying: boolean;
@@ -44,6 +47,7 @@ interface RegistrationState {
   setIsImageValid: (val: boolean) => void;
   setIsValidating: (val: boolean) => void;
   setIsReapplying: (val: boolean) => void;
+  setSubmissionPhase: (phase: SubmissionPhase) => void;
   resetForm: () => void;
   fetchSettings: () => Promise<void>;
   handleNext: (
@@ -51,7 +55,8 @@ interface RegistrationState {
   ) => Promise<{ success: boolean; error?: string } | void>;
   handlePrev: () => void;
   handleSubmit: (
-    onSuccess: () => void
+    onSuccess: () => void,
+    redirectDelayMs?: number
   ) => Promise<SubmitRegistrationResult | void>;
 }
 
@@ -60,6 +65,7 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
   formData: initialFormData,
   errors: {},
   isSubmitting: false,
+  submissionPhase: "idle",
   isValidating: false,
   isImageValid: false,
   isReapplying: false,
@@ -89,6 +95,8 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
   setIsImageValid: (val) => set({ isImageValid: val }),
   setIsValidating: (val) => set({ isValidating: val }),
   setIsReapplying: (val) => set({ isReapplying: val }),
+  setSubmissionPhase: (phase) =>
+    set({ submissionPhase: phase, isSubmitting: phase !== "idle" }),
 
   resetForm: () =>
     set({
@@ -96,6 +104,7 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
       formData: initialFormData,
       errors: {},
       isSubmitting: false,
+      submissionPhase: "idle",
       isValidating: false,
       isImageValid: false,
     }),
@@ -127,7 +136,7 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
         return { success: false };
       }
 
-      set({ isSubmitting: true });
+      set({ isSubmitting: true, submissionPhase: "checking" });
       try {
         const duplicateCheck = await checkApplicantDuplicate(
           formData.nim,
@@ -136,6 +145,7 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
         if (duplicateCheck.isDuplicate) {
           set({
             isSubmitting: false,
+            submissionPhase: "idle",
             errors: {
               nim: duplicateCheck.error?.includes("NIM")
                 ? duplicateCheck.error
@@ -151,7 +161,7 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
           return { success: false, error: duplicateCheck.error };
         }
       } catch {
-        set({ isSubmitting: false });
+        set({ isSubmitting: false, submissionPhase: "idle" });
         return {
           success: false,
           error: "Gagal memverifikasi data ke server.",
@@ -162,6 +172,7 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
         currentStep: reqFoto || reqKtm ? 2 : 3,
         errors: {},
         isSubmitting: false,
+        submissionPhase: "idle",
       });
       return { success: true };
     }
@@ -189,9 +200,9 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
     else if (currentStep > 1) set({ currentStep: currentStep - 1 });
   },
 
-  handleSubmit: async (onSuccess) => {
-    const { formData, isImageValid } = get();
-    if (!formData.persetujuan || !isImageValid) return;
+  handleSubmit: async (onSuccess, redirectDelayMs = 1200) => {
+    const { formData, isImageValid, submissionPhase } = get();
+    if (!formData.persetujuan || !isImageValid || submissionPhase !== "idle") return;
 
     if (!formData.turnstileToken) {
       return {
@@ -200,18 +211,23 @@ export const useRegistrationStore = create<RegistrationState>((set, get) => ({
       };
     }
 
-    set({ isSubmitting: true });
+    set({ isSubmitting: true, submissionPhase: "submitting" });
     try {
       const result = await submitApplicantRegistration(formData);
       if (!result.success) {
-        set({ isSubmitting: false });
+        set({ isSubmitting: false, submissionPhase: "idle" });
         return result;
       }
-      set({ isSubmitting: false });
+
+      // Hold the overlay in "redirecting" so Step 3 never flashes back before route change finishes.
+      set({ submissionPhase: "redirecting", isSubmitting: true });
+      if (redirectDelayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, redirectDelayMs));
+      }
       onSuccess();
       return result;
     } catch {
-      set({ isSubmitting: false });
+      set({ isSubmitting: false, submissionPhase: "idle" });
       return {
         success: false,
         error: "Terjadi kesalahan sistem saat memverifikasi data.",

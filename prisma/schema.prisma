@@ -72,9 +72,14 @@ model MemberProfile {
   joinDate       DateTime  @default(now())
   status         String    @default("PENDING") // PENDING, APPROVED, REJECTED, SUSPENDED
   adminNotes     String?   @db.Text            // Catatan admin saat reject/suspend
+  suspendedUntil DateTime?                     // Batas durasi pembekuan (opsional)
   
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+
+  // Relasi riwayat verifikasi & perubahan status
+  rejectionHistories    RejectionHistory[]
+  statusChangeHistories StatusChangeHistory[]
 
   // Indeks untuk filter status, sorting joinDate, angkatan, fakultas, dan updatedAt
   @@index([status])
@@ -83,6 +88,40 @@ model MemberProfile {
   @@index([batchYear])
   @@index([faculty, major])
   @@index([status, joinDate])
+  @@index([status, suspendedUntil])
+}
+
+// ----------------------------------------------------
+// 2B. RIWAYAT PENOLAKAN PENDAFTARAN (REJECTION HISTORY)
+// ----------------------------------------------------
+model RejectionHistory {
+  id              String        @id @default(cuid())
+  memberProfileId String
+  memberProfile   MemberProfile @relation(fields: [memberProfileId], references: [id], onDelete: Cascade)
+  reason          String        @db.Text
+  rejectedByName  String?
+  rejectedAt      DateTime      @default(now())
+
+  @@index([memberProfileId, rejectedAt])
+}
+
+// ----------------------------------------------------
+// 2C. RIWAYAT PERUBAHAN STATUS ANGGOTA (AUDIT TRAIL)
+// ----------------------------------------------------
+model StatusChangeHistory {
+  id              String        @id @default(cuid())
+  memberProfileId String
+  memberProfile   MemberProfile @relation(fields: [memberProfileId], references: [id], onDelete: Cascade)
+  previousStatus  String
+  newStatus       String
+  reason          String?       @db.Text
+  suspendedUntil  DateTime?
+  changedById     String?
+  changedByName   String?
+  changedByRole   String?
+  changedAt       DateTime      @default(now())
+
+  @@index([memberProfileId, changedAt])
 }
 
 // ----------------------------------------------------

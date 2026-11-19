@@ -112,7 +112,7 @@ export default function AdminHeader() {
         </div>
 
         <div className="flex items-center gap-2.5 sm:gap-3.5 flex-1 lg:flex-initial justify-end min-w-0">
-          <form
+          {/* <form
             onSubmit={handleSearchSubmit}
             role="search"
             className="relative flex items-center w-full max-w-[230px] sm:w-64 md:w-72"
@@ -129,7 +129,7 @@ export default function AdminHeader() {
               aria-label="Cari pendaftar berdasarkan nama atau NIM"
               className="w-full min-h-[44px] pl-10 pr-3 py-2 text-sm bg-[#f8fafc] dark:bg-[#1a2723] text-[#191c1e] dark:text-[#eef2f4] placeholder:text-[#52606d] dark:placeholder:text-[#94a89e] border border-[#cbd5e1] dark:border-[#5f736b] rounded-lg focus:outline-none focus:bg-white dark:focus:bg-[#131d1a] focus:border-[#006c49] dark:focus:border-[#34d399] focus:ring-2 focus:ring-[#006c49]/15 dark:focus:ring-[#34d399]/25 transition-colors"
             />
-          </form>
+          </form> */}
 
           <ThemeToggle />
 

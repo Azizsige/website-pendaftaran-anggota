@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { ArrowRight, RefreshCw, Users } from "lucide-react";
 import { LoadingWaveDots } from "@/components/ui/loading-wave-dots";
+import { MemberAvatar } from "@/components/ui/member-avatar";
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 import { formatDate } from "@/lib/format";
 import type { MemberProfileWithUser } from "@/types/member";
 
@@ -46,14 +48,6 @@ function getStatusBadge(status: string): {
     label: status,
     className: "bg-[#f1f5f9] dark:bg-[#1e2d28] text-[#475569] dark:text-[#cbd6d0]",
   };
-}
-
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase() || "CA";
 }
 
 export default function RecentApplicantsCard({
@@ -143,8 +137,9 @@ export default function RecentApplicantsCard({
           </div>
         </div>
       ) : (
-        <div
-          className={`overflow-x-auto transition-opacity duration-150 ${
+        <CustomScrollArea
+          axis="x"
+          className={`transition-opacity duration-150 ${
             isLoading ? "opacity-60" : "opacity-100"
           }`}
         >
@@ -186,9 +181,11 @@ export default function RecentApplicantsCard({
                   >
                     <td className="px-5 sm:px-6 py-3.5">
                       <div className="flex items-center gap-3 min-w-[200px]">
-                        <div className="w-9 h-9 rounded-full bg-[#e6f4ee] dark:bg-[#0a3326] text-[#005236] dark:text-[#6ee7b7] font-bold text-xs flex items-center justify-center shrink-0">
-                          {getInitials(applicantName)}
-                        </div>
+                        <MemberAvatar
+                          src={item.photoUrl}
+                          name={applicantName}
+                          fallbackInitials="CA"
+                        />
                         <div className="min-w-0">
                           <p className="font-semibold text-[#191c1e] dark:text-[#eef2f4] truncate">
                             {applicantName}
@@ -234,7 +231,7 @@ export default function RecentApplicantsCard({
               })}
             </tbody>
           </table>
-        </div>
+        </CustomScrollArea>
       )}
     </section>
   );

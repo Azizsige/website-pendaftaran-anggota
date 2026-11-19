@@ -8,6 +8,8 @@ export interface IdCardFormData {
   kta_bg_front_url: string;
   kta_bg_back_url: string;
   kta_org_name: string;
+  kta_org_subtitle: string;
+  kta_period_label: string;
   kta_member_prefix: string;
   kta_validity_months: string;
   kta_show_photo: string;
@@ -20,6 +22,7 @@ export interface IdCardFormData {
   kta_show_qr: string;
   kta_signature_url: string;
   kta_signature_name: string;
+  kta_signature_title: string;
   kta_terms: string; // JSON string of string[]
 }
 
@@ -43,25 +46,27 @@ export const useIdCardSettingStore = create<IdCardSettingStore>((set, get) => ({
   formData: {
     kta_bg_front_url: '',
     kta_bg_back_url: '',
-    kta_org_name: 'BEM FT UNSRI',
+    kta_org_name: 'BEM Fakultas Ilmu Komputer',
+    kta_org_subtitle: '',
+    kta_period_label: '2026/2027',
     kta_member_prefix: 'BEM-2026-',
     kta_validity_months: '12',
     kta_show_photo: 'true',
     kta_show_name: 'true',
     kta_show_nim: 'true',
     kta_show_member_id: 'true',
-    kta_show_faculty: 'false',
-    kta_show_major: 'false',
+    kta_show_faculty: 'true',
+    kta_show_major: 'true',
     kta_show_validity: 'true',
     kta_show_qr: 'true',
     kta_signature_url: '',
-    kta_signature_name: 'M. Hafiz Al-Fath',
+    kta_signature_name: 'Nama Penanda Tangan',
+    kta_signature_title: 'Ketua Umum',
     kta_terms: JSON.stringify([
-      "Kartu ini merupakan identitas resmi anggota Badan Eksekutif Mahasiswa Fakultas Teknik Universitas Sriwijaya.",
-      "Kartu wajib digunakan dan ditunjukkan selama menjadi pengurus maupun mengikuti kegiatan resmi organisasi.",
-      "Kartu tidak boleh dipindahtangankan atau disalahgunakan oleh pihak lain dalam bentuk apapun.",
-      "Jika kartu hilang atau rusak, segera laporkan kepada Sekretariat BEM FT UNSRI untuk penerbitan ulang.",
-      "Kartu harus dikembalikan atau dinonaktifkan apabila masa kepengurusan/keanggotaan telah berakhir."
+      "Kartu Tanda Anggota (KTA) ini sah dan merupakan bukti keanggotaan aktif organisasi.",
+      "Kartu wajib digunakan saat mengikuti kegiatan resmi dan tidak dapat dipindahtangankan.",
+      "Penyalahgunaan kartu dapat dikenakan sanksi sesuai ketentuan organisasi.",
+      "Jika kartu hilang atau rusak, segera laporkan ke Sekretariat organisasi untuk penerbitan ulang."
     ]),
   },
   isLoading: true,
@@ -77,7 +82,7 @@ export const useIdCardSettingStore = create<IdCardSettingStore>((set, get) => ({
         const data = get().formData;
         const newFormData = { ...data };
         let loadedFront = null, loadedBack = null, loadedSignature = null;
-        
+
         res.data.forEach((setting) => {
           if (setting.key in newFormData) {
             newFormData[setting.key as keyof IdCardFormData] = setting.value;
@@ -153,7 +158,7 @@ export const useIdCardSettingStore = create<IdCardSettingStore>((set, get) => ({
         toast.success("Pengaturan ID Card berhasil disimpan");
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else toast.error(res.message || "Gagal menyimpan pengaturan");
-    } catch (error) {
+    } catch {
       toast.error("Terjadi kesalahan sistem");
     } finally {
       set({ isSaving: false });

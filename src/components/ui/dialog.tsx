@@ -3,6 +3,7 @@
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 import { cn } from "@/lib/utils";
 
 const Dialog = DialogPrimitive.Root;
@@ -32,22 +33,37 @@ DialogOverlay.displayName = "DialogOverlay";
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-1/2 top-1/2 z-[121] max-h-[90vh] w-[calc(100%-2rem)] max-w-[520px] -translate-x-1/2 -translate-y-1/2",
-        "overflow-y-auto no-scrollbar rounded-2xl border border-outline-variant/20 dark:border-[#3c4d46] bg-white dark:bg-[#131d1a] dark:text-[#eef2f4] shadow-2xl focus:outline-none animate-fade-in",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </DialogPrimitive.Content>
-  </DialogPortal>
-));
+>(({ className, children, ...props }, ref) => {
+  const isCustomScroll =
+    typeof className === "string" &&
+    (className.includes("overflow-hidden") || className.includes("bg-transparent"));
+
+  return (
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          "fixed left-1/2 top-1/2 z-[121] max-h-[90vh] w-[calc(100%-2rem)] max-w-[520px] -translate-x-1/2 -translate-y-1/2",
+          "flex flex-col overflow-hidden rounded-2xl border border-outline-variant/20 dark:border-[#3c4d46] bg-white dark:bg-[#131d1a] dark:text-[#eef2f4] shadow-2xl focus:outline-none animate-fade-in",
+          className
+        )}
+        {...props}
+      >
+        {isCustomScroll ? (
+          children
+        ) : (
+          <CustomScrollArea
+            className="max-h-[calc(90vh-2px)] min-h-0 w-full flex-1"
+            contentClassName="w-full"
+          >
+            {children}
+          </CustomScrollArea>
+        )}
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  );
+});
 DialogContent.displayName = "DialogContent";
 
 const DialogTitle = React.forwardRef<

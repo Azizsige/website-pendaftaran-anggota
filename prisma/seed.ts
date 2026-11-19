@@ -87,16 +87,19 @@ async function main() {
     { key: 'kta_bg_front_url', value: '' },
     { key: 'kta_bg_back_url', value: '' },
     { key: 'kta_org_name', value: 'BEM Fakultas Ilmu Komputer' },
+    { key: 'kta_org_subtitle', value: '' },
+    { key: 'kta_period_label', value: '2026/2027' },
     { key: 'kta_member_prefix', value: 'BEM-24-' },
     { key: 'kta_validity_months', value: '12' },
     { key: 'kta_show_photo', value: 'true' },
     { key: 'kta_show_name', value: 'true' },
     { key: 'kta_show_nim', value: 'true' },
     { key: 'kta_show_member_id', value: 'true' },
-    { key: 'kta_show_faculty', value: 'false' },
-    { key: 'kta_show_major', value: 'false' },
+    { key: 'kta_show_faculty', value: 'true' },
+    { key: 'kta_show_major', value: 'true' },
     { key: 'kta_show_validity', value: 'true' },
     { key: 'kta_show_qr', value: 'true' },
+    { key: 'kta_signature_title', value: 'Ketua Umum' },
   ];
 
   for (const setting of ktaSettings) {

@@ -7,6 +7,7 @@ import { ROLES } from "@/lib/constants/roles";
 import { USER_STATUS } from "@/lib/constants/status";
 
 export const OWNER_DEVICE_COOKIE = "owner_device_lock";
+export const OWNER_DEVICE_IP_COOKIE = "owner_device_ip";
 
 export interface OwnerIpAccessResult {
   allowed: boolean;
@@ -80,10 +81,21 @@ export async function getDetectedClientIp(): Promise<string> {
   }
 }
 
+function getDeviceSigningKey(): string {
+  return process.env.NEXTAUTH_SECRET?.trim() || "owner-device-signing-fallback";
+}
+
 export function computeOwnerDeviceToken(secret: string): string {
-  const signingKey =
-    process.env.NEXTAUTH_SECRET?.trim() || "owner-device-signing-fallback";
-  return crypto.createHmac("sha256", signingKey).update(secret).digest("hex");
+  return crypto.createHmac("sha256", getDeviceSigningKey()).update(secret).digest("hex");
+}
+
+export function computeOwnerAuthorizedIpToken(secret: string, ip: string): string {
+  const normalizedIp = normalizeIp(ip);
+  const mac = crypto
+    .createHmac("sha256", getDeviceSigningKey())
+    .update(`ip:${normalizedIp}:${secret}`)
+    .digest("hex");
+  return `${normalizedIp}.${mac}`;
 }
 
 export function timingSafeEqualStrings(a: string, b: string): boolean {
@@ -93,8 +105,38 @@ export function timingSafeEqualStrings(a: string, b: string): boolean {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
+export function verifyOwnerAuthorizedIpToken(secret: string, token: string): boolean {
+  const lastDot = token.lastIndexOf(".");
+  if (lastDot <= 0) return false;
+  const ipPart = token.slice(0, lastDot);
+  if (!ipPart) return false;
+  const expected = computeOwnerAuthorizedIpToken(secret, ipPart);
+  return timingSafeEqualStrings(token, expected);
+}
+
+async function hasValidOwnerDeviceCookie(deviceSecret: string): Promise<boolean> {
+  if (!deviceSecret) return false;
+  try {
+    const cookieStore = await cookies();
+    const deviceToken = cookieStore.get(OWNER_DEVICE_COOKIE)?.value ?? "";
+    const ipToken = cookieStore.get(OWNER_DEVICE_IP_COOKIE)?.value ?? "";
+    const expectedDeviceToken = computeOwnerDeviceToken(deviceSecret);
+
+    const validDevice =
+      deviceToken.length > 0 &&
+      timingSafeEqualStrings(deviceToken, expectedDeviceToken);
+    const validIpCookie =
+      ipToken.length > 0 && verifyOwnerAuthorizedIpToken(deviceSecret, ipToken);
+
+    return validDevice || validIpCookie;
+  } catch {
+    return false;
+  }
+}
+
 /**
- * Memvalidasi daftar IP yang diizinkan untuk akun OWNER dari OWNER_ALLOWED_IPS.
+ * Memvalidasi daftar IP yang diizinkan untuk akun OWNER dari OWNER_ALLOWED_IPS
+ * atau browser yang sudah diaktivasi melalui /api/auth/owner-device.
  */
 export async function verifyOwnerIpAccess(): Promise<OwnerIpAccessResult> {
   const allowedIpsRaw = process.env.OWNER_ALLOWED_IPS?.trim() ?? "";
@@ -111,8 +153,15 @@ export async function verifyOwnerIpAccess(): Promise<OwnerIpAccessResult> {
     .filter(Boolean);
   const isDevLoopback =
     process.env.NODE_ENV !== "production" && isLoopbackIp(currentIp);
-  const allowed =
+  let allowed =
     isDevLoopback || patterns.some((pattern) => isIpMatch(currentIp, pattern));
+
+  if (!allowed) {
+    const deviceSecret = process.env.OWNER_DEVICE_SECRET?.trim() ?? "";
+    if (deviceSecret && (await hasValidOwnerDeviceCookie(deviceSecret))) {
+      allowed = true;
+    }
+  }
 
   return { allowed, currentIp, ipRestrictionEnabled };
 }

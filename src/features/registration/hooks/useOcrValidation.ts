@@ -27,28 +27,37 @@ export function useOcrValidation({
   onValidationChange,
   onValidationStatusChange,
 }: UseOcrValidationProps) {
-  const [validationStatus, setValidationStatus] =
-    useState<ValidationStatusType>("IDLE");
+  const [validationStatus, setValidationStatus] = useState<ValidationStatusType>(
+    reqKtm && fotoKTM ? "VALIDATING" : "SUCCESS"
+  );
   const [validationError, setValidationError] = useState<string>("");
 
   const onValidationStatusChangeRef = useRef(onValidationStatusChange);
-  onValidationStatusChangeRef.current = onValidationStatusChange;
-
   const onValidationChangeRef = useRef(onValidationChange);
-  onValidationChangeRef.current = onValidationChange;
+
+  useEffect(() => {
+    onValidationStatusChangeRef.current = onValidationStatusChange;
+    onValidationChangeRef.current = onValidationChange;
+  }, [onValidationStatusChange, onValidationChange]);
 
   useEffect(() => {
     onValidationStatusChangeRef.current?.(validationStatus);
   }, [validationStatus]);
 
   useEffect(() => {
-    if (!reqKtm || !fotoKTM) {
-      setValidationStatus("SUCCESS");
-      onValidationChangeRef.current?.(true);
-      return;
-    }
-
     let isMounted = true;
+
+    if (!reqKtm || !fotoKTM) {
+      const skipTimer = window.setTimeout(() => {
+        if (!isMounted) return;
+        setValidationStatus("SUCCESS");
+        onValidationChangeRef.current?.(true);
+      }, 0);
+      return () => {
+        isMounted = false;
+        window.clearTimeout(skipTimer);
+      };
+    }
 
     const validateWithOCR = async () => {
       if (isMounted) {
@@ -136,21 +145,25 @@ export function useOcrValidation({
 
     validateWithOCR();
 
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Wait briefly so Step 3's scroll-to-top settles before scrolling to the AI verification panel.
+    const scrollTimer = window.setTimeout(() => {
+      if (!isMounted) return;
+      document.getElementById("ktm-loading-section")?.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "center",
+      });
+    }, 600);
+
     return () => {
       isMounted = false;
+      window.clearTimeout(scrollTimer);
     };
   }, [fotoKTM, nim, reqKtm]);
-
-  useEffect(() => {
-    if (validationStatus === "VALIDATING") {
-      setTimeout(() => {
-        const el = document.getElementById("ktm-loading-section");
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      }, 1500);
-    }
-  }, [validationStatus]);
 
   return {
     validationStatus,

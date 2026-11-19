@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { CheckCircle2, Loader2, User, X, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, X, XCircle } from "lucide-react";
 
 import type { Applicant } from "../types";
 import { formatId } from "../utils";
+import { MemberAvatar } from "@/components/ui/member-avatar";
+import { RejectionHistorySection } from "@/components/shared/RejectionHistorySection";
+import { StatusHistorySection } from "@/components/shared/StatusHistorySection";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatDateTime } from "@/lib/format";
 import {
@@ -17,6 +20,7 @@ import {
 import { ApplicantInfoCard } from "./applicant-detail/ApplicantInfoCard";
 import { ApplicantDocumentsCard } from "./applicant-detail/ApplicantDocumentsCard";
 import { ApplicantNotesCard } from "./applicant-detail/ApplicantNotesCard";
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 import { ImageLightbox } from "./applicant-detail/ImageLightbox";
 
 type Props = {
@@ -47,6 +51,10 @@ export default function ApplicantDetailModal({
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   const handleSaveNotes = () => {
+    if (applicant.status === "REJECTED") {
+      setIsEditingNotes(false);
+      return;
+    }
     if (onSaveNotes) onSaveNotes(applicant.id, tempNotes);
     setIsEditingNotes(false);
   };
@@ -84,9 +92,12 @@ export default function ApplicantDetailModal({
 
           <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[#e2e8f0] bg-white px-6 py-5 dark:border-[#3c4d46] dark:bg-[#131d1a]">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#006c49]/15 bg-[#e6f4ee] text-[#005236] dark:border-[#34d399]/35 dark:bg-[#0a3326] dark:text-[#6ee7b7]">
-                <User className="h-5 w-5" aria-hidden />
-              </div>
+              <MemberAvatar
+                src={applicant.photoUrl}
+                name={applicant.user.name}
+                fallbackInitials="CA"
+                sizeClass="h-11 w-11 rounded-xl"
+              />
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <DialogTitle className="text-lg font-bold tracking-tight text-[#0f172a] dark:text-[#eef2f4]">
@@ -114,7 +125,10 @@ export default function ApplicantDetailModal({
             </DialogClose>
           </div>
 
-          <div className="no-scrollbar flex-1 space-y-6 overflow-y-auto bg-[#f8fafc] p-6 text-left dark:bg-[#0d1412]">
+          <CustomScrollArea
+          className="flex-1 min-h-0 bg-[#f8fafc] dark:bg-[#0d1412]"
+          contentClassName="space-y-6 p-6 text-left"
+        >
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
               <div className="space-y-5 lg:col-span-5">
                 <ApplicantInfoCard applicant={applicant} />
@@ -135,12 +149,22 @@ export default function ApplicantDetailModal({
                   onCancelEditing={handleCancelNotes}
                   onSaveNotes={handleSaveNotes}
                   isPending={isPending}
+                  applicantStatus={applicant.status}
                   titleMode={titleMode}
                   userRole={userRole}
                 />
+
+                <RejectionHistorySection
+                  items={applicant.rejectionHistories ?? []}
+                  variant="admin"
+                />
+
+                <StatusHistorySection
+                  items={applicant.statusChangeHistories ?? []}
+                />
               </div>
             </div>
-          </div>
+          </CustomScrollArea>
 
           <div className="flex shrink-0 flex-col items-center justify-between gap-3 border-t border-[#e2e8f0] bg-white px-6 py-4 sm:flex-row dark:border-[#3c4d46] dark:bg-[#131d1a]">
             <div className="flex-1" />

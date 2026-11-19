@@ -1,6 +1,7 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { normalizeIndonesianPhone } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/status-badge";
 
 export function formatRegistrationId(id: string): string {
@@ -29,7 +30,7 @@ export function PersonSummary({
   status,
   className,
 }: PersonSummaryProps) {
-  const displayPhone = phone || phoneNumber;
+  const displayPhone = normalizeIndonesianPhone(phone || phoneNumber);
   const initials =
     name
       ?.trim()

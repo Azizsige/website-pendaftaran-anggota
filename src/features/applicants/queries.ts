@@ -2,6 +2,12 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth/guards";
 import { Prisma } from "@prisma/client";
 import { logger } from "@/lib/logger";
+import { getRejectionHistoryMap } from "@/lib/rejection-history";
+import {
+  expireElapsedSuspensions,
+  getStatusHistoryMap,
+  getSuspendedUntilMap,
+} from "@/lib/status-history";
 import type { Applicant } from "./types";
 
 export interface GetApplicantsResult {
@@ -19,6 +25,8 @@ export async function getApplicants(
 ): Promise<GetApplicantsResult> {
   await requireAdmin();
   try {
+    await expireElapsedSuspensions();
+
     const whereClause: Prisma.MemberProfileWhereInput = {};
 
     if (status !== "all") {
@@ -53,8 +61,20 @@ export async function getApplicants(
       }),
     ]);
 
+    const applicantIds = applicants.map((applicant) => applicant.id);
+    const [historyMap, statusHistoryMap, suspendedUntilMap] = await Promise.all([
+      getRejectionHistoryMap(applicantIds),
+      getStatusHistoryMap(applicantIds),
+      getSuspendedUntilMap(applicantIds),
+    ]);
+
     return {
-      data: applicants,
+      data: applicants.map((applicant) => ({
+        ...applicant,
+        suspendedUntil: suspendedUntilMap.get(applicant.id) ?? null,
+        rejectionHistories: historyMap.get(applicant.id) ?? [],
+        statusChangeHistories: statusHistoryMap.get(applicant.id) ?? [],
+      })),
       totalCount,
       totalPages: Math.ceil(totalCount / limit),
       currentPage: page,

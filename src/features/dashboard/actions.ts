@@ -222,6 +222,7 @@ export async function getDashboardData({
         faculty: true,
         major: true,
         batchYear: true,
+        photoUrl: true,
         joinDate: true,
         status: true,
         adminNotes: true,
@@ -315,7 +316,6 @@ export async function getDashboardData({
 
   const recentApplicants: MemberProfileWithUser[] = recentApplicantRows.map((row) => ({
     ...row,
-    photoUrl: null,
     ktmImageUrl: null,
     documentUrl: null,
     ktmHash: null,

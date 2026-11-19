@@ -148,6 +148,8 @@ export async function updateMultipleSettings(settings: {key: string, value: stri
     });
 
     revalidatePath('/'); // Revalidate public landing page
+    revalidatePath('/cek-status');
+    revalidatePath('/verifikasi');
     revalidatePath('/admin/logs');
     return { success: true, message: "Semua pengaturan berhasil disimpan.", data: result };
   } catch (error) {

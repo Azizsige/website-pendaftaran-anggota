@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatIndonesianPhoneInput } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { FormData, Errors, FAKULTAS_LIST, ANGKATAN_LIST, inputClasses } from "../types";
 
@@ -76,23 +76,24 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
             <label className="block font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[4px]">
               Phone Number <span className="text-[#ba1a1a] dark:text-[#f87171]">*</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#3c4a42] dark:text-[#94a89e] text-[14px] font-sans">+62</span>
-              <input
-                type="tel"
-                placeholder="812-3456-7890"
-                maxLength={15}
-                value={formData.noTelepon}
-                onChange={(e) => {
-                  let val = e.target.value.replace(/\D/g, '').substring(0, 13);
-                  let formatted = val;
-                  if (val.length > 3 && val.length <= 7) formatted = `${val.slice(0, 3)}-${val.slice(3)}`;
-                  else if (val.length > 7) formatted = `${val.slice(0, 3)}-${val.slice(3, 7)}-${val.slice(7)}`;
-                  updateField("noTelepon", formatted);
-                }}
-                className={inputClasses(!!errors.noTelepon) + " pl-[44px]"}
-              />
-            </div>
+            <input
+              type="tel"
+              placeholder="0812-3456-7890"
+              maxLength={16}
+              value={formData.noTelepon}
+              onChange={(e) => {
+                updateField("noTelepon", formatIndonesianPhoneInput(e.target.value));
+              }}
+              onBlur={(e) => {
+                const normalized = formatIndonesianPhoneInput(e.target.value, {
+                  ensureLeadingZero: true,
+                });
+                if (normalized !== formData.noTelepon) {
+                  updateField("noTelepon", normalized);
+                }
+              }}
+              className={inputClasses(!!errors.noTelepon) + " tabular-nums"}
+            />
             {errors.noTelepon && <p className="text-[14px] text-[#ba1a1a] dark:text-[#fca5a5] mt-[4px]">{errors.noTelepon}</p>}
           </div>
           <div>
@@ -115,6 +116,7 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
+                  type="button"
                   variant="outline"
                   className={cn(
                     "w-full min-h-[44px] justify-start text-left font-normal h-auto py-[10px] px-[16px] rounded-[10px] border text-[#191c1e] dark:text-[#eef2f4]",
@@ -132,6 +134,7 @@ export default function StepDataDiri({ formData, errors, updateField, firstInput
                   captionLayout="dropdown"
                   fromYear={1970}
                   toYear={new Date().getFullYear()}
+                  defaultMonth={formData.tanggalLahir ? new Date(formData.tanggalLahir) : undefined}
                   selected={formData.tanggalLahir ? new Date(formData.tanggalLahir) : undefined}
                   onSelect={(date: Date | undefined) => {
                     if (date) {

@@ -28,8 +28,8 @@ const STATUS_CONFIG: Record<string, BadgeConfig> = {
   },
   [MEMBER_STATUS.SUSPENDED]: {
     label: "Dibekukan",
-    className: "bg-[#fef2f2] dark:bg-[#3b1214] text-[#991b1b] dark:text-[#fca5a5] border-[#ef4444]/25 dark:border-[#f87171]/35",
-    dot: "bg-[#dc2626] dark:bg-[#f87171]",
+    className: "bg-[#fff7ed] dark:bg-[#431407] text-[#9a3412] dark:text-[#fdba74] border-[#f97316]/35 dark:border-[#fb923c]/40",
+    dot: "bg-[#ea580c] dark:bg-[#fb923c]",
   },
   [MEMBER_STATUS.REJECTED]: {
     label: "Ditolak",

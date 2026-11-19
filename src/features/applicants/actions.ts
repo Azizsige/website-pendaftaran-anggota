@@ -3,8 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireManager, requireSuperAdmin } from "@/lib/auth/guards";
-import { safeAction, ok } from "@/lib/action-result";
+import { safeAction, ok, fail } from "@/lib/action-result";
 import { ACTIVITY_ACTIONS, recordActivityLog } from "@/lib/activity-log";
+import { ROLES } from "@/lib/constants/roles";
+import { recordRejectionHistory } from "@/lib/rejection-history";
+import {
+  recordStatusChange,
+  setMemberSuspendedUntil,
+} from "@/lib/status-history";
 import { type MemberStatus } from "@/lib/constants/status";
 
 function resolveApplicantAction(newStatus: string): string {
@@ -21,10 +27,25 @@ function formatApplicantTarget(name: string | null | undefined, nim: string): st
 export async function updateApplicantStatus(
   id: string, 
   newStatus: Extract<MemberStatus, "ACTIVE" | "REJECTED" | "PENDING" | "SUSPENDED">, 
-  notes?: string
+  notes?: string,
+  suspendedUntil?: string | null
 ) {
   return safeAction("updateApplicantStatus", async () => {
     const admin = await requireManager();
+
+    const trimmedNotes = notes?.trim();
+    if (newStatus === "SUSPENDED" && !trimmedNotes) {
+      return fail("Alasan pembekuan wajib diisi.");
+    }
+
+    let parsedUntil: Date | null = null;
+    if (newStatus === "SUSPENDED" && suspendedUntil) {
+      const candidate = new Date(suspendedUntil);
+      if (Number.isNaN(candidate.getTime()) || candidate <= new Date()) {
+        return fail("Durasi pembekuan harus berupa tanggal di masa depan.");
+      }
+      parsedUntil = candidate;
+    }
 
     const profile = await prisma.memberProfile.findUnique({
       where: { id },
@@ -39,7 +60,6 @@ export async function updateApplicantStatus(
     if (!profile) throw new Error("Applicant not found");
 
     const targetLabel = formatApplicantTarget(profile.user?.name, profile.nim);
-    const trimmedNotes = notes?.trim();
     const notesInfo = trimmedNotes ? `, catatan: ${trimmedNotes}` : "";
 
     await prisma.$transaction(async (tx) => {
@@ -51,6 +71,11 @@ export async function updateApplicantStatus(
           ...(notes !== undefined && { adminNotes: notes }),
         },
       });
+      await setMemberSuspendedUntil(
+        id,
+        newStatus === "SUSPENDED" ? parsedUntil : null,
+        tx
+      );
 
       // Update User based on status
       if (newStatus === "ACTIVE") {
@@ -69,6 +94,32 @@ export async function updateApplicantStatus(
           },
         });
       }
+
+      if (newStatus === "REJECTED") {
+        await recordRejectionHistory(
+          {
+            memberProfileId: id,
+            reason: trimmedNotes || "Pendaftaran ditolak oleh panitia.",
+            rejectedByName:
+              admin.role === ROLES.OWNER ? "Panitia" : admin.name || "Panitia",
+          },
+          tx
+        );
+      }
+
+      await recordStatusChange(
+        {
+          memberProfileId: id,
+          previousStatus: profile.status,
+          newStatus,
+          reason: trimmedNotes ?? null,
+          suspendedUntil: newStatus === "SUSPENDED" ? parsedUntil : null,
+          changedById: admin.id,
+          changedByName: admin.name || admin.email || "Pengurus",
+          changedByRole: admin.role,
+        },
+        tx
+      );
 
       await recordActivityLog(
         {
@@ -91,6 +142,16 @@ export async function updateApplicantStatus(
 export async function updateAdminNotes(id: string, notes: string) {
   return safeAction("updateAdminNotes", async () => {
     const admin = await requireManager();
+
+    const existing = await prisma.memberProfile.findUnique({
+      where: { id },
+      select: { status: true },
+    });
+
+    if (!existing) return fail("Calon anggota tidak ditemukan.");
+    if (existing.status === "REJECTED") {
+      return fail("Catatan admin bersifat hanya-baca setelah pendaftaran ditolak.");
+    }
 
     const updated = await prisma.memberProfile.update({
       where: { id },

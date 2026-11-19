@@ -1,6 +1,7 @@
 import { startOfDay, endOfDay } from "date-fns";
 import { getReportMembers } from "../actions";
 import { DateRange } from "react-day-picker";
+import { normalizeIndonesianPhone } from "@/lib/format";
 import { logger } from "@/lib/logger";
 
 interface UseReportExportProps {
@@ -27,8 +28,8 @@ export function useReportExport({ date, status, faculty }: UseReportExportProps)
       const autoTableModule = await import("jspdf-autotable");
       const autoTable = autoTableModule.default;
 
-      let dateFrom = date?.from ? startOfDay(date.from) : undefined;
-      let dateTo = date?.to ? endOfDay(date.to) : dateFrom ? endOfDay(dateFrom) : undefined;
+      const dateFrom = date?.from ? startOfDay(date.from) : undefined;
+      const dateTo = date?.to ? endOfDay(date.to) : dateFrom ? endOfDay(dateFrom) : undefined;
       const res = await getReportMembers(status, faculty, dateFrom, dateTo, 1, 10000);
       const allMembers = res.data;
 
@@ -91,10 +92,7 @@ export function useReportExport({ date, status, faculty }: UseReportExportProps)
       const tableRows: (string | number)[][] = [];
 
       allMembers.forEach((member) => {
-        let phone = member.phoneNumber || "";
-        if (phone.startsWith("8")) phone = "0" + phone;
-        else if (phone.startsWith("62")) phone = "0" + phone.slice(2);
-        else if (phone.startsWith("+62")) phone = "0" + phone.slice(3);
+        const phone = normalizeIndonesianPhone(member.phoneNumber);
 
         const formattedDate =
           new Date(member.joinDate).toLocaleString("id-ID", {
@@ -109,12 +107,12 @@ export function useReportExport({ date, status, faculty }: UseReportExportProps)
           member.status === "ACTIVE" || member.status === "APPROVED"
             ? "Aktif"
             : member.status === "INACTIVE"
-            ? "Tidak Aktif"
-            : member.status === "PENDING"
-            ? "Menunggu"
-            : member.status === "SUSPENDED"
-            ? "Dibekukan"
-            : "Ditolak";
+              ? "Tidak Aktif"
+              : member.status === "PENDING"
+                ? "Menunggu"
+                : member.status === "SUSPENDED"
+                  ? "Dibekukan"
+                  : "Ditolak";
 
         tableRows.push([
           formattedDate,

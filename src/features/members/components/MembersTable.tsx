@@ -4,8 +4,9 @@ import React from "react";
 
 import { ActionDropdown } from "./ActionDropdown";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { MemberAvatar } from "@/components/ui/member-avatar";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { formatDate } from "@/lib/format";
+import { formatDate, normalizeIndonesianPhone } from "@/lib/format";
 import type { MemberWithUser } from "../types";
 
 interface MembersTableProps {
@@ -24,16 +25,6 @@ interface MembersTableProps {
   ) => void;
   onDelete: (member: MemberWithUser) => void;
   footer?: React.ReactNode;
-}
-
-function getInitials(name?: string | null): string {
-  if (!name?.trim()) return "AG";
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
 }
 
 export function MembersTable({
@@ -72,12 +63,11 @@ export function MembersTable({
       headerClassName: "min-w-[220px]",
       cell: (member) => (
         <div className="flex items-center gap-3">
-          <div
-            aria-hidden
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#006c49]/15 bg-[#e6f4ee] text-xs font-semibold text-[#005236] dark:border-[#34d399]/35 dark:bg-[#0a3326] dark:text-[#6ee7b7]"
-          >
-            {getInitials(member.user?.name)}
-          </div>
+          <MemberAvatar
+            src={member.photoUrl}
+            name={member.user?.name}
+            fallbackInitials="AG"
+          />
           <div className="flex min-w-0 flex-col gap-0.5">
             <span className="truncate font-medium text-[#0f172a] dark:text-[#eef2f4]">
               {member.user?.name || "Tanpa Nama"}
@@ -99,9 +89,7 @@ export function MembersTable({
             {member.nim || "-"}
           </span>
           <span className="text-xs text-[#64748b] tabular-nums dark:text-[#94a89e]">
-            {member.phoneNumber
-              ? member.phoneNumber.replace(/\D/g, "").replace(/^62/, "0")
-              : "-"}
+            {normalizeIndonesianPhone(member.phoneNumber) || "-"}
           </span>
         </div>
       ),
@@ -134,7 +122,16 @@ export function MembersTable({
       key: "status",
       header: "Status",
       headerClassName: "w-36 min-w-[140px]",
-      cell: (member) => <StatusBadge status={member.status} />,
+      cell: (member) => (
+        <div className="flex flex-col gap-1">
+          <StatusBadge status={member.status} />
+          {member.status === "SUSPENDED" && member.suspendedUntil && (
+            <span className="text-[11px] font-medium text-[#9a3412] tabular-nums dark:text-[#fdba74]">
+              Hingga {formatDate(member.suspendedUntil)}
+            </span>
+          )}
+        </div>
+      ),
     },
     {
       key: "actions",

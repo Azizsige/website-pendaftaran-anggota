@@ -5,6 +5,7 @@ import React from "react";
 import ApplicantDetailModal from "@/features/applicants/components/ApplicantDetailModal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PersonSummary } from "@/components/admin/PersonSummary";
+import { SuspendReasonDialog } from "@/components/admin/SuspendReasonDialog";
 import type { MemberWithUser } from "../types";
 import type { ConfirmActionType } from "../hooks/useMembers";
 
@@ -14,7 +15,10 @@ interface MembersModalsProps {
   selectedConfirmMember: MemberWithUser | null;
   confirmAction: ConfirmActionType;
   onCloseConfirm: () => void;
-  onConfirmAction: (id: string) => void;
+  onConfirmAction: (
+    id: string,
+    options?: { reason?: string; suspendedUntil?: string | null }
+  ) => void;
   selectedDeleteMember: MemberWithUser | null;
   onCloseDelete: () => void;
   onConfirmDelete: (id: string) => void;
@@ -44,66 +48,69 @@ export function MembersModals({
         />
       )}
 
-      {selectedConfirmMember && confirmAction && (
-        <ConfirmDialog
+      {selectedConfirmMember && confirmAction === "SUSPEND" && (
+        <SuspendReasonDialog
+          key={selectedConfirmMember.id}
           open={true}
-          onOpenChange={(open) => {
-            if (!open) onCloseConfirm();
+          onClose={onCloseConfirm}
+          person={{
+            id: selectedConfirmMember.id,
+            name: selectedConfirmMember.user?.name,
+            email: selectedConfirmMember.user?.email,
+            phoneNumber: selectedConfirmMember.phoneNumber,
+            status: selectedConfirmMember.status,
           }}
-          tone={
-            confirmAction === "ACTIVATE"
-              ? "primary"
-              : confirmAction === "INACTIVE"
-              ? "neutral"
-              : "danger"
-          }
-          icon={
-            confirmAction === "ACTIVATE"
-              ? "check_circle"
-              : confirmAction === "INACTIVE"
-              ? "person_off"
-              : "block"
-          }
-          title={
-            confirmAction === "ACTIVATE"
-              ? "Aktifkan Anggota?"
-              : confirmAction === "INACTIVE"
-              ? "Nonaktifkan Anggota?"
-              : "Bekukan Anggota?"
-          }
-          description={
-            confirmAction === "ACTIVATE"
-              ? "Konfirmasi pengaktifan kembali status keanggotaan"
-              : confirmAction === "INACTIVE"
-              ? "Konfirmasi penonaktifan sementara status keanggotaan"
-              : "Konfirmasi pembekuan status keanggotaan"
-          }
-          message={
-            confirmAction === "ACTIVATE"
-              ? "Tindakan ini akan mengaktifkan kembali akun anggota sehingga mereka dapat mengakses portal dan KTA digital."
-              : confirmAction === "INACTIVE"
-              ? "Tindakan ini menonaktifkan akun anggota sementara waktu. Seluruh data anggota tetap tersimpan aman."
-              : "Tindakan ini akan membekukan akun anggota dan membatasi aksesnya hingga status dipulihkan admin."
-          }
-          confirmLabel={
-            confirmAction === "ACTIVATE"
-              ? "Ya, Aktifkan"
-              : confirmAction === "INACTIVE"
-              ? "Ya, Nonaktifkan"
-              : "Ya, Bekukan"
-          }
+          title="Bekukan Akun Anggota?"
+          description="Berikan alasan pembekuan dan durasi pembatasan bila perlu"
           isPending={isPending}
-          onConfirm={() => onConfirmAction(selectedConfirmMember.id)}
-        >
-          <PersonSummary
-            id={selectedConfirmMember.id}
-            name={selectedConfirmMember.user?.name}
-            email={selectedConfirmMember.user?.email}
-            phone={selectedConfirmMember.phoneNumber}
-            status={selectedConfirmMember.status}
-          />
-        </ConfirmDialog>
+          onConfirm={(id, reason, suspendedUntil) =>
+            onConfirmAction(id, { reason, suspendedUntil })
+          }
+        />
       )}
+
+      {selectedConfirmMember &&
+        confirmAction &&
+        confirmAction !== "SUSPEND" && (
+          <ConfirmDialog
+            open={true}
+            onOpenChange={(open) => {
+              if (!open) onCloseConfirm();
+            }}
+            tone={confirmAction === "ACTIVATE" ? "primary" : "neutral"}
+            icon={confirmAction === "ACTIVATE" ? "check_circle" : "person_off"}
+            title={
+              confirmAction === "ACTIVATE"
+                ? "Aktifkan Kembali Anggota?"
+                : "Nonaktifkan Anggota?"
+            }
+            description={
+              confirmAction === "ACTIVATE"
+                ? "Konfirmasi pengaktifan kembali status keanggotaan"
+                : "Konfirmasi penonaktifan sementara status keanggotaan"
+            }
+            message={
+              confirmAction === "ACTIVATE"
+                ? "Tindakan ini akan memulihkan akun anggota sehingga mereka dapat masuk dan mengakses KTA digital kembali."
+                : "Tindakan ini menonaktifkan akun anggota sementara waktu. Seluruh data anggota tetap tersimpan aman."
+            }
+            confirmLabel={
+              confirmAction === "ACTIVATE"
+                ? "Ya, Aktifkan Kembali"
+                : "Ya, Nonaktifkan"
+            }
+            isPending={isPending}
+            onConfirm={() => onConfirmAction(selectedConfirmMember.id)}
+          >
+            <PersonSummary
+              id={selectedConfirmMember.id}
+              name={selectedConfirmMember.user?.name}
+              email={selectedConfirmMember.user?.email}
+              phone={selectedConfirmMember.phoneNumber}
+              status={selectedConfirmMember.status}
+            />
+          </ConfirmDialog>
+        )}
 
       {selectedDeleteMember && (
         <ConfirmDialog

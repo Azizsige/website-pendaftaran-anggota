@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 
@@ -12,6 +13,18 @@ export default function AdminError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await signOut({ redirect: false, callbackUrl: "/login" });
+    } finally {
+      window.location.assign("/login");
+    }
+  };
+
   const isUnauthorized =
     error.name === "UnauthorizedError" ||
     error.message?.includes("login terlebih dahulu") ||
@@ -34,13 +47,19 @@ export default function AdminError({
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           {isUnauthorized ? (
             <Button
-              onClick={async () => {
-                await signOut({ redirect: false, callbackUrl: "/login" });
-                window.location.assign("/login");
-              }}
+              disabled={isLoggingOut}
+              aria-busy={isLoggingOut}
+              onClick={handleLogout}
               className="w-full sm:w-auto"
             >
-              Masuk Kembali
+              {isLoggingOut ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                  Mengalihkan...
+                </>
+              ) : (
+                "Masuk Kembali"
+              )}
             </Button>
           ) : (
             <>

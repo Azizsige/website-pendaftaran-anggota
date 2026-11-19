@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Loader2, Save, X } from "lucide-react";
 
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 import { cn } from "@/lib/utils";
 import {
   Drawer,
@@ -103,7 +104,9 @@ export function FormDrawer({
           </DrawerClose>
         </DrawerHeader>
 
-        <div className="no-scrollbar flex flex-1 flex-col gap-5 overflow-y-auto p-6">{children}</div>
+        <CustomScrollArea className="min-h-0 flex-1" contentClassName="flex flex-col gap-5 p-6">
+          {children}
+        </CustomScrollArea>
 
         {!hideFooter && (
           <DrawerFooter className="flex shrink-0 flex-row items-center justify-end gap-3 border-t border-[#f1f5f9] dark:border-[#3c4d46] bg-white dark:bg-[#131d1a] px-6 py-4">

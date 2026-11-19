@@ -2,6 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { BadgeCheck, Phone, User } from "lucide-react";
 
+import { normalizeIndonesianPhone } from "@/lib/format";
 import type { Applicant } from "../../types";
 import { formatId } from "../../utils";
 
@@ -75,7 +76,7 @@ export function ApplicantInfoCard({ applicant }: ApplicantInfoCardProps) {
           <span className="shrink-0 text-[#64748b] dark:text-[#94a89e]">WhatsApp / No. HP</span>
           <span className="flex items-center gap-1 text-right font-medium text-[#0f172a] tabular-nums dark:text-[#eef2f4]">
             <Phone className="h-3.5 w-3.5 text-[#006c49] dark:text-[#34d399]" aria-hidden />
-            {applicant.phoneNumber || "-"}
+            {normalizeIndonesianPhone(applicant.phoneNumber) || "-"}
           </span>
         </div>
         <div className="flex flex-col gap-1 border-t border-[#f1f5f9] pt-3 dark:border-[#24332d]">

@@ -2,6 +2,8 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+
+import { CalendarCaptionDropdown } from "./calendar-caption-dropdown"
 import { DayPicker } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
@@ -24,8 +26,8 @@ function Calendar({
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
         caption_label: cn("text-sm font-medium", props.captionLayout === "dropdown" || props.captionLayout === "dropdown-buttons" ? "hidden" : ""),
-        caption_dropdowns: "flex justify-center gap-1",
-        dropdown: "text-sm p-1 rounded-md bg-white dark:bg-[#1a2723] border border-gray-200 dark:border-[#5f736b] dark:text-[#eef2f4] outline-none focus:ring-1 focus:ring-[#006c49] dark:focus:ring-[#34d399]",
+        caption_dropdowns: "flex justify-center gap-1.5",
+        dropdown: "text-sm",
         dropdown_month: "flex items-center",
         dropdown_year: "flex items-center",
         dropdown_icon: "hidden",
@@ -60,8 +62,9 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
-        IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+        Dropdown: CalendarCaptionDropdown,
+        IconLeft: () => <ChevronLeft className="h-4 w-4" />,
+        IconRight: () => <ChevronRight className="h-4 w-4" />,
       }}
       {...props}
     />

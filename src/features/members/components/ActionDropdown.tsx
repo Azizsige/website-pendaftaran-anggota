@@ -114,9 +114,24 @@ export const ActionDropdown = ({
           onClick: () => handleUpdateStatus("SUSPENDED"),
         }
       );
-    } else {
+    } else if (member.status === "INACTIVE") {
+      items.push(
+        {
+          label: "Aktifkan Kembali",
+          icon: "check_circle",
+          tone: "success",
+          onClick: () => handleUpdateStatus("ACTIVE"),
+        },
+        {
+          label: "Bekukan Anggota",
+          icon: "block",
+          tone: "danger",
+          onClick: () => handleUpdateStatus("SUSPENDED"),
+        }
+      );
+    } else if (member.status === "SUSPENDED") {
       items.push({
-        label: "Aktifkan Anggota",
+        label: "Aktifkan Kembali",
         icon: "check_circle",
         tone: "success",
         onClick: () => handleUpdateStatus("ACTIVE"),

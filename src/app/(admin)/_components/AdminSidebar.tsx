@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,6 +9,7 @@ import {
   BarChart3,
   Globe,
   LayoutDashboard,
+  Loader2,
   LogOut,
   ScrollText,
   Settings,
@@ -17,6 +18,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 import { useAdminUIStore } from "@/store/useAdminUIStore";
 
 interface AdminSidebarProps {
@@ -34,6 +36,17 @@ export default function AdminSidebar({
   const showSettings = role === "OWNER" || role === "SUPER_ADMIN";
   const isOwner = role === "OWNER";
   const { isSidebarOpen, setSidebarOpen } = useAdminUIStore();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await signOut({ redirect: false, callbackUrl: "/login" });
+    } finally {
+      window.location.assign("/login");
+    }
+  };
 
   useEffect(() => {
     if (!isSidebarOpen) return;
@@ -112,7 +125,12 @@ export default function AdminSidebar({
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-6">
+        <CustomScrollArea
+          element="nav"
+          aria-label="Menu navigasi admin"
+          className="flex-1 min-h-0"
+          contentClassName="px-3 py-5 space-y-6"
+        >
           <div>
             <p className="px-3 mb-2 text-[11px] font-semibold tracking-wider text-[#52606d] dark:text-[#94a89e] uppercase">
               Utama
@@ -200,7 +218,7 @@ export default function AdminSidebar({
               </ul>
             </div>
           )}
-        </nav>
+        </CustomScrollArea>
 
         <div className="px-3 py-4 border-t border-[#f1f5f9] dark:border-[#3c4d46] space-y-1 shrink-0">
           <Link
@@ -213,17 +231,45 @@ export default function AdminSidebar({
           </Link>
           <button
             type="button"
-            onClick={async () => {
-              await signOut({ redirect: false, callbackUrl: "/login" });
-              window.location.assign("/login");
-            }}
-            className="min-h-[44px] px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-medium text-[#4b5850] dark:text-[#cbd6d0] hover:bg-[#fef2f2] dark:hover:bg-[#3b1214] hover:text-[#991b1b] dark:hover:text-[#fca5a5] transition-colors w-full text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dc2626] dark:focus-visible:ring-[#f87171]"
+            disabled={isLoggingOut}
+            aria-busy={isLoggingOut}
+            onClick={handleLogout}
+            className="min-h-[44px] px-3 py-2.5 rounded-lg flex items-center gap-3 text-sm font-medium text-[#4b5850] dark:text-[#cbd6d0] hover:bg-[#fef2f2] dark:hover:bg-[#3b1214] hover:text-[#991b1b] dark:hover:text-[#fca5a5] transition-colors w-full text-left cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#dc2626] dark:focus-visible:ring-[#f87171]"
           >
-            <LogOut className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
-            <span>Keluar</span>
+            {isLoggingOut ? (
+              <>
+                <Loader2 className="w-[18px] h-[18px] shrink-0 animate-spin" aria-hidden="true" />
+                <span>Mengakhiri sesi...</span>
+              </>
+            ) : (
+              <>
+                <LogOut className="w-[18px] h-[18px] shrink-0" aria-hidden="true" />
+                <span>Keluar</span>
+              </>
+            )}
           </button>
         </div>
       </aside>
+
+      {isLoggingOut && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-white/80 dark:bg-[#0d1412]/80 backdrop-blur-[2px] px-4"
+        >
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-[#e2e8f0] dark:border-[#3c4d46] bg-white dark:bg-[#131d1a] px-6 py-5 shadow-lg text-center max-w-xs w-full">
+            <Loader2 className="h-8 w-8 animate-spin text-[#006c49] dark:text-[#34d399]" aria-hidden="true" />
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-[#191c1e] dark:text-[#eef2f4]">
+                Mengakhiri sesi...
+              </p>
+              <p className="text-xs text-[#4b5850] dark:text-[#cbd6d0]">
+                Mohon tunggu, sedang mengalihkan ke halaman masuk.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

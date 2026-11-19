@@ -30,3 +30,36 @@ export function formatRupiah(amount: number): string {
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat("id-ID").format(value);
 }
+
+/** Menormalkan nomor telepon/WA Indonesia ke digit lokal diawali "0" (mis. "081234567890"). */
+export function normalizeIndonesianPhone(value: string | null | undefined): string {
+  if (!value) return "";
+  let digits = value.replace(/\D/g, "");
+  if (!digits) return "";
+  if (digits.startsWith("62")) {
+    digits = `0${digits.slice(2)}`;
+  } else if (!digits.startsWith("0")) {
+    digits = `0${digits}`;
+  }
+  return digits.replace(/^0+/, "0");
+}
+
+/** Format input teks telepon lokal Indonesia (mis. "0812-3456-7890") agar rapi saat diketik. */
+export function formatIndonesianPhoneInput(
+  value: string,
+  options?: { ensureLeadingZero?: boolean }
+): string {
+  let digits = value.replace(/\D/g, "");
+  if (!digits) return "";
+
+  if (digits.startsWith("62")) {
+    digits = `0${digits.slice(2)}`;
+  } else if (options?.ensureLeadingZero && !digits.startsWith("0")) {
+    digits = `0${digits}`;
+  }
+  digits = digits.replace(/^0+/, "0").slice(0, 14);
+
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 8) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  return `${digits.slice(0, 4)}-${digits.slice(4, 8)}-${digits.slice(8)}`;
+}

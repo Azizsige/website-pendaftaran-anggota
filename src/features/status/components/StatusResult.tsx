@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { Check, Hourglass, Info, RefreshCw, User, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Check, Hourglass, Info, RefreshCw, X } from "lucide-react";
 import { useCekStatusStore } from "@/store/useCekStatusStore";
 import { DownloadSection } from "./DownloadSection";
+import { MemberAvatar } from "@/components/ui/member-avatar";
+import { RejectionHistorySection } from "@/components/shared/RejectionHistorySection";
 import { useRegistrationStore } from "@/store/useRegistrationStore";
 import { useRouter } from "next/navigation";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, formatIndonesianPhoneInput } from "@/lib/format";
 import { checkRegistrationStatus } from "@/actions/status-actions";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import { Turnstile } from "@marsidev/react-turnstile";
@@ -20,6 +22,30 @@ export const StatusResult = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isPreparingReapply, setIsPreparingReapply] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const reviewRef = useRef<HTMLDivElement>(null);
+  const decisionRef = useRef<HTMLDivElement>(null);
+  const isFinalized = Boolean(statusData && statusData.status !== "PENDING");
+
+  useEffect(() => {
+    if (!statusData) return;
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const targetEl = isFinalized ? decisionRef.current : reviewRef.current;
+    if (!targetEl) return;
+
+    const scrollTimer = window.setTimeout(() => {
+      targetEl.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+        block: "center",
+      });
+    }, 120);
+
+    return () => window.clearTimeout(scrollTimer);
+  }, [statusData, isFinalized]);
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -64,7 +90,10 @@ export const StatusResult = () => {
     updateField("namaLengkap", statusData.name || "");
     updateField("nim", statusData.nim || "");
     updateField("email", statusData.email || "");
-    updateField("noTelepon", statusData.phoneNumber || "");
+    updateField(
+      "noTelepon",
+      formatIndonesianPhoneInput(statusData.phoneNumber || "", { ensureLeadingZero: true })
+    );
     updateField("tempatLahir", statusData.placeOfBirth || "");
     if (statusData.dateOfBirth) {
       updateField("tanggalLahir", new Date(statusData.dateOfBirth).toISOString().split('T')[0]);
@@ -86,7 +115,7 @@ export const StatusResult = () => {
           u8arr[n] = bstr.charCodeAt(n);
         }
         return new File([u8arr], filename, { type: mime });
-      } catch (e) {
+      } catch {
         return null;
       }
     };
@@ -122,7 +151,7 @@ export const StatusResult = () => {
       } else {
         toast.error(result.message || "Gagal memperbarui status.");
       }
-    } catch (err) {
+    } catch {
       toast.error("Terjadi kesalahan sistem saat memperbarui.");
     } finally {
       setIsRefreshing(false);
@@ -130,9 +159,6 @@ export const StatusResult = () => {
   };
 
   if (!statusData) return null;
-
-  const isPending = statusData.status === 'PENDING';
-  const isFinalized = statusData.status !== 'PENDING';
 
   return (
     <div className="flex flex-col animate-fade-in relative">
@@ -160,9 +186,12 @@ export const StatusResult = () => {
       </div>
 
       <div className="bg-[#e0e3e5]/50 dark:bg-[#1a2723] border border-[#bbcabf] dark:border-[#3c4d46] rounded-xl p-4 flex gap-3 mb-6">
-        <div className="w-10 h-10 rounded-full bg-white dark:bg-[#131d1a] border border-[#bbcabf] dark:border-[#3c4d46] flex items-center justify-center shrink-0">
-           <User className="h-5 w-5 text-[#006c49] dark:text-[#34d399]" aria-hidden="true" />
-        </div>
+        <MemberAvatar
+          src={statusData.photoUrl}
+          name={statusData.name}
+          fallbackInitials="CA"
+          sizeClass="h-10 w-10"
+        />
         <div>
           <h3 className="font-bold text-[#191c1e] dark:text-[#eef2f4] leading-tight">{statusData.name}</h3>
           <p className="text-sm text-[#3c4a42] dark:text-[#cbd6d0] mt-0.5">{statusData.nim} • {statusData.faculty}</p>
@@ -188,7 +217,11 @@ export const StatusResult = () => {
         </div>
 
         {/* Step 2: Sedang Direview */}
-        <div className="flex gap-4 relative">
+        <div
+          id="status-review-section"
+          ref={reviewRef}
+          className="flex gap-4 relative scroll-mt-24"
+        >
           {isFinalized && <div className="absolute left-[11px] top-6 bottom-[-24px] w-[2px] bg-[#006c49] dark:bg-[#10b981]"></div>}
           <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 ring-4 ring-white dark:ring-[#131d1a] ${isFinalized ? 'bg-[#006c49] dark:bg-[#057a55] text-white' : 'bg-[#e0e3e5] dark:bg-[#1a2723] border-2 border-[#bbcabf] dark:border-[#5f736b] text-[#006c49] dark:text-[#34d399]'}`}>
             {isFinalized ? (
@@ -205,8 +238,12 @@ export const StatusResult = () => {
 
         {/* Step 3: Keputusan (Hanya jika Finalized) */}
         {isFinalized && (
-          <div className="flex gap-4 relative mt-2">
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 ring-4 ring-white dark:ring-[#131d1a] ${statusData.status === 'APPROVED' || statusData.status === 'ACTIVE' ? 'bg-[#006c49] dark:bg-[#057a55] text-white' : statusData.status === 'REJECTED' || statusData.status === 'SUSPENDED' ? 'bg-red-600 text-white' : 'bg-[#e0e3e5] dark:bg-[#1a2723] border-2 border-[#bbcabf] dark:border-[#5f736b] text-[#3c4a42] dark:text-[#cbd6d0]'}`}>
+          <div
+            id="status-decision-section"
+            ref={decisionRef}
+            className="flex gap-4 relative mt-2 scroll-mt-24"
+          >
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 z-10 ring-4 ring-white dark:ring-[#131d1a] ${statusData.status === 'APPROVED' || statusData.status === 'ACTIVE' ? 'bg-[#006c49] dark:bg-[#057a55] text-white' : statusData.status === 'SUSPENDED' ? 'bg-[#ea580c] text-white' : statusData.status === 'REJECTED' ? 'bg-red-600 text-white' : 'bg-[#e0e3e5] dark:bg-[#1a2723] border-2 border-[#bbcabf] dark:border-[#5f736b] text-[#3c4a42] dark:text-[#cbd6d0]'}`}>
               {statusData.status === 'APPROVED' || statusData.status === 'ACTIVE' ? (
                 <Check className="h-3.5 w-3.5" aria-hidden="true" />
               ) : statusData.status === 'REJECTED' || statusData.status === 'SUSPENDED' ? (
@@ -216,7 +253,7 @@ export const StatusResult = () => {
               )}
             </div>
             <div>
-              <h5 className={`font-semibold text-[15px] ${statusData.status === 'REJECTED' || statusData.status === 'SUSPENDED' ? 'text-red-700 dark:text-[#fca5a5]' : 'text-[#191c1e] dark:text-[#eef2f4]'}`}>
+              <h5 className={`font-semibold text-[15px] ${statusData.status === 'SUSPENDED' ? 'text-[#9a3412] dark:text-[#fdba74]' : statusData.status === 'REJECTED' ? 'text-red-700 dark:text-[#fca5a5]' : 'text-[#191c1e] dark:text-[#eef2f4]'}`}>
                 {getStatusInfo(statusData.status).title}
               </h5>
               <p className="text-[#3c4a42] dark:text-[#cbd6d0] text-[13px] mt-0.5">{getStatusInfo(statusData.status).desc}</p>
@@ -224,10 +261,25 @@ export const StatusResult = () => {
                 <p className="text-[#6c7a71] dark:text-[#94a89e] text-[12px] mt-1">{formatDateTime(statusData.updatedAt)} WIB</p>
               )}
               
-              {(statusData.status === "REJECTED" || statusData.status === "SUSPENDED") && statusData.adminNotes && (
+              {statusData.status === "REJECTED" && statusData.adminNotes && (
                 <div className="mt-2 p-3 bg-red-50 text-red-700 dark:bg-[#3b1214] dark:text-[#fca5a5] text-sm rounded-lg border border-red-200 dark:border-[#f87171]/35">
                   <strong className="block mb-1">Catatan Admin:</strong> 
                   {statusData.adminNotes}
+                </div>
+              )}
+
+              {statusData.status === "SUSPENDED" && (
+                <div className="mt-2 space-y-1 p-3 bg-[#fff7ed] text-[#9a3412] dark:bg-[#431407] dark:text-[#fdba74] text-sm rounded-lg border border-[#fdba74] dark:border-[#fb923c]/40">
+                  {statusData.adminNotes && (
+                    <p>
+                      <strong>Alasan Pembekuan:</strong> {statusData.adminNotes}
+                    </p>
+                  )}
+                  <p className="text-xs font-medium">
+                    {statusData.suspendedUntil
+                      ? `Durasi hingga: ${formatDateTime(statusData.suspendedUntil)} WIB`
+                      : "Pembekuan berlaku hingga diaktifkan kembali oleh panitia."}
+                  </p>
                 </div>
               )}
 
@@ -249,6 +301,11 @@ export const StatusResult = () => {
           </div>
         )}
       </div>
+
+      <RejectionHistorySection
+        items={statusData.rejectionHistories ?? []}
+        variant="public"
+      />
 
       <DownloadSection />
     </div>

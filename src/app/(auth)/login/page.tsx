@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { fieldClass } from "@/components/ui/form-field";
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { cn } from "@/lib/utils";
 
@@ -270,6 +271,20 @@ export default function LoginPage() {
           );
           setIsLoading(false);
           router.refresh();
+          return;
+        }
+        if (res?.error === "ACCOUNT_SUSPENDED") {
+          setError(
+            "Akun Anda sedang dibekukan oleh pengurus. Hubungi sekretariat untuk informasi lebih lanjut."
+          );
+          setIsLoading(false);
+          return;
+        }
+        if (res?.error === "ACCOUNT_INACTIVE") {
+          setError(
+            "Akun Anda berstatus tidak aktif. Hubungi admin untuk mengaktifkan kembali."
+          );
+          setIsLoading(false);
           return;
         }
         setError("Email atau kata sandi tidak sesuai. Silakan periksa kembali.");
@@ -770,7 +785,10 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pt-3.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-5 sm:pb-5">
+            <CustomScrollArea
+              className="min-h-0 flex-1"
+              contentClassName="px-4 pt-3.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-5 sm:pb-5"
+            >
               <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:items-stretch">
                 {DEMO_ACCOUNTS.map((acc) => {
                   const isActiveAndFilled =
@@ -826,7 +844,7 @@ export default function LoginPage() {
                   );
                 })}
               </div>
-            </div>
+            </CustomScrollArea>
           </div>
         </div>
       )}

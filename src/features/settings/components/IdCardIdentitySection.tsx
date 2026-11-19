@@ -17,9 +17,14 @@ export const IdCardIdentitySection = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-base font-semibold text-[#0f172a] dark:text-[#eef2f4]">
-        Identitas Kartu
-      </h3>
+      <div>
+        <h3 className="text-base font-semibold text-[#0f172a] dark:text-[#eef2f4]">
+          Identitas Kartu
+        </h3>
+        <p className="mt-0.5 text-sm text-[#475569] dark:text-[#cbd6d0]">
+          Atur judul organisasi, periode kepengurusan, format nomor anggota, dan masa berlaku KTA.
+        </p>
+      </div>
 
       <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2">
         <TextField
@@ -28,6 +33,24 @@ export const IdCardIdentitySection = () => {
           value={formData.kta_org_name}
           onChange={(e) => handleChange("kta_org_name", e.target.value)}
           placeholder="Contoh: BEM Fakultas Ilmu Komputer"
+        />
+
+        <TextField
+          id="kta-org-subtitle"
+          label="Subjudul / Nama Kampus (Opsional)"
+          value={formData.kta_org_subtitle}
+          onChange={(e) => handleChange("kta_org_subtitle", e.target.value)}
+          placeholder="Contoh: Universitas Indonesia"
+          hint="Ditampilkan ringkas di atas nama organisasi dan sisi belakang kartu."
+        />
+
+        <TextField
+          id="kta-period-label"
+          label="Periode Kepengurusan"
+          value={formData.kta_period_label}
+          onChange={(e) => handleChange("kta_period_label", e.target.value)}
+          placeholder="Contoh: 2026/2027"
+          className="font-mono"
         />
 
         <TextField

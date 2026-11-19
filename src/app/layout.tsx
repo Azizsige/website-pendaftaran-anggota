@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import "overlayscrollbars/overlayscrollbars.css";
 import "./globals.css";
+import { BodyScrollbars } from "@/components/providers/BodyScrollbars";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ToasterProvider } from "@/components/providers/ToasterProvider";
@@ -65,12 +67,17 @@ export default function RootLayout({
     <html
       lang="id"
       className={`${inter.variable} ${plusJakartaSans.variable} ${jetbrainsMono.variable} antialiased`}
+      data-overlayscrollbars-initialize=""
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-screen bg-background text-foreground" suppressHydrationWarning>
+      <body
+        className="min-h-screen bg-background text-foreground"
+        data-overlayscrollbars-initialize=""
+        suppressHydrationWarning
+      >
         <NextTopLoader
           color="#006c49"
           initialPosition={0.08}
@@ -84,6 +91,7 @@ export default function RootLayout({
           zIndex={99999}
         />
         <ThemeProvider>
+          <BodyScrollbars />
           <AuthProvider>{children}</AuthProvider>
           <ToasterProvider />
         </ThemeProvider>

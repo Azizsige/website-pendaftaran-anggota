@@ -1,5 +1,5 @@
 import React from "react";
-import { FileEdit, Pencil } from "lucide-react";
+import { FileEdit, Lock, Pencil } from "lucide-react";
 
 import { fieldClass } from "@/components/ui/form-field";
 
@@ -12,6 +12,7 @@ interface ApplicantNotesCardProps {
   onCancelEditing: () => void;
   onSaveNotes: () => void;
   isPending: boolean;
+  applicantStatus?: string;
   titleMode?: "pendaftar" | "member";
   userRole?: string;
 }
@@ -25,10 +26,12 @@ export function ApplicantNotesCard({
   onCancelEditing,
   onSaveNotes,
   isPending,
+  applicantStatus,
   titleMode,
   userRole,
 }: ApplicantNotesCardProps) {
-  const canEditNotes = titleMode === "pendaftar" && userRole !== "STAFF";
+  const isRejected = applicantStatus === "REJECTED";
+  const canEditNotes = titleMode === "pendaftar" && userRole !== "STAFF" && !isRejected;
 
   return (
     <div className="rounded-xl border border-[#e2e8f0] bg-white p-5 dark:border-[#3c4d46] dark:bg-[#131d1a]">
@@ -40,19 +43,27 @@ export function ApplicantNotesCard({
           <FileEdit className="h-4 w-4 text-[#64748b] dark:text-[#94a89e]" aria-hidden />
           Catatan Admin
         </label>
-        {!isEditingNotes && canEditNotes && (
-          <button
-            type="button"
-            onClick={onStartEditing}
-            className="inline-flex min-h-[36px] cursor-pointer select-none items-center gap-1.5 rounded-full border border-[#006c49]/20 bg-[#e6f4ee] px-3 py-1 text-xs font-semibold text-[#005236] transition-colors hover:bg-[#cde9dc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:border-[#34d399]/35 dark:bg-[#0a3326] dark:text-[#6ee7b7] dark:hover:bg-[#114d3a] dark:focus-visible:ring-[#34d399]"
-          >
-            <Pencil className="h-3.5 w-3.5" aria-hidden />
-            <span>Edit</span>
-          </button>
+        {isRejected ? (
+          <span className="inline-flex items-center gap-1 rounded-full border border-[#e2e8f0] bg-[#f8fafc] px-2.5 py-1 text-[11px] font-semibold text-[#475569] dark:border-[#3c4d46] dark:bg-[#1a2723] dark:text-[#cbd6d0]">
+            <Lock className="h-3 w-3" aria-hidden />
+            <span>Hanya Baca</span>
+          </span>
+        ) : (
+          !isEditingNotes &&
+          canEditNotes && (
+            <button
+              type="button"
+              onClick={onStartEditing}
+              className="inline-flex min-h-[36px] cursor-pointer select-none items-center gap-1.5 rounded-full border border-[#006c49]/20 bg-[#e6f4ee] px-3 py-1 text-xs font-semibold text-[#005236] transition-colors hover:bg-[#cde9dc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:border-[#34d399]/35 dark:bg-[#0a3326] dark:text-[#6ee7b7] dark:hover:bg-[#114d3a] dark:focus-visible:ring-[#34d399]"
+            >
+              <Pencil className="h-3.5 w-3.5" aria-hidden />
+              <span>Edit</span>
+            </button>
+          )
         )}
       </div>
 
-      {isEditingNotes ? (
+      {isEditingNotes && canEditNotes ? (
         <div className="flex w-full flex-col gap-3">
           <textarea
             id="applicant-admin-notes"

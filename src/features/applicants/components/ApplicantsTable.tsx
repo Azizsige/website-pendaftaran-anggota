@@ -4,8 +4,9 @@ import { Ban, Eye, Trash2 } from "lucide-react";
 import type { Applicant } from "../types";
 import { formatId } from "../utils";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { MemberAvatar } from "@/components/ui/member-avatar";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime, normalizeIndonesianPhone } from "@/lib/format";
 
 type Props = {
   applicants: Applicant[];
@@ -16,16 +17,6 @@ type Props = {
   userRole?: string;
   footer?: React.ReactNode;
 };
-
-function getInitials(name?: string | null): string {
-  if (!name?.trim()) return "CA";
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
 
 export default function ApplicantsTable({
   applicants,
@@ -57,19 +48,31 @@ export default function ApplicantsTable({
       key: "name",
       header: "Nama Lengkap",
       headerClassName: "min-w-[205px]",
-      cell: (applicant) => (
-        <div className="flex items-center gap-3">
-          <div
-            aria-hidden
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#006c49]/15 bg-[#e6f4ee] text-xs font-semibold text-[#005236] dark:border-[#34d399]/35 dark:bg-[#0a3326] dark:text-[#6ee7b7]"
-          >
-            {getInitials(applicant.user.name)}
+      cell: (applicant) => {
+        const rejectionCount = applicant.rejectionHistories?.length ?? 0;
+        const isReapplyingPending = applicant.status === "PENDING" && rejectionCount > 0;
+        return (
+          <div className="flex items-center gap-3">
+            <MemberAvatar
+              src={applicant.photoUrl}
+              name={applicant.user.name}
+              fallbackInitials="CA"
+            />
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="truncate font-medium text-[#0f172a] dark:text-[#eef2f4]">
+                {applicant.user.name || "Tanpa Nama"}
+              </span>
+              {rejectionCount > 0 && (
+                <span className="inline-flex w-fit items-center rounded border border-[#fecaca] bg-[#fef2f2] px-1.5 py-0.5 text-[10px] font-semibold text-[#991b1b] dark:border-[#f87171]/35 dark:bg-[#3b1214] dark:text-[#fca5a5]">
+                  {isReapplyingPending
+                    ? `Daftar Ulang (Ditolak ${rejectionCount}x)`
+                    : `Riwayat Ditolak ${rejectionCount}x`}
+                </span>
+              )}
+            </div>
           </div>
-          <span className="font-medium text-[#0f172a] dark:text-[#eef2f4]">
-            {applicant.user.name || "Tanpa Nama"}
-          </span>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: "academic",
@@ -94,7 +97,7 @@ export default function ApplicantsTable({
             {applicant.user.email || "-"}
           </span>
           <span className="text-xs text-[#64748b] tabular-nums dark:text-[#94a89e]">
-            {applicant.phoneNumber || "-"}
+            {normalizeIndonesianPhone(applicant.phoneNumber) || "-"}
           </span>
         </div>
       ),

@@ -9,6 +9,11 @@ import { safeAction, ok, fail } from "@/lib/action-result";
 import { ACTIVITY_ACTIONS, recordActivityLog } from "@/lib/activity-log";
 import type { MemberStatus } from "@/lib/constants/status";
 import { uploadImage } from "@/lib/storage";
+import { normalizeIndonesianPhone } from "@/lib/format";
+import {
+  recordStatusChange,
+  setMemberSuspendedUntil,
+} from "@/lib/status-history";
 import { logger } from "@/lib/logger";
 import { memberRegistrationSchema, updateMemberSchema, type UpdateMemberInput } from "./schemas";
 
@@ -18,11 +23,26 @@ function formatMemberTarget(name: string | null | undefined, nim: string): strin
 
 export async function updateMemberStatus(
   id: string,
-  newStatus: Extract<MemberStatus, "ACTIVE" | "INACTIVE" | "SUSPENDED">
+  newStatus: Extract<MemberStatus, "ACTIVE" | "INACTIVE" | "SUSPENDED">,
+  options?: { reason?: string; suspendedUntil?: string | null }
 ) {
   const admin = await requireSuperAdmin();
 
   return safeAction("updateMemberStatus", async () => {
+    const cleanReason = options?.reason?.trim();
+    if (newStatus === "SUSPENDED" && !cleanReason) {
+      return fail("Alasan pembekuan wajib diisi.");
+    }
+
+    let parsedUntil: Date | null = null;
+    if (newStatus === "SUSPENDED" && options?.suspendedUntil) {
+      const candidate = new Date(options.suspendedUntil);
+      if (Number.isNaN(candidate.getTime()) || candidate <= new Date()) {
+        return fail("Durasi pembekuan harus berupa tanggal di masa depan.");
+      }
+      parsedUntil = candidate;
+    }
+
     const profile = await prisma.memberProfile.findUnique({
       where: { id },
       select: {
@@ -36,6 +56,10 @@ export async function updateMemberStatus(
     if (!profile) return fail("Member tidak ditemukan.");
 
     const targetLabel = formatMemberTarget(profile.user?.name, profile.nim);
+    const reasonDetail = cleanReason ? `, alasan: ${cleanReason}` : "";
+    const durationDetail = parsedUntil
+      ? `, hingga: ${parsedUntil.toISOString()}`
+      : "";
 
     await prisma.$transaction(async (tx) => {
       // Update MemberProfile
@@ -43,8 +67,14 @@ export async function updateMemberStatus(
         where: { id },
         data: {
           status: newStatus,
+          ...(cleanReason !== undefined && { adminNotes: cleanReason }),
         },
       });
+      await setMemberSuspendedUntil(
+        id,
+        newStatus === "SUSPENDED" ? parsedUntil : null,
+        tx
+      );
 
       // Update User based on status
       if (newStatus === "ACTIVE") {
@@ -63,13 +93,31 @@ export async function updateMemberStatus(
         });
       }
 
+      await recordStatusChange(
+        {
+          memberProfileId: id,
+          previousStatus: profile.status,
+          newStatus,
+          reason:
+            cleanReason ??
+            (newStatus === "ACTIVE"
+              ? "Keanggotaan diaktifkan kembali."
+              : "Keanggotaan dinonaktifkan oleh pengurus."),
+          suspendedUntil: newStatus === "SUSPENDED" ? parsedUntil : null,
+          changedById: admin.id,
+          changedByName: admin.name || admin.email || "Pengurus",
+          changedByRole: admin.role,
+        },
+        tx
+      );
+
       await recordActivityLog(
         {
           actor: admin,
           action: ACTIVITY_ACTIONS.UPDATE_MEMBER_STATUS,
           entityType: "MemberProfile",
           entityId: id,
-          details: `Mengubah status anggota ${targetLabel} dari ${profile.status} menjadi ${newStatus}`,
+          details: `Mengubah status anggota ${targetLabel} dari ${profile.status} menjadi ${newStatus}${reasonDetail}${durationDetail}`,
         },
         tx
       );
@@ -195,7 +243,7 @@ export async function createMember(formData: Record<string, unknown>) {
         data: {
           userId: user.id,
           nim: parsed.nim,
-          phoneNumber: parsed.noTelepon,
+          phoneNumber: normalizeIndonesianPhone(parsed.noTelepon),
           placeOfBirth: parsed.tempatLahir,
           dateOfBirth: new Date(parsed.tanggalLahir),
           gender: parsed.jenisKelamin,
@@ -254,7 +302,7 @@ export async function updateMember(
       await prisma.memberProfile.update({
         where: { id },
         data: {
-          phoneNumber: validated.phoneNumber,
+          phoneNumber: normalizeIndonesianPhone(validated.phoneNumber),
           address: validated.address,
           faculty: validated.faculty,
           major: validated.major,

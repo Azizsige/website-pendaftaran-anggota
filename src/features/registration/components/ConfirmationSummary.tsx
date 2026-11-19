@@ -9,7 +9,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { FormData } from "../types";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatIndonesianPhoneInput } from "@/lib/format";
 import type { ValidationStatusType } from "../hooks/useOcrValidation";
 
 interface ConfirmationSummaryProps {
@@ -85,7 +85,7 @@ function DocumentItem({
       {fileName && (
         <div className="flex items-center justify-center w-6 h-6">
           {status === "VALIDATING" && (
-            <Loader2 size={20} className="animate-spin text-blue-500 dark:text-blue-400" />
+            <Loader2 size={20} className="spinner-essential text-blue-500 dark:text-blue-400" aria-hidden="true" />
           )}
           {status === "FAILED" && (
             <AlertTriangle size={20} className="text-red-500 dark:text-red-400" />
@@ -119,7 +119,14 @@ export function ConfirmationSummary({
           <SummaryField label="Nama Lengkap" value={formData.namaLengkap} />
           <SummaryField label="NIM" value={formData.nim} />
           <SummaryField label="Email" value={formData.email} />
-          <SummaryField label="Nomor Telepon" value={formData.noTelepon} />
+          <SummaryField
+            label="Nomor Telepon"
+            value={
+              formatIndonesianPhoneInput(formData.noTelepon, {
+                ensureLeadingZero: true,
+              }) || formData.noTelepon
+            }
+          />
           <SummaryField label="Tempat, Tanggal Lahir" value={birthDisplay} />
           <SummaryField label="Jenis Kelamin" value={formData.jenisKelamin} />
           <SummaryField label="Fakultas" value={formData.fakultas} />
@@ -163,10 +170,10 @@ export function ConfirmationSummary({
           </div>
 
           {/* Validation Status Indicator */}
-          <div id="ktm-loading-section" className="mt-2">
+          <div id="ktm-loading-section" className="mt-2 scroll-mt-24">
             {validationStatus === "VALIDATING" && (
               <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-[#132544] text-blue-700 dark:text-[#93c5fd] rounded-md text-sm border border-blue-200 dark:border-[#3b82f6]/40">
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 spinner-essential shrink-0" aria-hidden="true" />
                 Sistem sedang memverifikasi foto dokumen Anda...
               </div>
             )}

@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import bcrypt from "bcrypt";
 import {
   OWNER_DEVICE_COOKIE,
+  OWNER_DEVICE_IP_COOKIE,
+  computeOwnerAuthorizedIpToken,
   computeOwnerDeviceToken,
   ensureOwnerUserInDb,
   isIpMatch,
@@ -112,6 +114,34 @@ describe("Helper: owner-access (IP, Device Lock & Sync Owner)", () => {
     const allowed = await verifyOwnerIpAccess();
     expect(allowed.allowed).toBe(true);
     expect(allowed.currentIp).toBe("182.8.98.174");
+  });
+
+  it("mengizinkan perangkat yang sudah diaktivasi meski IP berubah di luar OWNER_ALLOWED_IPS", async () => {
+    process.env.OWNER_ALLOWED_IPS = "114.122.10.*";
+    process.env.OWNER_DEVICE_SECRET = "laptop-pribadi-rahasia";
+    mockHeadersGet.mockImplementation((name: string) =>
+      name === "x-forwarded-for" ? "203.0.113.99" : null
+    );
+
+    mockCookiesGet.mockReturnValue(undefined);
+    const unactivated = await verifyOwnerEnvironmentAccess();
+    expect(unactivated.allowed).toBe(false);
+    expect(unactivated.reason).toBe("IP_NOT_ALLOWED");
+
+    const validDeviceToken = computeOwnerDeviceToken("laptop-pribadi-rahasia");
+    const validIpToken = computeOwnerAuthorizedIpToken(
+      "laptop-pribadi-rahasia",
+      "203.0.113.99"
+    );
+    mockCookiesGet.mockImplementation((name: string) => {
+      if (name === OWNER_DEVICE_COOKIE) return { value: validDeviceToken };
+      if (name === OWNER_DEVICE_IP_COOKIE) return { value: validIpToken };
+      return undefined;
+    });
+
+    const activated = await verifyOwnerEnvironmentAccess();
+    expect(activated.allowed).toBe(true);
+    expect(activated.currentIp).toBe("203.0.113.99");
   });
 
   it("membuat akun OWNER baru jika belum ada saat ensureOwnerUserInDb dipanggil", async () => {

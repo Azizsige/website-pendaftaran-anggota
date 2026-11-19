@@ -28,6 +28,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 
 interface AddMemberDrawerProps {
   open: boolean;
@@ -53,7 +54,7 @@ export const AddMemberDrawer = ({
   const [reqFoto, setReqFoto] = useState(true);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
-  const topRef = useRef<HTMLDivElement>(null);
+  const topRef = useRef<HTMLElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -231,6 +232,17 @@ export const AddMemberDrawer = ({
   const isStep2Complete = true;
   const isStep3SubmitReady = formData.persetujuan && !isSubmitting && isImageValid;
 
+  const handleOutsideInteraction = (e: { target: EventTarget | null; preventDefault: () => void }) => {
+    const target = e.target as Element | null;
+    if (
+      target?.closest("#cropper-portal") ||
+      target?.closest("[data-radix-popper-content-wrapper]") ||
+      target?.closest("[data-radix-select-viewport]")
+    ) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <Drawer
       open={open}
@@ -243,16 +255,8 @@ export const AddMemberDrawer = ({
       {children}
       <DrawerContent
         id="admin-member-drawer-content"
-        onInteractOutside={(e) => {
-          if ((e.target as Element).closest("#cropper-portal")) {
-            e.preventDefault();
-          }
-        }}
-        onPointerDownOutside={(e) => {
-          if ((e.target as Element).closest("#cropper-portal")) {
-            e.preventDefault();
-          }
-        }}
+        onInteractOutside={handleOutsideInteraction}
+        onPointerDownOutside={handleOutsideInteraction}
         className="flex w-[92%] flex-col border-l border-[#e2e8f0] bg-white shadow-2xl md:w-[600px] lg:w-[45%] xl:w-[40%] dark:border-[#3c4d46] dark:bg-[#131d1a]"
       >
         <DrawerHeader className="flex shrink-0 flex-row items-start justify-between gap-4 border-b border-[#f1f5f9] px-6 py-5 dark:border-[#24332d]">
@@ -276,7 +280,11 @@ export const AddMemberDrawer = ({
           </DrawerClose>
         </DrawerHeader>
 
-        <div className="relative flex-1 overflow-y-auto" ref={topRef}>
+        <CustomScrollArea
+          viewportRef={topRef}
+          className="relative flex-1 min-h-0"
+          contentClassName="relative min-h-full"
+        >
           {isLoadingSettings ? (
             <div className="mt-10 flex h-40 flex-col items-center justify-center gap-2 text-[#475569] dark:text-[#cbd6d0]">
               <Loader2 className="h-7 w-7 animate-spin text-[#006c49] dark:text-[#34d399]" aria-hidden />
@@ -336,7 +344,7 @@ export const AddMemberDrawer = ({
               )}
             </>
           )}
-        </div>
+        </CustomScrollArea>
 
         <DrawerFooter className="flex shrink-0 flex-row items-center justify-between gap-3 border-t border-[#f1f5f9] bg-white px-6 py-4 dark:border-[#24332d] dark:bg-[#131d1a]">
           {isLoadingSettings ? (

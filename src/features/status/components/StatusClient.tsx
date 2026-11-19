@@ -71,10 +71,15 @@ export function StatusClient() {
         </div>
       </main>
 
-      {/* Hidden container for ID Card rendering */}
+      {/* Hidden print-ready full-bleed container for PNG HD & CR80 PDF generation */}
       {statusData && (statusData.status === "APPROVED" || statusData.status === "ACTIVE") && (
-        <div className="absolute -left-[9999px] top-0 pointer-events-none">
-          <PublicIdCard userData={statusData} />
+        <div className="absolute -left-[9999px] top-0 pointer-events-none" aria-hidden="true">
+          <PublicIdCard
+            userData={statusData}
+            printMode
+            frontId="id-card-print-front"
+            backId="id-card-print-back"
+          />
         </div>
       )}
 

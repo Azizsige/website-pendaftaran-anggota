@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Loader2 } from "lucide-react";
 
+import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 import { cn } from "@/lib/utils";
 
 export interface DataTableColumn<T> {
@@ -68,7 +69,7 @@ export function DataTable<T>({
 
   return (
     <div className={cn("relative", className)}>
-      <div className="relative z-0 overflow-x-auto">
+      <CustomScrollArea axis="x" className="relative z-0 w-full">
         <table
           className={cn("w-full border-collapse text-left", tableClassName)}
           aria-busy={isLoading}
@@ -161,7 +162,7 @@ export function DataTable<T>({
             )}
           </tbody>
         </table>
-      </div>
+      </CustomScrollArea>
       {footer}
     </div>
   );

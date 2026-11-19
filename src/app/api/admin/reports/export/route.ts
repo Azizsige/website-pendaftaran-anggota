@@ -4,6 +4,7 @@ import ExcelJS from "exceljs";
 import { requireAdmin } from "@/lib/auth/guards";
 import { ACTIVITY_ACTIONS, recordActivityLog } from "@/lib/activity-log";
 import { Prisma } from "@prisma/client";
+import { normalizeIndonesianPhone } from "@/lib/format";
 import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
@@ -127,15 +128,7 @@ export async function GET(request: Request) {
 
     // Add data
     for (const member of members) {
-      // Handle phone number formatting
-      let phone = member.phoneNumber || "";
-      if (phone.startsWith("8")) {
-        phone = "0" + phone;
-      } else if (phone.startsWith("62")) {
-        phone = "0" + phone.slice(2);
-      } else if (phone.startsWith("+62")) {
-        phone = "0" + phone.slice(3);
-      }
+      const phone = normalizeIndonesianPhone(member.phoneNumber);
 
       // Format date
       const formattedDate = new Date(member.joinDate).toLocaleString("id-ID", {

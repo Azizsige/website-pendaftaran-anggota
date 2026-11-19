@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Camera, X, RefreshCcw } from "lucide-react";
 import { logger } from "@/lib/logger";
@@ -11,42 +11,138 @@ interface KtmCameraCaptureProps {
   isInline?: boolean;
 }
 
+const emptySubscribe = () => () => {};
+
+function getCameraErrorDetails(err: unknown): {
+  userMessage: string;
+  shouldWarn: boolean;
+  errorName: string;
+  errorMessage: string;
+} {
+  const errorName =
+    err instanceof DOMException || err instanceof Error ? err.name : "UnknownError";
+  const errorMessage = err instanceof Error ? err.message : String(err ?? "");
+
+  if (
+    errorName === "NotAllowedError" ||
+    errorName === "PermissionDeniedError" ||
+    errorName === "AbortError"
+  ) {
+    return {
+      userMessage:
+        "Akses kamera dibatalkan atau belum diizinkan. Izinkan akses kamera di browser Anda lalu coba lagi.",
+      shouldWarn: false,
+      errorName,
+      errorMessage,
+    };
+  }
+
+  if (errorName === "NotFoundError" || errorName === "DevicesNotFoundError") {
+    return {
+      userMessage: "Perangkat kamera tidak ditemukan pada perangkat ini.",
+      shouldWarn: false,
+      errorName,
+      errorMessage,
+    };
+  }
+
+  if (errorName === "NotReadableError" || errorName === "TrackStartError") {
+    return {
+      userMessage:
+        "Kamera sedang digunakan oleh aplikasi lain. Tutup aplikasi tersebut lalu coba lagi.",
+      shouldWarn: false,
+      errorName,
+      errorMessage,
+    };
+  }
+
+  return {
+    userMessage:
+      "Gagal mengakses kamera. Pastikan Anda telah memberikan izin kamera.",
+    shouldWarn: true,
+    errorName,
+    errorMessage,
+  };
+}
+
 export default function KtmCameraCapture({ onCapture, onCancel, isInline = false }: KtmCameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [stream, setStream] = useState<MediaStream | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const isUnmountedRef = useRef(false);
   const [error, setError] = useState<string>("");
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false
+  );
 
-  const startCamera = async () => {
+  const stopActiveStream = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  }, []);
+
+  const startCamera = useCallback(async () => {
+    stopActiveStream();
+    setError("");
+
+    if (
+      typeof navigator === "undefined" ||
+      !navigator.mediaDevices ||
+      typeof navigator.mediaDevices.getUserMedia !== "function"
+    ) {
+      setError("Browser ini tidak mendukung akses kamera langsung. Silakan unggah file gambar.");
+      return;
+    }
+
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment" },
         audio: false,
       });
-      setStream(mediaStream);
+
+      // Avoid leaking camera indicator if user closed or StrictMode unmounted before permission resolved.
+      if (isUnmountedRef.current) {
+        mediaStream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+
+      streamRef.current = mediaStream;
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
     } catch (err) {
-      logger.error("Camera access error:", err);
-      setError("Gagal mengakses kamera. Pastikan Anda telah memberikan izin kamera.");
+      if (isUnmountedRef.current) return;
+      const details = getCameraErrorDetails(err);
+      if (details.shouldWarn) {
+        logger.warn("Camera access failed", {
+          errorName: details.errorName,
+          errorMessage: details.errorMessage,
+        });
+      }
+      setError(details.userMessage);
     }
-  };
+  }, [stopActiveStream]);
 
   useEffect(() => {
-    setMounted(true);
-    startCamera();
+    isUnmountedRef.current = false;
+    const initTimer = window.setTimeout(() => {
+      void startCamera();
+    }, 0);
+
     return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
-      }
+      window.clearTimeout(initTimer);
+      isUnmountedRef.current = true;
+      stopActiveStream();
     };
-  }, []);
+  }, [startCamera, stopActiveStream]);
 
   const handleCancel = () => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-    }
+    stopActiveStream();
     onCancel();
   };
 
@@ -64,9 +160,7 @@ export default function KtmCameraCapture({ onCapture, onCancel, isInline = false
 
     canvas.toBlob((blob) => {
       if (blob) {
-        if (stream) {
-          stream.getTracks().forEach((track) => track.stop());
-        }
+        stopActiveStream();
         onCapture(blob);
       }
     }, "image/jpeg", 0.9);
@@ -76,14 +170,32 @@ export default function KtmCameraCapture({ onCapture, onCancel, isInline = false
     const errorContent = (
       <div 
         id="cropper-portal"
-        className={`${isInline ? "absolute" : "fixed"} inset-0 z-[100] bg-black flex flex-col items-center justify-center p-4`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Akses kamera"
+        className={`${isInline ? "absolute" : "fixed"} inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-6`}
         onPointerDown={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
         data-vaul-no-drag
       >
-        <p className="text-white mb-4 text-center">{error}</p>
-        <button onClick={handleCancel} className="px-4 py-2 bg-white text-black rounded">Tutup</button>
+        <p className="text-white mb-6 text-center max-w-sm text-sm sm:text-base leading-relaxed">{error}</p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => void startCamera()}
+            className="min-h-[44px] cursor-pointer px-5 py-2.5 bg-[#057a55] hover:bg-[#046c4e] text-white font-medium rounded-lg transition-colors"
+          >
+            Coba Lagi
+          </button>
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="min-h-[44px] cursor-pointer px-5 py-2.5 bg-white hover:bg-gray-100 text-[#191c1e] font-medium rounded-lg transition-colors"
+          >
+            Tutup
+          </button>
+        </div>
       </div>
     );
     if (!mounted) return null;
@@ -102,12 +214,22 @@ export default function KtmCameraCapture({ onCapture, onCancel, isInline = false
     >
       {/* Header */}
       <div className="flex justify-between items-center p-4 text-white bg-black/50 absolute top-0 left-0 right-0 z-10">
-        <button onClick={handleCancel} className="p-2 bg-gray-800 rounded-full">
-          <X size={24} />
+        <button
+          type="button"
+          onClick={handleCancel}
+          aria-label="Tutup kamera"
+          className="min-h-[44px] min-w-[44px] cursor-pointer flex items-center justify-center p-2 bg-gray-800 hover:bg-gray-700 rounded-full transition-colors"
+        >
+          <X size={24} aria-hidden="true" />
         </button>
         <p className="font-semibold text-sm">Posisikan KTM di dalam garis</p>
-        <button onClick={startCamera} className="p-2 bg-gray-800 rounded-full">
-          <RefreshCcw size={20} />
+        <button
+          type="button"
+          onClick={() => void startCamera()}
+          aria-label="Muat ulang kamera"
+          className="min-h-[44px] min-w-[44px] cursor-pointer flex items-center justify-center p-2 bg-gray-800 hover:bg-gray-700 rounded-full transition-colors"
+        >
+          <RefreshCcw size={20} aria-hidden="true" />
         </button>
       </div>
 
@@ -135,10 +257,12 @@ export default function KtmCameraCapture({ onCapture, onCancel, isInline = false
       {/* Capture Button */}
       <div className="bg-black pb-8 pt-4 flex justify-center z-10">
         <button
+          type="button"
           onClick={handleCapture}
-          className="w-16 h-16 bg-white rounded-full border-4 border-gray-300 flex items-center justify-center active:bg-gray-200 transition-colors"
+          aria-label="Ambil foto KTM"
+          className="w-16 h-16 cursor-pointer bg-white rounded-full border-4 border-gray-300 flex items-center justify-center active:bg-gray-200 transition-colors"
         >
-          <Camera size={28} className="text-black" />
+          <Camera size={28} className="text-black" aria-hidden="true" />
         </button>
       </div>
     </div>

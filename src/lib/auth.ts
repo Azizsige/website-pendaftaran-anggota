@@ -14,6 +14,7 @@ import {
   verifyOwnerEnvironmentAccess,
 } from "@/lib/owner-access";
 import { USER_STATUS } from "@/lib/constants/status";
+import { expireElapsedSuspensions } from "@/lib/status-history";
 import { ROLES, type Role } from "@/lib/constants/roles";
 import { normalizeNextAuthUrlEnv } from "@/lib/env";
 
@@ -35,6 +36,7 @@ const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const DUMMY_HASH = "$2b$10$CwTycUXWue0Thq9StjUM0uJ8.0E3f1uP1v5F4E2Zr7u8wC8y3q9aS";
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET?.trim() || process.env.AUTH_SECRET?.trim(),
   session: {
     strategy: "jwt",
     maxAge: REMEMBER_SESSION_SECONDS,
@@ -117,17 +119,45 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        // Akun nonaktif / disuspend tidak boleh login.
-        if (user.status !== USER_STATUS.ACTIVE) {
-          logger.warn("Login ditolak: akun tidak aktif", { userId: user.id, status: user.status });
+        let memberProfile: { id: string; status: string } | null = null;
+        if (typeof prisma.memberProfile?.findUnique === "function") {
+          memberProfile = await prisma.memberProfile.findUnique({
+            where: { userId: user.id },
+            select: { id: true, status: true },
+          });
+
+          if (memberProfile?.status === "SUSPENDED") {
+            const reactivatedCount = await expireElapsedSuspensions([memberProfile.id]);
+            if (reactivatedCount > 0) {
+              const refreshedUser = await prisma.user.findUnique({ where: { email } });
+              if (refreshedUser) user = refreshedUser;
+              memberProfile = await prisma.memberProfile.findUnique({
+                where: { userId: user.id },
+                select: { id: true, status: true },
+              });
+            }
+          }
+        }
+
+        const isSuspended = memberProfile?.status === "SUSPENDED";
+
+        // Akun nonaktif / dibekukan tidak boleh login.
+        if (user.status !== USER_STATUS.ACTIVE || isSuspended) {
+          logger.warn("Login ditolak: akun tidak aktif atau dibekukan", {
+            userId: user.id,
+            userStatus: user.status,
+            memberStatus: memberProfile?.status ?? null,
+          });
           await recordActivityLog({
             actor: { id: user.id, role: user.role },
             action: ACTIVITY_ACTIONS.LOGIN_FAILED,
             entityType: "Security",
             entityId: user.id,
-            details: `Gagal masuk ke akun ${user.email} (${user.role}): akun berstatus ${user.status} (IP: ${ip})`,
+            details: isSuspended
+              ? `Gagal masuk ke akun ${user.email} (${user.role}): akun sedang dibekukan (IP: ${ip})`
+              : `Gagal masuk ke akun ${user.email} (${user.role}): akun berstatus ${user.status} (IP: ${ip})`,
           });
-          throw new Error("ACCOUNT_INACTIVE");
+          throw new Error(isSuspended ? "ACCOUNT_SUSPENDED" : "ACCOUNT_INACTIVE");
         }
 
         await recordActivityLog({

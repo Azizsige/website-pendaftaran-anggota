@@ -5,6 +5,7 @@ import React from "react";
 import type { MemberWithUser } from "@/types/member";
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
 import { LoadingWaveDots } from "@/components/ui/loading-wave-dots";
+import { MemberAvatar } from "@/components/ui/member-avatar";
 import { Pagination } from "@/components/ui/pagination";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatDate } from "@/lib/format";
@@ -17,16 +18,6 @@ interface ReportTableProps {
   totalPages: number;
   limit: number;
   onPageChange: (newPage: number) => void;
-}
-
-function getInitials(name?: string | null): string {
-  if (!name?.trim()) return "AG";
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
 }
 
 const columns: DataTableColumn<MemberWithUser>[] = [
@@ -57,12 +48,11 @@ const columns: DataTableColumn<MemberWithUser>[] = [
     headerClassName: "min-w-[210px]",
     cell: (member) => (
       <div className="flex items-center gap-3">
-        <div
-          aria-hidden
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[#006c49]/15 bg-[#e6f4ee] text-xs font-semibold text-[#005236] dark:border-[#34d399]/35 dark:bg-[#0a3326] dark:text-[#6ee7b7]"
-        >
-          {getInitials(member.user?.name)}
-        </div>
+        <MemberAvatar
+          src={member.photoUrl}
+          name={member.user?.name}
+          fallbackInitials="AG"
+        />
         <div className="flex flex-col gap-0.5">
           <span className="font-medium text-[#0f172a] dark:text-[#eef2f4]">
             {member.user?.name || "Tanpa Nama"}

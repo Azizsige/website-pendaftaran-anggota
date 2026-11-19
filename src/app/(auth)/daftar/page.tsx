@@ -3,7 +3,7 @@
 import React, { useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Ban, CalendarClock, Send, Users } from "lucide-react";
+import { ArrowRight, Ban, CalendarClock, CheckCircle2, Loader2, Send, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   useRegistrationStore,
@@ -20,7 +20,7 @@ export default function DaftarPage() {
   const isFirstMount = useRef(true);
 
   const {
-    currentStep, formData, errors, isSubmitting, isValidating,
+    currentStep, formData, errors, isSubmitting, submissionPhase, isValidating, isImageValid,
     reqKtm, reqFoto, isLoadingSettings, regStatus, closedMessage, closedTitle,
     updateField, setIsImageValid, setIsValidating, fetchSettings, handleNext, handlePrev, handleSubmit
   } = useRegistrationStore();
@@ -36,13 +36,48 @@ export default function DaftarPage() {
         store.resetForm();
       }
     }
+    return () => {
+      const latest = useRegistrationStore.getState();
+      if (latest.submissionPhase === "redirecting") {
+        latest.setSubmissionPhase("idle");
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    topRef.current?.scrollIntoView({ behavior: "smooth" });
-    if (currentStep === 1) setTimeout(() => firstInputRef.current?.focus(), 100);
+    if (currentStep === 3) {
+      router.prefetch("/daftar/sukses");
+    }
+  }, [currentStep, router]);
+
+  useEffect(() => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    const rafId = window.requestAnimationFrame(() => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      });
+    });
+
+    let focusTimer: ReturnType<typeof setTimeout> | undefined;
+    if (currentStep === 1) {
+      focusTimer = setTimeout(() => {
+        firstInputRef.current?.focus({ preventScroll: true });
+      }, 150);
+    }
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      if (focusTimer) clearTimeout(focusTimer);
+    };
   }, [currentStep]);
 
   const onNextClick = async () => {
@@ -71,7 +106,7 @@ export default function DaftarPage() {
   };
 
   const isStep2Complete = (!reqFoto || !!formData.pasFoto) && (!reqKtm || !!formData.fotoKTM);
-  const isStep3SubmitReady = formData.persetujuan && useRegistrationStore.getState().isImageValid && !isSubmitting;
+  const isStep3SubmitReady = formData.persetujuan && isImageValid && !isSubmitting;
   const hasStep2 = reqKtm || reqFoto;
 
   const handleValidationStatusChange = React.useCallback(
@@ -82,12 +117,12 @@ export default function DaftarPage() {
   );
 
   return (
-    <div className="bg-[#f7f9fb] dark:bg-[#0d1412] text-[#191c1e] dark:text-[#eef2f4] font-sans min-h-screen flex flex-col relative overflow-x-hidden">
-      <main className="flex-grow flex items-start sm:items-center justify-center py-[40px] sm:py-[48px] px-4 relative z-10 w-full">
-        <div ref={topRef} className="w-full max-w-[640px] bg-white dark:bg-[#131d1a] border border-[#006c49]/15 dark:border-[#3c4d46] rounded-xl shadow-sm overflow-hidden flex flex-col relative">
+    <div className="bg-[#f7f9fb] dark:bg-[#0d1412] text-[#191c1e] dark:text-[#eef2f4] font-sans min-h-[calc(100dvh-68px)] flex flex-col relative overflow-x-clip">
+      <main className="flex-grow flex items-start justify-center py-6 sm:py-10 px-4 relative z-10 w-full">
+        <div ref={topRef} className="scroll-mt-24 w-full max-w-[640px] bg-white dark:bg-[#131d1a] border border-[#006c49]/15 dark:border-[#3c4d46] rounded-xl shadow-sm overflow-hidden flex flex-col relative">
           {isLoadingSettings ? (
             <div className="flex flex-col items-center justify-center py-[100px] gap-[16px]">
-              <div className="w-10 h-10 border-4 border-[#006c49] dark:border-[#34d399] border-t-transparent rounded-full animate-spin" />
+              <Loader2 className="w-10 h-10 text-[#006c49] dark:text-[#34d399] spinner-essential" aria-hidden="true" />
               <p className="font-sans text-[14px] text-[#3c4a42] dark:text-[#cbd6d0]">Memuat formulir pendaftaran...</p>
             </div>
           ) : regStatus !== "OPEN" ? (
@@ -117,11 +152,43 @@ export default function DaftarPage() {
                 {currentStep === 3 && <StepKonfirmasi formData={formData} errors={errors} updateField={updateField} onValidationChange={setIsImageValid} onValidationStatusChange={handleValidationStatusChange} reqKtm={reqKtm} reqFoto={reqFoto} />}
               </div>
               
-              {isSubmitting && (
-                <div className="absolute inset-0 z-[60] bg-white/75 dark:bg-[#0d1412]/80 backdrop-blur-[1px] flex items-center justify-center rounded-xl">
-                  <div className="flex flex-col items-center gap-3 p-6 bg-white dark:bg-[#131d1a] rounded-xl shadow-lg border border-[#bbcabf]/30 dark:border-[#3c4d46]">
-                    <div className="w-10 h-10 border-4 border-[#006c49] dark:border-[#34d399] border-t-transparent rounded-full animate-spin" />
-                    <p className="text-[#006c49] dark:text-[#6ee7b7] font-medium">Memproses pendaftaran...</p>
+              {(isSubmitting || submissionPhase !== "idle") && (
+                <div
+                  role="status"
+                  aria-live="polite"
+                  aria-busy="true"
+                  className="fixed inset-0 z-[60] bg-white/80 dark:bg-[#0d1412]/85 backdrop-blur-[2px] flex items-center justify-center px-4"
+                >
+                  <div className="w-full max-w-xs flex flex-col items-center text-center gap-3.5 p-6 bg-white dark:bg-[#131d1a] rounded-2xl shadow-lg border border-[#bbcabf]/30 dark:border-[#3c4d46]">
+                    <div className="w-14 h-14 rounded-full bg-[#006c49]/10 dark:bg-[#34d399]/15 flex items-center justify-center">
+                      {submissionPhase === "redirecting" ? (
+                        <CheckCircle2 className="w-8 h-8 text-[#006c49] dark:text-[#34d399]" aria-hidden="true" />
+                      ) : (
+                        <Loader2 className="w-8 h-8 text-[#006c49] dark:text-[#34d399] spinner-essential" aria-hidden="true" />
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-base font-bold text-[#191c1e] dark:text-[#eef2f4]">
+                        {submissionPhase === "redirecting"
+                          ? "Pendaftaran Berhasil!"
+                          : submissionPhase === "checking"
+                          ? "Memeriksa Data Pendaftar..."
+                          : "Mengirim Pendaftaran..."}
+                      </p>
+                      <p className="text-xs sm:text-sm text-[#3c4a42] dark:text-[#cbd6d0] leading-relaxed">
+                        {submissionPhase === "redirecting"
+                          ? "Data Anda telah tersimpan. Menyiapkan halaman konfirmasi..."
+                          : submissionPhase === "checking"
+                          ? "Memastikan NIM dan email Anda belum terdaftar sebelumnya."
+                          : "Sedang memproses dokumen dan menyimpan data Anda. Mohon tunggu sebentar."}
+                      </p>
+                    </div>
+                    {submissionPhase === "redirecting" && (
+                      <div className="inline-flex items-center gap-2 pt-1 text-xs font-medium text-[#006c49] dark:text-[#6ee7b7]">
+                        <Loader2 className="w-3.5 h-3.5 spinner-essential" aria-hidden="true" />
+                        <span>Mengalihkan ke ringkasan...</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -135,11 +202,19 @@ export default function DaftarPage() {
                 
                 {currentStep < 3 ? (
                   <button type="button" onClick={onNextClick} disabled={(currentStep === 2 && !isStep2Complete) || isSubmitting} className="min-h-[44px] cursor-pointer font-sans text-[14px] font-semibold py-[8px] px-[24px] rounded-lg transition-colors flex items-center gap-[4px] shadow-sm bg-[#006c49] hover:bg-[#005236] dark:bg-[#057a55] dark:hover:bg-[#046c4e] text-white disabled:opacity-50 disabled:cursor-not-allowed">
-                    Selanjutnya <ArrowRight size={18} />
+                    Selanjutnya <ArrowRight size={18} aria-hidden="true" />
                   </button>
                 ) : (
-                  <button type="button" onClick={onSubmitClick} disabled={!isStep3SubmitReady || isValidating} className="min-h-[44px] cursor-pointer font-sans text-[14px] font-semibold py-[8px] px-[24px] rounded-lg transition-colors flex items-center gap-[4px] shadow-sm bg-[#006c49] hover:bg-[#005236] dark:bg-[#057a55] dark:hover:bg-[#046c4e] text-white disabled:opacity-50 disabled:cursor-not-allowed">
-                    {isSubmitting ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Memproses...</> : isValidating ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Mengecek KTM...</> : <>Kirim Pendaftaran <Send size={18} /></>}
+                  <button type="button" onClick={onSubmitClick} disabled={!isStep3SubmitReady || isValidating} className="min-h-[44px] cursor-pointer font-sans text-[14px] font-semibold py-[8px] px-[24px] rounded-lg transition-colors flex items-center gap-2 shadow-sm bg-[#006c49] hover:bg-[#005236] dark:bg-[#057a55] dark:hover:bg-[#046c4e] text-white disabled:opacity-50 disabled:cursor-not-allowed">
+                    {submissionPhase === "redirecting" ? (
+                      <><Loader2 className="w-4 h-4 spinner-essential" aria-hidden="true" /> Mengalihkan...</>
+                    ) : isSubmitting ? (
+                      <><Loader2 className="w-4 h-4 spinner-essential" aria-hidden="true" /> Memproses...</>
+                    ) : isValidating ? (
+                      <><Loader2 className="w-4 h-4 spinner-essential" aria-hidden="true" /> Mengecek KTM...</>
+                    ) : (
+                      <>Kirim Pendaftaran <Send size={18} aria-hidden="true" /></>
+                    )}
                   </button>
                 )}
               </div>

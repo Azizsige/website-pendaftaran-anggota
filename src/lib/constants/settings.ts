@@ -25,6 +25,8 @@ export const SETTING_KEYS = {
   KTA_BG_FRONT_URL: "kta_bg_front_url",
   KTA_BG_BACK_URL: "kta_bg_back_url",
   KTA_ORG_NAME: "kta_org_name",
+  KTA_ORG_SUBTITLE: "kta_org_subtitle",
+  KTA_PERIOD_LABEL: "kta_period_label",
   KTA_MEMBER_PREFIX: "kta_member_prefix",
   KTA_VALIDITY_MONTHS: "kta_validity_months",
   KTA_SHOW_PHOTO: "kta_show_photo",
@@ -37,6 +39,7 @@ export const SETTING_KEYS = {
   KTA_SHOW_QR: "kta_show_qr",
   KTA_SIGNATURE_URL: "kta_signature_url",
   KTA_SIGNATURE_NAME: "kta_signature_name",
+  KTA_SIGNATURE_TITLE: "kta_signature_title",
   KTA_TERMS: "kta_terms",
 
   // Pemeliharaan Sistem (Owner)

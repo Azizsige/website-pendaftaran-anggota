@@ -6,6 +6,8 @@ import { verifyTurnstileToken } from "@/lib/turnstile";
 import { getClientIp } from "@/lib/request";
 import { memberRegistrationSchema, type MemberRegistrationInput } from "@/features/members/schemas";
 import { SETTING_KEYS } from "@/lib/constants/settings";
+import { normalizeIndonesianPhone } from "@/lib/format";
+import { backfillLegacyRejectionIfMissing } from "@/lib/rejection-history";
 import { uploadImage } from "@/lib/storage";
 import { logger } from "@/lib/logger";
 
@@ -66,7 +68,7 @@ function buildMemberProfileData(
   ktmImageUrl?: string
 ) {
   return {
-    phoneNumber: data.noTelepon,
+    phoneNumber: normalizeIndonesianPhone(data.noTelepon),
     placeOfBirth: data.tempatLahir,
     dateOfBirth: new Date(data.tanggalLahir),
     gender: data.jenisKelamin,
@@ -178,6 +180,15 @@ export async function submitRegistration(formData: FormData) {
       const profilePayload = buildMemberProfileData(parsed, photoUrl, ktmImageUrl);
 
       if (existingRejectedProfile && existingRejectedProfile.status === "REJECTED") {
+        await backfillLegacyRejectionIfMissing(
+          {
+            memberProfileId: existingRejectedProfile.id,
+            reason: existingRejectedProfile.adminNotes,
+            rejectedAt: existingRejectedProfile.updatedAt,
+          },
+          tx
+        );
+
         await tx.user.update({
           where: { id: existingRejectedProfile.userId },
           data: {
