@@ -19,18 +19,30 @@ interface StepDokumenProps {
   reqKtm?: boolean;
   reqFoto?: boolean;
   isInline?: boolean;
+  hideHeader?: boolean;
 }
 
-export default function StepDokumen({ formData, errors, updateField, firstInputRef, reqKtm = true, reqFoto = true, isInline = false }: StepDokumenProps) {
+export default function StepDokumen({
+  formData,
+  errors,
+  updateField,
+  firstInputRef,
+  reqKtm = true,
+  reqFoto = true,
+  isInline = false,
+  hideHeader = false,
+}: StepDokumenProps) {
   const [showCamera, setShowCamera] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
-
   const [isMobile, setIsMobile] = useState(false);
 
   React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsMobile(window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent));
-    }
+    const checkTimer = window.setTimeout(() => {
+      if (typeof window !== "undefined") {
+        setIsMobile(window.innerWidth <= 768 || /Mobi|Android/i.test(navigator.userAgent));
+      }
+    }, 0);
+    return () => window.clearTimeout(checkTimer);
   }, []);
 
   const handleKtmFileSelect = (file: File | null) => {
@@ -54,16 +66,28 @@ export default function StepDokumen({ formData, errors, updateField, firstInputR
     setCropImageSrc(null);
   };
 
+  const useSideBySide = !isInline && reqFoto && reqKtm;
+
   return (
     <div className="transition-opacity duration-300 animate-fade-in" id="step-2">
-      <h2 className="font-sans text-[24px] md:text-[32px] md:leading-[40px] font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-[16px]">
-        Unggah Dokumen Pendukung
-      </h2>
-      <p className="font-sans text-[14px] leading-[20px] text-[#3c4a42] dark:text-[#cbd6d0] mb-[24px]">
-        Silakan unggah dokumen identitas Anda untuk proses verifikasi.
-      </p>
+      {!hideHeader && (
+        <>
+          <h2 className="font-sans text-xl md:text-2xl font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-1.5">
+            Unggah Dokumen Pendukung
+          </h2>
+          <p className="font-sans text-[13px] leading-[19px] text-[#3c4a42] dark:text-[#cbd6d0] mb-4">
+            Silakan unggah dokumen identitas Anda untuk proses verifikasi.
+          </p>
+        </>
+      )}
 
-      <div className="space-y-[24px]">
+      <div
+        className={
+          useSideBySide
+            ? "grid grid-cols-1 md:grid-cols-2 gap-4 items-start"
+            : "space-y-4"
+        }
+      >
         {reqFoto && (
           <FileUploadField
             containerRef={firstInputRef}
@@ -76,31 +100,30 @@ export default function StepDokumen({ formData, errors, updateField, firstInputR
           />
         )}
         {reqKtm && (
-          <div className="space-y-[8px]">
-            <FileUploadField
-              label="Foto KTM (Kartu Tanda Mahasiswa)"
-              file={formData.fotoKTM}
-              onChange={handleKtmFileSelect}
-              onRemove={() => updateField("fotoKTM", null)}
-              error={errors.fotoKTM}
-              icon={IdCard}
-            />
-            {isMobile && (
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowCamera(true)}
-                  className="flex min-h-[44px] items-center gap-2 text-sm font-medium text-[#006c49] bg-[#e6f4ea] hover:bg-[#cce8d5] dark:text-[#6ee7b7] dark:bg-[#0a3326] dark:hover:bg-[#0c3528] px-4 py-2 rounded-md transition-colors cursor-pointer"
-                >
-                  <Camera size={16} /> Buka Kamera Cerdas
-                </button>
-              </div>
-            )}
-          </div>
+          <FileUploadField
+            label="Foto KTM (Kartu Tanda Mahasiswa)"
+            file={formData.fotoKTM}
+            onChange={handleKtmFileSelect}
+            onRemove={() => updateField("fotoKTM", null)}
+            error={errors.fotoKTM}
+            icon={IdCard}
+            actionSlot={
+              isMobile ? (
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setShowCamera(true)}
+                    className="flex min-h-[44px] items-center gap-2 text-xs sm:text-sm font-semibold text-[#005236] bg-[#e6f4ee] hover:bg-[#cce8d5] dark:text-[#6ee7b7] dark:bg-[#0a3326] dark:hover:bg-[#0c3528] border border-[#006c49]/30 dark:border-[#34d399]/35 px-4 py-2 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <Camera size={16} aria-hidden="true" /> Buka Kamera Cerdas
+                  </button>
+                </div>
+              ) : undefined
+            }
+          />
         )}
       </div>
 
-      {/* Camera Capture Modal */}
       {showCamera && (
         <KtmCameraCapture
           onCapture={handleCameraCapture}
@@ -109,7 +132,6 @@ export default function StepDokumen({ formData, errors, updateField, firstInputR
         />
       )}
 
-      {/* Image Cropper Modal */}
       {cropImageSrc && (
         <ImageCropper
           imageSrc={cropImageSrc}

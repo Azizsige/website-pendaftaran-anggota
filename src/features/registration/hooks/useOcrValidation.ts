@@ -150,13 +150,19 @@ export function useOcrValidation({
       typeof window.matchMedia === "function" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    // Wait briefly so Step 3's scroll-to-top settles before scrolling to the AI verification panel.
+    // Wait briefly so Step 3's scroll-to-top settles before scrolling to the AI verification panel if off-screen.
     const scrollTimer = window.setTimeout(() => {
       if (!isMounted) return;
-      document.getElementById("ktm-loading-section")?.scrollIntoView({
-        behavior: prefersReducedMotion ? "auto" : "smooth",
-        block: "center",
-      });
+      const el = document.getElementById("ktm-loading-section");
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+      if (!isVisible) {
+        el.scrollIntoView({
+          behavior: prefersReducedMotion ? "auto" : "smooth",
+          block: "center",
+        });
+      }
     }, 600);
 
     return () => {

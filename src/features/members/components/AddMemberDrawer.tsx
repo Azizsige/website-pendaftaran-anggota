@@ -302,6 +302,8 @@ export const AddMemberDrawer = ({
                     errors={errors}
                     updateField={updateField}
                     firstInputRef={firstInputRef}
+                    isInline={true}
+                    hideHeader={true}
                   />
                 )}
                 {currentStep === 2 && hasStep2 && (
@@ -313,6 +315,7 @@ export const AddMemberDrawer = ({
                     reqKtm={reqKtm}
                     reqFoto={reqFoto}
                     isInline={true}
+                    hideHeader={true}
                   />
                 )}
                 {currentStep === 3 && (
@@ -324,6 +327,8 @@ export const AddMemberDrawer = ({
                     onValidationStatusChange={(status) => setIsValidating(status === "VALIDATING")}
                     reqKtm={reqKtm}
                     reqFoto={reqFoto}
+                    isInline={true}
+                    hideHeader={true}
                   />
                 )}
               </div>

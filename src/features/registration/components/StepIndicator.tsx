@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Check } from "lucide-react";
 
 interface StepIndicatorProps {
@@ -9,49 +10,65 @@ interface StepIndicatorProps {
 
 export default function StepIndicator({ currentStep, hasStep2 = true }: StepIndicatorProps) {
   const steps = [
-    { num: 1, label: "Data Diri" },
-    ...(hasStep2 ? [{ num: 2, label: "Dokumen" }] : []),
-    { num: 3, label: "Konfirmasi" },
+    { num: 1, displayNum: 1, label: "Data Diri" },
+    ...(hasStep2 ? [{ num: 2, displayNum: 2, label: "Dokumen" }] : []),
+    { num: 3, displayNum: hasStep2 ? 3 : 2, label: "Konfirmasi" },
   ];
 
   return (
-    <div className="flex items-center justify-between relative">
-      {/* Background line */}
-      <div className="absolute left-0 top-[16px] w-full h-[2px] bg-[#e0e3e5] dark:bg-[#3c4d46] z-0"></div>
-      {/* Progress line */}
-      <div
-        className={`absolute left-0 top-[16px] h-[2px] bg-[#006c49] dark:bg-[#10b981] z-0 transition-all duration-300 ease-in-out ${
-          currentStep === 1 ? "w-0" : currentStep === 2 ? "w-1/2" : "w-full"
-        }`}
-      ></div>
+    <nav aria-label="Tahapan pendaftaran" className="w-full">
+      <ol className="flex items-center justify-between gap-2 sm:gap-3">
+        {steps.map((step, index) => {
+          const isCompleted = currentStep > step.num;
+          const isActive = currentStep === step.num;
+          const isLast = index === steps.length - 1;
 
-      {steps.map((step) => {
-        const isCompleted = currentStep > step.num;
-        const isActive = currentStep === step.num;
+          return (
+            <React.Fragment key={step.num}>
+              <li
+                aria-current={isActive ? "step" : undefined}
+                className="flex items-center gap-2 shrink-0"
+              >
+                {isCompleted ? (
+                  <div className="w-7 h-7 rounded-full bg-[#006c49] dark:bg-[#057a55] text-white flex items-center justify-center shrink-0">
+                    <Check size={15} aria-hidden="true" />
+                  </div>
+                ) : isActive ? (
+                  <div className="w-7 h-7 rounded-full bg-[#e6f4ee] dark:bg-[#0a3326] border-2 border-[#006c49] dark:border-[#34d399] text-[#005236] dark:text-[#6ee7b7] font-mono text-xs font-bold flex items-center justify-center shrink-0">
+                    {step.displayNum}
+                  </div>
+                ) : (
+                  <div className="w-7 h-7 rounded-full bg-[#f2f4f6] dark:bg-[#1a2723] border border-[#5c6b62] dark:border-[#768f84] text-[#3c4a42] dark:text-[#a8bab0] font-mono text-xs font-semibold flex items-center justify-center shrink-0">
+                    {step.displayNum}
+                  </div>
+                )}
+                <span
+                  className={`font-sans text-xs sm:text-[13px] leading-tight font-semibold ${
+                    isCompleted || isActive
+                      ? "text-[#005236] dark:text-[#6ee7b7]"
+                      : "text-[#3c4a42] dark:text-[#cbd6d0]"
+                  }`}
+                >
+                  {step.label}
+                </span>
+              </li>
 
-        return (
-          <div key={step.num} className="relative z-10 flex flex-col items-center gap-[8px]">
-            {isCompleted ? (
-              <div className="w-8 h-8 rounded-full bg-[#006c49] dark:bg-[#057a55] text-white flex items-center justify-center shadow-sm">
-                <Check size={18} />
-              </div>
-            ) : isActive ? (
-              <div className="w-8 h-8 rounded-full bg-white dark:bg-[#131d1a] border-2 border-[#006c49] dark:border-[#34d399] flex items-center justify-center relative">
-                <div className="w-3 h-3 rounded-full bg-[#006c49] dark:bg-[#34d399]"></div>
-              </div>
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-[#e0e3e5] dark:bg-[#1a2723] border border-transparent dark:border-[#4b5c55] flex items-center justify-center">
-                <div className="w-3 h-3 rounded-full bg-[#6c7a71] dark:bg-[#94a89e]"></div>
-              </div>
-            )}
-            <span className={`font-sans text-[14px] leading-[16px] tracking-[0.05em] font-semibold ${
-              isCompleted || isActive ? "text-[#006c49] dark:text-[#34d399]" : "text-[#191c1e] dark:text-[#cbd6d0]"
-            }`}>
-              {step.label}
-            </span>
-          </div>
-        );
-      })}
-    </div>
+              {!isLast && (
+                <li
+                  aria-hidden="true"
+                  className="flex-1 h-[2px] min-w-[16px] sm:min-w-[28px] rounded-full bg-[#d5dcd8] dark:bg-[#3c4d46] overflow-hidden"
+                >
+                  <div
+                    className={`h-full bg-[#006c49] dark:bg-[#34d399] transition-all duration-300 ${
+                      isCompleted ? "w-full" : "w-0"
+                    }`}
+                  />
+                </li>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </ol>
+    </nav>
   );
 }
