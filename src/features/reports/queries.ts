@@ -98,6 +98,7 @@ export async function getReportMembers(
       documentUrl: null,
       ktmHash: null,
       photoHash: null,
+      suspendedUntil: null,
     }));
 
     let approvedCount = 0;

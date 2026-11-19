@@ -320,6 +320,7 @@ export async function getDashboardData({
     documentUrl: null,
     ktmHash: null,
     photoHash: null,
+    suspendedUntil: null,
     user: {
       ...row.user,
       password: null,
