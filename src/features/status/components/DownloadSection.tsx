@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Download, Eye, EyeOff, FileText, ImagePlus, Loader2, Pencil, Upload } from "lucide-react";
+import { Download, Eye, ImagePlus, Loader2, Pencil, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { useCekStatusStore } from "@/store/useCekStatusStore";
 import { updateMemberPhoto } from "@/actions/status-actions";
@@ -23,7 +23,18 @@ export const DownloadSection = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [downloadFormat, setDownloadFormat] = useState<"png" | "pdf" | null>(null);
   const [showPreview, setShowPreview] = useState(false);
-  const [previewSide, setPreviewSide] = useState<"front" | "back">("front");
+  const [previewSide, setPreviewSide] = useState<"both" | "front" | "back">("both");
+
+  useEffect(() => {
+    if (!showPreview) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setShowPreview(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showPreview]);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -167,193 +178,215 @@ export const DownloadSection = () => {
   );
 
   return (
-    <div className="mt-8 pt-6 border-t border-[#bbcabf]/30 dark:border-[#3c4d46]">
-      <h4 className="font-semibold text-[#191c1e] dark:text-[#eef2f4] mb-3">
-        Kartu Tanda Anggota (KTA) Siap Lanyard
-      </h4>
+    <div className="flex flex-col gap-3.5 min-w-0">
+      <h2 className="font-sans text-[13px] font-bold text-[#006c49] dark:text-[#34d399]">
+        Kartu Tanda Anggota (KTA)
+      </h2>
+
+      <input
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        onChange={handlePhotoUpload}
+        className="hidden"
+      />
 
       {!hasPhoto ? (
-        <div className="bg-amber-50 border border-amber-200 dark:bg-[#3b2506]/70 dark:border-[#f59e0b]/40 w-full p-5 rounded-xl flex flex-col items-center gap-3 text-center">
-          <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-[#3b2506] flex items-center justify-center text-amber-700 dark:text-[#fcd34d]">
-            <ImagePlus className="h-6 w-6" aria-hidden="true" />
+        <div className="bg-[#fef3c7]/80 border border-[#f59e0b]/45 dark:bg-[#3b2506]/70 dark:border-[#f59e0b]/40 w-full p-5 rounded-[12px] flex flex-col items-center gap-3 text-center">
+          <div className="w-11 h-11 rounded-full bg-[#fef3c7] border border-[#f59e0b]/35 dark:bg-[#3b2506] flex items-center justify-center text-[#92400e] dark:text-[#fbbf24]">
+            <ImagePlus className="h-5 w-5" aria-hidden="true" />
           </div>
           <div>
-            <p className="text-[14px] text-amber-900 dark:text-[#fcd34d] font-semibold">
-              Foto Profil Belum Tersedia
+            <p className="text-[14px] text-[#92400e] dark:text-[#fbbf24] font-bold">
+              Foto profil belum tersedia
             </p>
-            <p className="text-[13px] text-amber-800 dark:text-[#fde68a] mt-1 max-w-[340px]">
-              Anda <strong>wajib</strong> mengunggah foto profil terlebih dahulu sebelum mengunduh KTA. Foto akan disesuaikan otomatis ke rasio 3:4.
+            <p className="text-[12.5px] text-[#78350f] dark:text-[#fde68a] mt-1 max-w-[320px] leading-relaxed">
+              Unggah foto profil terlebih dahulu sebelum mengunduh KTA. Foto otomatis disesuaikan ke rasio 3:4.
             </p>
           </div>
-          <input
-            type="file"
-            accept="image/*"
-            ref={fileInputRef}
-            onChange={handlePhotoUpload}
-            className="hidden"
-          />
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploadingPhoto}
-            className="mt-2 min-h-[44px] cursor-pointer bg-amber-700 text-white hover:bg-amber-800 transition-colors font-semibold py-2 px-5 rounded-lg flex items-center gap-2 text-sm shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-1 min-h-[44px] cursor-pointer bg-[#92400e] text-white hover:bg-[#78350f] transition-colors font-bold py-2 px-5 rounded-[10px] inline-flex items-center gap-2 text-[13px] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isUploadingPhoto ? (
-              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+              <Loader2 className="w-4 h-4 spinner-essential" aria-hidden="true" />
             ) : (
               <Upload className="h-4 w-4" aria-hidden="true" />
             )}
-            <span>{isUploadingPhoto ? "Mengunggah..." : "Unggah Foto Profil"}</span>
+            <span>{isUploadingPhoto ? "Mengunggah..." : "Unggah foto profil"}</span>
           </button>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="bg-[#f2f4f6] border border-[#bbcabf]/60 dark:bg-[#1a2723] dark:border-[#3c4d46] w-full p-5 rounded-xl flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-              <div className="w-14 h-16 rounded-lg bg-white dark:bg-[#131d1a] shrink-0 overflow-hidden border border-[#bbcabf] dark:border-[#5f736b]">
+        <>
+          <div className="grid grid-cols-[88px_1fr] sm:grid-cols-[104px_1fr] gap-4 items-start">
+            {/* Mini CR80 card visual thumbnail with real member photo */}
+            <div
+              aria-label="Pratinjau mini KTA"
+              className="aspect-[54/85.6] rounded-[10px] border border-[#5c6b62]/40 dark:border-[#3b524b] relative overflow-hidden bg-[#f4f6f8] shadow-xs"
+            >
+              <div className="h-[32%] w-full bg-[#16324f]" aria-hidden="true" />
+              <div className="absolute left-1/2 top-[17%] -translate-x-1/2 w-[42px] h-[42px] rounded-full border-[3px] border-[#f4f6f8] overflow-hidden bg-[#e9f1ee] shadow-xs">
                 <Image
                   src={statusData.photoUrl || ""}
-                  alt="Foto Profil KTA"
-                  width={56}
-                  height={64}
+                  alt={`Foto profil ${statusData.name || "anggota"}`}
+                  width={42}
+                  height={42}
                   className="w-full h-full object-cover"
                   unoptimized
                 />
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[14px] text-[#191c1e] dark:text-[#eef2f4] font-semibold">
-                  KTA Siap Diunduh &amp; Dicetak
-                </p>
-                <p className="text-[13px] text-[#3c4a42] dark:text-[#cbd6d0] mt-0.5">
-                  Format cetak CR80 (54 x 85,6 mm) resolusi tinggi dengan zona aman lanyard dan QR verifikasi resmi.
-                </p>
-              </div>
-              <input
-                type="file"
-                accept="image/*"
-                ref={fileInputRef}
-                onChange={handlePhotoUpload}
-                className="hidden"
+              <div className="absolute left-[14%] right-[14%] top-[55%] h-[5px] rounded-[3px] bg-[#16324f]" aria-hidden="true" />
+              <div className="absolute left-[14%] right-[30%] top-[63%] h-[5px] rounded-[3px] bg-[#c9d1d8]" aria-hidden="true" />
+              <div
+                aria-hidden="true"
+                className="absolute left-1/2 bottom-[8%] -translate-x-1/2 w-[32px] h-[32px] rounded-[3px]"
+                style={{
+                  background: "repeating-conic-gradient(#16324f 0 25%, #f4f6f8 0 50%) 0 0 / 8px 8px",
+                }}
               />
+            </div>
+
+            <div className="min-w-0">
+              <h3 className="text-[14.5px] font-bold text-[#191c1e] dark:text-[#e9f1ee] leading-snug mb-1">
+                KTA siap diunduh &amp; dicetak
+              </h3>
+              <p className="text-[12.5px] leading-[1.45] text-[#3c4a42] dark:text-[#9fb3ac] mb-3">
+                Format cetak CR80 (54 &times; 85,6 mm), resolusi tinggi, dengan zona aman lanyard dan QR verifikasi resmi.
+              </p>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploadingPhoto || isDownloading}
-                className="min-h-[44px] shrink-0 bg-white border border-[#85929f] text-[#191c1e] hover:bg-[#f8fafc] dark:bg-[#131d1a] dark:border-[#5f736b] dark:text-[#eef2f4] dark:hover:bg-[#22322d] transition-colors font-semibold py-2 px-3.5 rounded-lg flex items-center justify-center gap-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                title="Ganti Foto Profil"
+                className="min-h-[40px] px-3 py-1.5 rounded-[10px] border border-[#5c6b62] dark:border-[#3b524b] bg-transparent hover:bg-[#e6f4ee] dark:hover:bg-[#1a2824] text-[#191c1e] dark:text-[#e9f1ee] font-bold text-[12.5px] inline-flex items-center justify-center gap-1.5 cursor-pointer focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#006c49]/40 dark:focus-visible:ring-[#34d399]/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {isUploadingPhoto ? (
-                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                  <Loader2 className="w-3.5 h-3.5 spinner-essential" aria-hidden="true" />
                 ) : (
-                  <Pencil className="h-4 w-4" aria-hidden="true" />
+                  <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
                 )}
-                <span>{isUploadingPhoto ? "Mengunggah..." : "Ganti Foto"}</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-[#bbcabf]/40 dark:border-[#3c4d46]">
-              <button
-                type="button"
-                onClick={handleDownloadPdf}
-                disabled={isDownloading || isUploadingPhoto}
-                className="min-h-[44px] bg-[#006c49] text-white hover:bg-[#005236] dark:bg-[#057a55] dark:hover:bg-[#046c4e] transition-colors font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-xs"
-              >
-                {isDownloading && downloadFormat === "pdf" ? (
-                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-                ) : (
-                  <FileText className="h-4 w-4" aria-hidden="true" />
-                )}
-                <span>
-                  {isDownloading && downloadFormat === "pdf"
-                    ? "Menyiapkan PDF..."
-                    : "Unduh PDF Cetak (Depan & Belakang)"}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleDownloadPng}
-                disabled={isDownloading || isUploadingPhoto}
-                className="min-h-[44px] bg-white border border-[#006c49] text-[#005236] hover:bg-[#e6f4ee] dark:bg-[#131d1a] dark:border-[#34d399] dark:text-[#6ee7b7] dark:hover:bg-[#0c3528] transition-colors font-semibold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {isDownloading && downloadFormat === "png" ? (
-                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-                ) : (
-                  <Download className="h-4 w-4" aria-hidden="true" />
-                )}
-                <span>
-                  {isDownloading && downloadFormat === "png"
-                    ? "Menyiapkan PNG..."
-                    : "Unduh PNG HD (Depan)"}
-                </span>
-              </button>
-            </div>
-
-            <div className="flex justify-center pt-1">
-              <button
-                type="button"
-                onClick={() => setShowPreview((prev) => !prev)}
-                aria-expanded={showPreview}
-                className="inline-flex min-h-[44px] cursor-pointer items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-[#005236] hover:bg-[#e6f4ee] dark:text-[#6ee7b7] dark:hover:bg-[#0c3528] transition-colors"
-              >
-                {showPreview ? (
-                  <>
-                    <EyeOff className="h-4 w-4" aria-hidden="true" />
-                    <span>Sembunyikan Pratinjau Kartu</span>
-                  </>
-                ) : (
-                  <>
-                    <Eye className="h-4 w-4" aria-hidden="true" />
-                    <span>Lihat Pratinjau KTA (Depan &amp; Belakang)</span>
-                  </>
-                )}
+                <span>{isUploadingPhoto ? "Mengunggah..." : "Ganti foto"}</span>
               </button>
             </div>
           </div>
 
-          {showPreview && (
-            <div className="rounded-xl border border-[#bbcabf]/60 bg-[#f8fafc] p-4 dark:border-[#3c4d46] dark:bg-[#1a2723] flex flex-col items-center gap-4">
+          <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              disabled={isDownloading || isUploadingPhoto}
+              title="PDF cetak, depan & belakang"
+              className="min-h-[44px] cursor-pointer rounded-[10px] bg-[#006c49] hover:bg-[#005236] dark:bg-[#0f7a58] dark:hover:bg-[#0c6a4d] border border-[#006c49] dark:border-[#0f7a58] text-white font-bold text-[13px] px-3.5 py-2 inline-flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#006c49]/40 dark:focus-visible:ring-[#34d399]/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isDownloading && downloadFormat === "pdf" ? (
+                <Loader2 className="w-4 h-4 spinner-essential" aria-hidden="true" />
+              ) : (
+                <Download className="h-4 w-4" aria-hidden="true" />
+              )}
+              <span>{isDownloading && downloadFormat === "pdf" ? "Menyiapkan..." : "PDF cetak"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadPng}
+              disabled={isDownloading || isUploadingPhoto}
+              title="PNG resolusi tinggi, tampak depan"
+              className="min-h-[44px] cursor-pointer rounded-[10px] border border-[#006c49] dark:border-[#34d399] bg-transparent hover:bg-[#e6f4ee] dark:hover:bg-[#34d399]/10 text-[#005236] dark:text-[#34d399] font-bold text-[13px] px-3.5 py-2 inline-flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#006c49]/40 dark:focus-visible:ring-[#34d399]/50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isDownloading && downloadFormat === "png" ? (
+                <Loader2 className="w-4 h-4 spinner-essential" aria-hidden="true" />
+              ) : (
+                <Download className="h-4 w-4" aria-hidden="true" />
+              )}
+              <span>
+                {isDownloading && downloadFormat === "png" ? "Menyiapkan..." : "PNG HD (depan)"}
+              </span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowPreview(true)}
+            className="self-start min-h-[36px] cursor-pointer inline-flex items-center gap-2 px-1 py-1 rounded-md text-[12.5px] font-bold text-[#005236] dark:text-[#34d399] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399]"
+          >
+            <Eye className="h-4 w-4" aria-hidden="true" />
+            <span>Lihat pratinjau KTA (depan &amp; belakang)</span>
+          </button>
+        </>
+      )}
+
+      {/* Accessible Modal Dialog for Full Front & Back KTA Preview */}
+      {showPreview && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Pratinjau Kartu Tanda Anggota"
+          className="fixed inset-0 z-[70] bg-black/70 backdrop-blur-[2px] flex items-center justify-center p-4"
+          onClick={() => setShowPreview(false)}
+        >
+          <div
+            className="w-full max-w-2xl max-h-[90dvh] overflow-y-auto rounded-[16px] border border-[#5c6b62]/30 dark:border-[#2a3b36] bg-white dark:bg-[#121c19] p-5 sm:p-6 shadow-2xl flex flex-col gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-[#5c6b62]/20 dark:border-[#2a3b36] pb-3">
+              <div>
+                <h3 className="text-[16px] font-bold text-[#191c1e] dark:text-[#e9f1ee]">
+                  Pratinjau KTA (Depan &amp; Belakang)
+                </h3>
+                <p className="text-[12.5px] text-[#3c4a42] dark:text-[#9fb3ac]">
+                  Ukuran cetak CR80 (54 &times; 85,6 mm) siap cetak dan lanyard.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPreview(false)}
+                aria-label="Tutup pratinjau KTA"
+                className="min-h-[44px] min-w-[44px] cursor-pointer rounded-[10px] border border-[#5c6b62]/35 dark:border-[#2a3b36] flex items-center justify-center text-[#3c4a42] hover:text-[#191c1e] hover:bg-[#f2f4f6] dark:text-[#9fb3ac] dark:hover:text-[#e9f1ee] dark:hover:bg-[#1a2824] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:focus-visible:ring-[#34d399] transition-colors"
+              >
+                <X className="h-5 w-5" aria-hidden="true" />
+              </button>
+            </div>
+
+            <div className="flex justify-center">
               <div
                 role="group"
                 aria-label="Pilih sisi kartu pratinjau"
-                className="inline-flex rounded-lg border border-[#cbd5e1] bg-white p-1 dark:border-[#3c4d46] dark:bg-[#131d1a]"
+                className="inline-flex rounded-[10px] border border-[#5c6b62]/30 dark:border-[#2a3b36] bg-[#f7f9fb] dark:bg-[#1a2824] p-1 gap-1"
               >
-                <button
-                  type="button"
-                  onClick={() => setPreviewSide("front")}
-                  aria-pressed={previewSide === "front"}
-                  className={`min-h-[36px] cursor-pointer rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
-                    previewSide === "front"
-                      ? "bg-[#006c49] text-white dark:bg-[#057a55]"
-                      : "text-[#3c4a42] hover:bg-[#f2f4f6] dark:text-[#cbd6d0] dark:hover:bg-[#1a2723]"
-                  }`}
-                >
-                  Sisi Depan
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreviewSide("back")}
-                  aria-pressed={previewSide === "back"}
-                  className={`min-h-[36px] cursor-pointer rounded-md px-3 py-1 text-xs font-semibold transition-colors ${
-                    previewSide === "back"
-                      ? "bg-[#006c49] text-white dark:bg-[#057a55]"
-                      : "text-[#3c4a42] hover:bg-[#f2f4f6] dark:text-[#cbd6d0] dark:hover:bg-[#1a2723]"
-                  }`}
-                >
-                  Sisi Belakang
-                </button>
+                {(
+                  [
+                    { id: "both", label: "Keduanya" },
+                    { id: "front", label: "Sisi Depan" },
+                    { id: "back", label: "Sisi Belakang" },
+                  ] as const
+                ).map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setPreviewSide(tab.id)}
+                    aria-pressed={previewSide === tab.id}
+                    className={`min-h-[36px] cursor-pointer rounded-[8px] px-3 py-1 text-xs font-bold transition-colors ${
+                      previewSide === tab.id
+                        ? "bg-[#006c49] text-white dark:bg-[#0f7a58]"
+                        : "text-[#3c4a42] hover:bg-white dark:text-[#9fb3ac] dark:hover:bg-[#121c19]"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
-
-              <PublicIdCard
-                userData={statusData}
-                scaled
-                viewSide={previewSide}
-                frontId="id-card-preview-front"
-                backId="id-card-preview-back"
-                className="justify-center"
-              />
             </div>
-          )}
+
+            <PublicIdCard
+              userData={statusData}
+              scaled
+              viewSide={previewSide}
+              frontId="id-card-preview-front"
+              backId="id-card-preview-back"
+              className="justify-center lg:justify-center"
+            />
+          </div>
         </div>
       )}
     </div>

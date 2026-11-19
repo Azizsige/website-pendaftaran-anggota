@@ -8,6 +8,7 @@ import { memberRegistrationSchema, type MemberRegistrationInput } from "@/featur
 import { SETTING_KEYS } from "@/lib/constants/settings";
 import { normalizeIndonesianPhone } from "@/lib/format";
 import { backfillLegacyRejectionIfMissing } from "@/lib/rejection-history";
+import { setRegistrationReceiptCookie } from "@/lib/registration-receipt";
 import { uploadImage } from "@/lib/storage";
 import { logger } from "@/lib/logger";
 
@@ -222,6 +223,11 @@ export async function submitRegistration(formData: FormData) {
           }
         });
       }
+    });
+
+    await setRegistrationReceiptCookie({
+      namaLengkap: parsed.namaLengkap,
+      nim: parsed.nim,
     });
 
     return { success: true };
