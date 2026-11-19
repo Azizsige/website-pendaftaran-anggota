@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { getClientIp } from "@/lib/request";
-import { computeKtaVerificationCode } from "@/lib/kta-verification";
 import { getRejectionHistoryForProfile } from "@/lib/rejection-history";
 import {
   expireElapsedSuspensions,
@@ -99,7 +98,6 @@ export async function checkRegistrationStatus(nim: string, email: string, turnst
         batchYear: profile.batchYear,
         updatedAt: profile.updatedAt,
         suspendedUntil,
-        verificationCode: computeKtaVerificationCode(profile.nim, profile.userId),
         rejectionHistories,
       }
     };

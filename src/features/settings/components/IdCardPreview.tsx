@@ -28,8 +28,7 @@ export const IdCardPreview = () => {
     batchYear: "2024",
     status: "ACTIVE",
     joinDate: new Date(),
-    verificationCode: "8F2A-991C",
-    verificationUrl: "/verifikasi?nim=2026012345&code=8F2A-991C",
+    verificationUrl: "/verifikasi?nim=2026012345",
   };
 
   const config = {

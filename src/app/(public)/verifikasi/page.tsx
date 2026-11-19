@@ -9,7 +9,6 @@ import { checkDatabaseAvailable } from "@/lib/db-health";
 import { getCachedSettingsMap } from "@/lib/settings-cache";
 import { SETTING_KEYS } from "@/lib/constants/settings";
 import { MEMBER_STATUS } from "@/lib/constants/status";
-import { verifyKtaVerificationCode } from "@/lib/kta-verification";
 import {
   expireElapsedSuspensions,
   getSuspendedUntilForProfile,
@@ -21,11 +20,11 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Verifikasi KTA Resmi | Portal Keanggotaan",
-  description: "Verifikasi keaslian Kartu Tanda Anggota (KTA) organisasi melalui kode QR atau SEC-ID.",
+  description: "Verifikasi keaslian Kartu Tanda Anggota (KTA) organisasi melalui kode QR atau NIM.",
 };
 
 export default async function VerifikasiKtaPage(props: {
-  searchParams?: Promise<{ nim?: string; code?: string }>;
+  searchParams?: Promise<{ nim?: string }>;
 }) {
   const dbAvailable = await checkDatabaseAvailable();
   if (!dbAvailable) {
@@ -38,8 +37,8 @@ export default async function VerifikasiKtaPage(props: {
   }
 
   const searchParams = (await props.searchParams) || {};
-  const nim = typeof searchParams.nim === "string" ? searchParams.nim.replace(/\D/g, "").trim() : "";
-  const code = typeof searchParams.code === "string" ? searchParams.code.trim().toUpperCase() : "";
+  const rawNim = typeof searchParams.nim === "string" ? searchParams.nim.trim() : "";
+  const nim = rawNim.replace(/\D/g, "");
 
   const settingsMap = await getCachedSettingsMap();
   const orgName =
@@ -67,13 +66,12 @@ export default async function VerifikasiKtaPage(props: {
     photoUrl: string | null;
   } | null = null;
 
-  if (nim && code) {
+  if (nim) {
     let profile = await prisma.memberProfile.findUnique({
       where: { nim },
       select: {
         id: true,
         nim: true,
-        userId: true,
         faculty: true,
         major: true,
         batchYear: true,
@@ -93,7 +91,6 @@ export default async function VerifikasiKtaPage(props: {
           select: {
             id: true,
             nim: true,
-            userId: true,
             faculty: true,
             major: true,
             batchYear: true,
@@ -107,7 +104,11 @@ export default async function VerifikasiKtaPage(props: {
       }
     }
 
-    if (!profile || !verifyKtaVerificationCode(profile.nim, profile.userId, code)) {
+    if (
+      !profile ||
+      profile.status === MEMBER_STATUS.PENDING ||
+      profile.status === MEMBER_STATUS.REJECTED
+    ) {
       verificationState = "INVALID";
     } else {
       const isActive =
@@ -132,7 +133,7 @@ export default async function VerifikasiKtaPage(props: {
         photoUrl: showPhoto ? profile.photoUrl : null,
       };
     }
-  } else if (nim || code) {
+  } else if (rawNim) {
     verificationState = "INVALID";
   }
 
@@ -234,9 +235,9 @@ export default async function VerifikasiKtaPage(props: {
                 </div>
               )}
               <div>
-                <dt className="font-semibold text-[#475569] dark:text-[#94a89e]">SEC-ID Kartu</dt>
-                <dd className="mt-0.5 font-mono font-bold text-[#0f172a] dark:text-[#eef2f4]">
-                  {code}
+                <dt className="font-semibold text-[#475569] dark:text-[#94a89e]">Status Keanggotaan</dt>
+                <dd className="mt-0.5 font-semibold text-[#005236] dark:text-[#6ee7b7]">
+                  Aktif
                 </dd>
               </div>
             </dl>
@@ -301,10 +302,10 @@ export default async function VerifikasiKtaPage(props: {
             />
             <div>
               <p className="text-sm font-bold text-[#991b1b] dark:text-[#fca5a5]">
-                Kode Verifikasi Tidak Valid
+                Data KTA Tidak Ditemukan
               </p>
               <p className="text-xs text-[#991b1b] dark:text-[#fecaca] mt-1">
-                Kombinasi NIM dan SEC-ID tidak cocok dengan KTA resmi yang terdaftar. Pastikan QR Code dipindai dari kartu resmi.
+                NIM yang dimasukkan tidak terdaftar sebagai anggota resmi pada basis data {orgName}. Pastikan NIM benar atau QR Code dipindai dari kartu resmi.
               </p>
             </div>
           </div>
@@ -312,49 +313,34 @@ export default async function VerifikasiKtaPage(props: {
 
         <form method="GET" action="/verifikasi" className="mt-6 space-y-3 border-t border-[#f1f5f9] pt-5 dark:border-[#24332d]">
           <p className="text-xs font-semibold text-[#334155] dark:text-[#cbd6d0]">
-            Periksa Kode Verifikasi Secara Manual
+            Periksa Keaslian KTA Secara Manual
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="verify-nim" className="block text-xs font-semibold text-[#0f172a] dark:text-[#eef2f4] mb-1">
-                NIM
-              </label>
-              <input
-                id="verify-nim"
-                name="nim"
-                type="text"
-                defaultValue={nim}
-                placeholder="2026012345"
-                required
-                className="w-full min-h-[44px] rounded-lg border border-[#85929f] bg-white px-3 py-2 text-sm font-mono text-[#0f172a] dark:border-[#5f736b] dark:bg-[#1a2723] dark:text-[#eef2f4]"
-              />
-            </div>
-            <div>
-              <label htmlFor="verify-code" className="block text-xs font-semibold text-[#0f172a] dark:text-[#eef2f4] mb-1">
-                SEC-ID
-              </label>
-              <input
-                id="verify-code"
-                name="code"
-                type="text"
-                defaultValue={code}
-                placeholder="XXXX-XXXX"
-                required
-                className="w-full min-h-[44px] rounded-lg border border-[#85929f] bg-white px-3 py-2 text-sm font-mono uppercase text-[#0f172a] dark:border-[#5f736b] dark:bg-[#1a2723] dark:text-[#eef2f4]"
-              />
-            </div>
+          <div>
+            <label htmlFor="verify-nim" className="block text-xs font-semibold text-[#0f172a] dark:text-[#eef2f4] mb-1">
+              Nomor Induk Mahasiswa (NIM)
+            </label>
+            <input
+              id="verify-nim"
+              name="nim"
+              type="text"
+              inputMode="numeric"
+              defaultValue={nim}
+              placeholder="Contoh: 231402011"
+              required
+              className="w-full min-h-[44px] rounded-lg border border-[#5c6b62] bg-white px-3 py-2 text-base sm:text-sm font-mono text-[#0f172a] placeholder:text-[#5c6b62] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:border-[#6c847b] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:placeholder:text-[#94a89e] dark:focus-visible:ring-[#34d399]"
+            />
           </div>
           <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
             <button
               type="submit"
-              className="inline-flex min-h-[44px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#006c49] px-4 py-2 text-sm font-semibold text-white hover:bg-[#005236] dark:bg-[#057a55] dark:hover:bg-[#046c4e] transition-colors"
+              className="inline-flex min-h-[44px] flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#006c49] px-4 py-2 text-sm font-semibold text-white hover:bg-[#005236] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] focus-visible:ring-offset-2 dark:bg-[#057a55] dark:hover:bg-[#046c4e] dark:focus-visible:ring-[#34d399] dark:focus-visible:ring-offset-[#131d1a] transition-colors"
             >
               <Search className="h-4 w-4" aria-hidden="true" />
               <span>Verifikasi KTA</span>
             </button>
             <Link
               href="/cek-status"
-              className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-[#85929f] bg-white px-4 py-2 text-sm font-semibold text-[#0f172a] hover:bg-[#f8fafc] dark:border-[#5f736b] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:hover:bg-[#22322d] transition-colors"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-[#5c6b62] bg-white px-4 py-2 text-sm font-semibold text-[#0f172a] hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#006c49] dark:border-[#6c847b] dark:bg-[#1a2723] dark:text-[#eef2f4] dark:hover:bg-[#22322d] dark:focus-visible:ring-[#34d399] transition-colors"
             >
               Ke Cek Status
             </Link>

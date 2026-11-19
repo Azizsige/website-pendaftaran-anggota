@@ -118,15 +118,6 @@ function resolveMemberStatusBadge(status?: string | null): {
   };
 }
 
-function resolveVerificationCode(member: IdCardData): string {
-  if (member.verificationCode?.trim()) {
-    return member.verificationCode.trim().toUpperCase();
-  }
-  const digits = (member.nim || "00000000").replace(/[^A-Za-z0-9]/g, "").toUpperCase();
-  const padded = (digits + "00000000").slice(0, 8);
-  return `${padded.slice(0, 4)}-${padded.slice(4, 8)}`;
-}
-
 function getCrossOriginAttr(url?: string): "anonymous" | undefined {
   if (!url) return undefined;
   return url.startsWith("data:") || url.startsWith("/") ? undefined : "anonymous";
@@ -162,12 +153,11 @@ export function IdCardFront({
   const memberPrefix = config.memberPrefix ?? "KTA-";
   const memberNim = member.nim?.trim() || "2026012345";
   const memberIdText = `${memberPrefix}${memberNim}`;
-  const secId = resolveVerificationCode(member);
   const statusBadge = resolveMemberStatusBadge(member.status);
 
   const qrPayload =
     member.verificationUrl?.trim() ||
-    `/verifikasi?nim=${encodeURIComponent(memberNim)}&code=${encodeURIComponent(secId)}`;
+    `/verifikasi?nim=${encodeURIComponent(memberNim)}`;
   const qrMatrix = buildQrSvgPath(qrPayload);
 
   return (
@@ -418,9 +408,11 @@ export function IdCardFront({
                 <p className="text-[9.5px] font-medium text-[#53607A] leading-tight mt-1">
                   Scan untuk verifikasi resmi
                 </p>
-                <p className="text-[9.5px] font-mono font-bold text-[#0B1B3D] mt-1">
-                  SEC-ID: {secId}
-                </p>
+                {showNim && (
+                  <p className="text-[9.5px] font-mono font-bold text-[#0B1B3D] mt-1">
+                    NIM: {memberNim}
+                  </p>
+                )}
               </div>
             </div>
           ) : (
@@ -428,9 +420,11 @@ export function IdCardFront({
               <span className="inline-block bg-[#E3F6EC] border border-[#8FD3B1] text-[#0B1B3D] font-extrabold text-[9.5px] px-2 py-0.5 rounded-[6px]">
                 TERVERIFIKASI
               </span>
-              <p className="text-[9.5px] font-mono font-bold text-[#0B1B3D] mt-1">
-                SEC-ID: {secId}
-              </p>
+              {showNim && (
+                <p className="text-[9.5px] font-mono font-bold text-[#0B1B3D] mt-1">
+                  NIM: {memberNim}
+                </p>
+              )}
             </div>
           )}
 
@@ -500,9 +494,9 @@ export function IdCardBack({
   const orgSubtitle = config.orgSubtitle?.trim();
   const periodLabel = config.periodLabel?.trim();
   const showMemberId = config.showMemberId !== false;
+  const showNim = config.showNim !== false;
   const memberNim = member?.nim?.trim() || "2026012345";
   const memberIdText = `${config.memberPrefix ?? "KTA-"}${memberNim}`;
-  const secId = member ? resolveVerificationCode(member) : "0000-0000";
 
   const rawTerms =
     config.terms && config.terms.length > 0
@@ -671,7 +665,9 @@ export function IdCardBack({
             {showMemberId && (
               <p className="text-[10px] font-mono font-bold text-[#0b1e3f]">{memberIdText}</p>
             )}
-            <p className="text-[10px] font-mono text-[#475569]">SEC-ID: {secId}</p>
+            {showNim && (
+              <p className="text-[10px] font-mono text-[#475569]">NIM: {memberNim}</p>
+            )}
           </div>
         </div>
       </div>

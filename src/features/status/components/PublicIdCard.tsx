@@ -104,12 +104,9 @@ export const PublicIdCard = ({
     key in formData ? formData[key] === "true" : defaultValue;
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const verificationUrl =
-    userData.nim && userData.verificationCode
-      ? `${origin}/verifikasi?nim=${encodeURIComponent(userData.nim)}&code=${encodeURIComponent(
-          userData.verificationCode
-        )}`
-      : undefined;
+  const verificationUrl = userData.nim
+    ? `${origin}/verifikasi?nim=${encodeURIComponent(userData.nim)}`
+    : undefined;
 
   const config = {
     orgName:
