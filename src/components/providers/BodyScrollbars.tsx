@@ -16,7 +16,13 @@ export function BodyScrollbars() {
 
   useEffect(() => {
     ensureOverlayScrollbarsPlugins();
-    initialize(document.body);
+    initialize({
+      target: document.body,
+      cancel: {
+        nativeScrollbarsOverlaid: true,
+        body: null,
+      },
+    });
   }, [initialize]);
 
   return null;

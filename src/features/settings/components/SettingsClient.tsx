@@ -54,7 +54,7 @@ function SettingsContent() {
   };
 
   return (
-    <div className="min-h-screen w-full flex-1 overflow-y-auto bg-[#f4f6f8] p-4 sm:p-6 lg:p-8 dark:bg-[#0d1412]">
+    <div className="min-h-screen w-full flex-1 bg-[#f4f6f8] p-4 sm:p-6 lg:p-8 dark:bg-[#0d1412]">
       <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6 pb-12">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-[#0f172a] sm:text-2xl dark:text-[#eef2f4]">

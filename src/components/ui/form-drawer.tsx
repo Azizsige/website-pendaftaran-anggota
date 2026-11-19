@@ -104,7 +104,7 @@ export function FormDrawer({
           </DrawerClose>
         </DrawerHeader>
 
-        <CustomScrollArea className="min-h-0 flex-1" contentClassName="flex flex-col gap-5 p-6">
+        <CustomScrollArea className="min-h-0 flex-1 overscroll-contain" contentClassName="flex flex-col gap-5 p-6">
           {children}
         </CustomScrollArea>
 

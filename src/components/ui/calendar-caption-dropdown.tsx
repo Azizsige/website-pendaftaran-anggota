@@ -151,7 +151,7 @@ export function CalendarCaptionDropdown({
           <CustomScrollArea
             autoHide="never"
             defer={false}
-            className="max-h-56"
+            className="max-h-56 overscroll-contain"
             contentClassName="relative p-1 pr-3 space-y-0.5"
             viewportRef={viewportRef}
             onInitialized={centerSelectedOption}

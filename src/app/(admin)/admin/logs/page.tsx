@@ -51,7 +51,7 @@ export default async function ActivityLogsPage(props: {
     });
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#f4f6f8] p-4 sm:p-6 lg:p-8 dark:bg-[#0d1412]">
+    <div className="flex-1 bg-[#f4f6f8] p-4 sm:p-6 lg:p-8 dark:bg-[#0d1412]">
       <div className="mx-auto flex max-w-[1440px] flex-col gap-6">
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
           <div>

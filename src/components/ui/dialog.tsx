@@ -54,7 +54,7 @@ const DialogContent = React.forwardRef<
           children
         ) : (
           <CustomScrollArea
-            className="max-h-[calc(90vh-2px)] min-h-0 w-full flex-1"
+            className="max-h-[calc(90vh-2px)] min-h-0 w-full flex-1 overscroll-contain"
             contentClassName="w-full"
           >
             {children}

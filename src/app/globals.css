@@ -448,6 +448,10 @@
 }
 
 [data-overlayscrollbars-viewport]:not(html):not(body) {
+  touch-action: pan-x pan-y;
+}
+
+.overscroll-contain [data-overlayscrollbars-viewport] {
   overscroll-behavior: contain;
 }
 

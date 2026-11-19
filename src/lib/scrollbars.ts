@@ -18,7 +18,7 @@ export function ensureOverlayScrollbarsPlugins(): void {
 
 const AXIS_OVERFLOW: Record<ScrollAxis, { x: OverflowBehavior; y: OverflowBehavior }> = {
   y: { x: "hidden", y: "scroll" },
-  x: { x: "scroll", y: "hidden" },
+  x: { x: "scroll", y: "visible-hidden" },
   both: { x: "scroll", y: "scroll" },
 };
 

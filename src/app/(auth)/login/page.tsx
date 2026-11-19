@@ -786,7 +786,7 @@ export default function LoginPage() {
             </div>
 
             <CustomScrollArea
-              className="min-h-0 flex-1"
+              className="min-h-0 flex-1 overscroll-contain"
               contentClassName="px-4 pt-3.5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:px-5 sm:pb-5"
             >
               <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:items-stretch">

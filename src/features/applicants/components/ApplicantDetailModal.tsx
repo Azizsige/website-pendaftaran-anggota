@@ -126,7 +126,7 @@ export default function ApplicantDetailModal({
           </div>
 
           <CustomScrollArea
-          className="flex-1 min-h-0 bg-[#f8fafc] dark:bg-[#0d1412]"
+          className="flex-1 min-h-0 overscroll-contain bg-[#f8fafc] dark:bg-[#0d1412]"
           contentClassName="space-y-6 p-6 text-left"
         >
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">

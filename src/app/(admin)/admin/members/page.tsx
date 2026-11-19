@@ -18,7 +18,7 @@ export default async function MembersPage(props: {
   const { data, totalCount, totalPages, currentPage } = await getMembers(search, status, page, 10);
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#f4f6f8] dark:bg-[#0d1412] p-4 sm:p-6 lg:p-8">
+    <div className="flex-1 bg-[#f4f6f8] dark:bg-[#0d1412] p-4 sm:p-6 lg:p-8">
       <MembersClient
         initialMembers={data}
         totalCount={totalCount}

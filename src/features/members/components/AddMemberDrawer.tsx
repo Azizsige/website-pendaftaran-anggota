@@ -282,7 +282,7 @@ export const AddMemberDrawer = ({
 
         <CustomScrollArea
           viewportRef={topRef}
-          className="relative flex-1 min-h-0"
+          className="relative flex-1 min-h-0 overscroll-contain"
           contentClassName="relative min-h-full"
         >
           {isLoadingSettings ? (

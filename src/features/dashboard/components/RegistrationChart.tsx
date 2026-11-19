@@ -156,6 +156,7 @@ export default function RegistrationChart({
     <div className="h-[280px] sm:h-[300px] w-full relative">
       <canvas
         ref={canvasRef}
+        className="touch-pan-y"
         aria-label="Grafik tren pendaftar masuk organisasi"
       />
       {!hasAnyValue && (
